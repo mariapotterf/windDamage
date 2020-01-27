@@ -89,10 +89,8 @@ spplot(forest_fc,
        "nb_count", 
        col.regions = my.palette,
        cuts = length(my.palette) - 1) 
-text(coordinates(forest_fc), 
-    labels = forest_fc$nb_count) 
 
-polygonsLabel(forest_fc,
+polygonsLabel(coordinates(forest_fc),
               labels=forest_fc$nb_count, 
               method = c("inpolygon"))
 
