@@ -24,6 +24,7 @@ rm(list = ls())
 library(ggplot2)  # for choropleth map plot
 library(broom) # to convert spatial data to dataframe
 library(mapproj)
+library(maptools)
 library(spdep)    # neighbours
 library(rgdal)
 library(rgeos)
@@ -33,6 +34,152 @@ library(dplyr)
 library(spData)
 library(sf)
 library(RColorBrewer)
+
+
+# Try real data
+
+setwd("U:/Desktop/2019_selectWatersheds/raw/myDir")
+
+# Read input forest stand data
+forest_fc = readOGR(getwd(), 
+                    layer = "forest_fc")
+
+windows()
+plot(forest_fc)
+
+
+
+
+# Calculate the open_edge index
+# -----------------
+#  Neighbors
+# -----------------
+
+# continuity based neighbourhood: 
+# import whole 
+# shapefile, do not split it by one feature at time
+nb <- poly2nb(forest_fc, 
+              #row.names = forest_fc,
+              snap = 0) # snap corrects for the gaps/slivers 80
+
+# store the number of neighbours by cell
+forest_fc$nb_count<- card(nb)
+(forest_fc$nb_count)
+
+# plot number of neighbors
+
+# Define my colors
+my.palette <- brewer.pal(n = 9, name = "Greens")
+
+windows()
+plot(forest_fc, 
+     #col = forest_fc$nb_count, 
+     col = "white",
+     border = "grey")
+plot(nb, 
+     coordinates(forest_fc), 
+     add = T, 
+     lwd = 2, 
+     col = "black",
+     pch = 16,
+     cex = 0.5)
+text(forest_fc, "nb_count", col = "red", cex = 1.2)
+
+spplot(forest_fc, 
+       "nb_count", 
+       col.regions = my.palette,
+       cuts = length(my.palette) - 1) 
+text(coordinates(forest_fc), 
+    labels = forest_fc$nb_count) 
+
+polygonsLabel(forest_fc,
+              labels=forest_fc$nb_count, 
+              method = c("inpolygon"))
+
+
+# Has the stand an open edge? Is surrounded by neighbors, pre-value is FALSE
+forest_fc$open_edge = ifelse(card(nb) <8, "TRUE", "FALSE")
+
+# If has complete neighbors,
+# check the differences in height
+
+# Get the position of the cell surrounded by neighbors
+center.index <- which(forest_fc$nb_count == 8)
+
+# Get the stand height of a stand
+# as a vector to compare element wise
+center.height = forest_fc[center.index,]$layer
+
+
+# Loop through the cells with neighbors:
+# keep height of the central stand
+# get height of neighbors
+# compare the height between them
+# if difference is more than 5: => open_edge = TRUE
+for (i in seq_along(center.index)) {
+  
+    # Get central stand height 
+  center.height = polys[center.index[i],]$layer
+
+  # Identify neighbors of the stands
+  # by the index value
+  # print("neighbors are:")
+  nb.index = unlist(nb[center.index[i]])
+
+  # print(nb.index)
+  # Get heights of the stands
+  nb.height = polys[nb.index,]$layer
+
+  # Adjust Center.height length as a vector to compare element wise
+  center.height.v = rep(center.height, length(nb.index))
+
+  # Compare the heights 
+  h.diff = center.height.v - nb.height
+  print(length(h.diff))
+  
+  center.index[i]
+  # if any diference is more than 5
+  # if there is not a difference in height, change open_edge = TRUE
+  # value to "TRUE"
+  if (any(h.diff > 5)) {
+    forest_fc@data[center.index[i],]$open_edge <- "TRUE"
+  }
+}
+
+forest_fc@data
+
+
+
+
+# # Add field to attribute table
+# set.seed(5)
+# 
+# # create fake height
+# forest_fc@data$treeHeight = runif(nrow(forest_fc), 
+#                                   min=0, 
+#                                   max=25)
+
+# remove unnecessary fields to share data
+#forest_fc@data <- subset(forest_fc@data, select = c("treeHeight"))
+
+# Export shapefile to share
+
+# writeOGR(obj=forest_fc, 
+#          dsn="myDir", 
+#          layer="forest_fc", 
+#          driver="ESRI Shapefile")
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # create simple reproductible example
@@ -49,11 +196,11 @@ values(r) <- matrix(data = c(9,  NA, NA, NA, NA, NA,
                     byrow = TRUE)
 
 
-set.seed(5)
-values(r) <- matrix(data = runif(36)*100,
-                    nrow = 6,
-                    ncol = 6, 
-                    byrow = TRUE)
+#set.seed(5)
+#values(r) <- matrix(data = runif(36)*100,
+#                    nrow = 6,
+#                    ncol = 6, 
+#                    byrow = TRUE)
 
 # Convert raster to polygon
 polys <- rasterToPolygons(r)
@@ -159,37 +306,13 @@ polys@data
 
 
 
+# ------------------------------
+# get focal  value moving window
+# ----------------------------
 
 
 
 
-
-
-polys[center.index[1],]$open_edge <- "TRUE"
-# Get list of neighbours
-nb.index = nb[[center.index]]
-
-# Get heights of the stands
-nb.height = polys[nb.index,]$layer
-
-# Compare the heights 
-h.diff = center.height - nb.height
-
-# if there is not a difference in height, change open_edge = TRUE
-# value to "TRUE"
-if (any(h.diff > 5)) {
-  polys@data[6,]$open_edge <- "TRUE"
-}
-
-
-spplot(polys, #"layer", 
-       col.regions = my.palette,
-       cuts = length(my.palette) - 1,
-       col = "transparent")  # number of cuts smaller by one 
-
-
-
-polys@data
 
 
 
@@ -431,35 +554,6 @@ nbrs <- left[which(over(sp::geometry(buff),
 # --------------------------------
 
 
-
-
-
-
-
-
-
-
-
-
-
-setwd("//fileservices.ad.jyu.fi/homes/mpotterf/Desktop/2019_selectWatersheds/raw")
-
-gpkgName = "out_MV_Kitee.gpkg"
-
-# Read input forest stand data
-forest_fc = readOGR(gpkgName, 
-                    layer = "stand")
-
-windows()
-plot(forest_fc)
-
-# Add field to attribute table
-set.seed(5)
-
-# create fake height
-forest_fc@data$treeHeight = runif(nrow(forest_fc), 
-                                  min=0, 
-                                  max=25)
 
 
 
