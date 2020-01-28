@@ -170,38 +170,75 @@ forest_fc@data
 
 
 
+# ------------------------------------
+# stack overflow
+# =================================
+
+# https://gis.stackexchange.com/questions/291824/determine-if-a-polygon-is-not-enclosed-by-other-polygons
+
+rm(list = ls())
+
+library(spdep)    # neighbours
+library(raster)
 
 
-
-
-
-
-
-
-
-
-# create simple reproductible example
-
-r <- raster(nrow=6, ncol=6, crs = "+init=epsg:2957")
-values(r) <- matrix(data = c(9,  NA, NA, NA, NA, NA,
-                             NA, NA, NA, NA, NA, NA, 
+r <- raster(nrow=11, ncol=6, crs = "+init=epsg:2957")
+values(r) <- matrix(data = c(NA,  NA, NA, NA, NA,1,
+                             NA, NA, NA, 1, 1, 1, 
                              NA, NA, 2, 1, 3, 1, 
                              NA, NA, 1, 1, 1, 1,
                              NA, NA, 1, 2, 2, 1,
-                             NA, NA, 1, 1, 1, 1),
-                    nrow = 6,
+                             NA, NA, 1, 1, 1, NA,
+                             NA, 1, 1, 1, 1, NA,
+                             NA, 1, 1, 1, 1, NA,
+                             NA, 1, 1, 1, 1, NA,
+                             NA, 1, 1, 1, NA, NA,
+                             NA, 1, NA, NA, NA, NA),
+                    nrow = 11,
                     ncol = 6, 
                     byrow = TRUE)
 
 
-#set.seed(5)
-#values(r) <- matrix(data = runif(36)*100,
-#                    nrow = 6,
-#                    ncol = 6, 
-#                    byrow = TRUE)
-
 # Convert raster to polygon
 polys <- rasterToPolygons(r)
+
+
+# -----------------
+#  Neighbors
+# -----------------
+
+# continuity based neighbourhood: 
+# import whole 
+# shapefile, do not split it by one feature at time
+nb <- poly2nb(polys, 
+              queen=TRUE, # queen = FALSE refferes to Rook neighborhood
+              #row.names = polys,
+              snap = 0) # snap corrects for the gaps/slivers
+
+
+# store the number of neighbours by cell
+polys$nb_count<- card(nb)
+
+# Has the stand an open edge? Is surrounded by neighbors, pre-value is FALSE
+polys$open_edge = ifelse(card(nb) <max(card(nb)), 1, 0)
+
+
+# If has complete neighbors,
+# check the differences in height
+windows()
+par(mfrow=c(2,1))
+spplot(polys, 
+       "open_edge") #, 
+
+
+
+
+
+
+
+
+
+
 
 # Define my colors
 my.palette <- brewer.pal(n = 7, name = "Greens")
@@ -233,17 +270,25 @@ spplot(polys,
 # import whole 
 # shapefile, do not split it by one feature at time
 nb <- poly2nb(polys, 
+              queen=FALSE,
               #row.names = polys,
-              snap = 10) # snap corrects for the gaps/slivers
+              snap = 0) # snap corrects for the gaps/slivers
 
 # store the number of neighbours by cell
 polys$nb_count<- card(nb)
 
 # Has the stand an open edge? Is surrounded by neighbors, pre-value is FALSE
-polys$open_edge = ifelse(card(nb) <8, "TRUE", "FALSE")
+polys$open_edge = ifelse(card(nb) <max(card(nb)), 1, 0)
 
 # If has complete neighbors,
 # check the differences in height
+
+spplot(polys, 
+       "open_edge") #, 
+       #col.regions = my.palette,
+       #cuts = length(my.palette) - 1,
+       #)  # number of cuts smaller by one col = "transparent"
+
 
 # Get the position of the cell surrounded by neighbors
 center.index <- which(polys$nb_count == 8)
