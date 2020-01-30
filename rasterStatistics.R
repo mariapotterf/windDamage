@@ -37,79 +37,81 @@ gridNames <- list.files(tempSumPath, pattern = "*.tif$")
 poly = readOGR("//fileservices.ad.jyu.fi/homes/mpotterf/Desktop/dataStackOver", 
                layer = "forest_fc")
 
-# change the projection to raster CSC
-# Transform the projection of the nfi.pts (smaller size that GPKG)
-poly.t <- spTransform(poly, proj4string(r))
 
 
 # Get zonal statistics
 # https://rpubs.com/rural_gis/254726
 
 # read the file name as raster
-r<- brick(gridNames[[1]], layer = 0)
+# r<- brick(gridNames[[1]], layer = 0)
 
 r.grds <- lapply(gridNames, brick)
 
-lapply(r.grds, nbands) # check number of bands: 365/366
+# change the projection to raster CSC
+# Transform the projection of the nfi.pts (smaller size that GPKG)
+poly.t <- spTransform(poly, proj4string(r.grds[[1]]))
+
+# Calculate centroids
+centroids <- gCentroid(poly.t, byid = TRUE)
+
+# Add attributes to SpatialPoints object
+# !!!
+#cent.spdf <- SpatialPointsDataFrame(coords = coordinates(centroids),
+#                                    data = poly.t@data)
+
+
+#lapply(r.grds, nbands) # check number of bands: 365/366
 
 # Get the mean temparature value per day per stand (stand contains multiple vectors)
 ls.means<- lapply(r.grds, function(r) {
-  extract(r, 
-          poly, 
-          fun=mean, na.rm=TRUE, df=TRUE)
+  raster::extract(r, 
+                  centroids)  # fun=mean,na.rm=TRUE, df=TRUE
   })
 
-# Check if dataset contains any NA values?
-# remember that standID  = ID are included as first column!
-tempSumYear <- lapply(ls.means, function(df) {
-  df<-df[,!(names(df) %in% c("ID"))]   
-})
+# Remove the base temperatture = 5 c from each daily mean
+ls.diff <- lapply(ls.means, function(df) df - 5)
 
 
-# Make a fake example: 
-# calcutethe temperature sum rowwise
+# calculate the difference with base value
+ls.posit <- lapply(ls.diff, function(df) {
+                                   df[df<0] <- 0
+                                   return(df)
+  })
 
-df <- data.frame(d1 = c(5,1,2,1,5),
-                 d2 = c(6,1,8,1,8),
-                 d3 = c(8,1,9,1,6),
-                 d4 = c(1,2,1,3,0),
-                 d5 = c(1,3,1,2,1),
-                 d6 = c(1,5,2,3,3))
-
-df<-ls.means[[1]]
-
-df[1,]  # get the position by row
-
-tempLim = 2
-n_dd = 2
-
-sum(df[1,][df[1,]>tempLim][1:n_dd])
+# Sum up the positive difference value by year
+ls.sum <- lapply(ls.posit, rowSums)
 
 
-# Make  a function to 
-tempSum <- function(df) {
-  
-  tempLim = 5
-  n_dd = 100
-  
-  # Calculate temperature sum
-  sum(a[a>tempLim][1:n_dd])
-  
-  df<-df[,!(names(df) %in% c("ID"))]
-}
+# Calculate the means for each row in a DF list
+# add it as a new attribute to stands
+poly.t@data$avgTempSum <- rowMeans(do.call(cbind, ls.sum))
 
 
-tempSum(ls.means[[1]])
 
 
-windows()
-par(mar=c(1,1,1,1))
-plot(ls.means[[1]])
+# 
 
 
 
 
 
+
+# working example how to calculate mean value between ataframes by rows!
+df1 = data.frame(val = c(4,1,0))
+df2 = data.frame(val = c(5,2,1))
+df3 = data.frame(val = c(6,3,2))
+
+myLs=list(df1, df2, df3)
+
+
+# create an index or 
+rowMeans(do.call(cbind, myLs))
+
+# Calculate the mean of list by rows
+lapply(myLs, function(df, i) mean(df[i,]))
+
+
+# --------------------------
 
 a = c(1,1,1,1,5,5,5,7,2,1,1,3,5,4,8)
 
