@@ -9,12 +9,12 @@ library(ggplot2)
 
 # Scots pine
 # -----------------------
-b0 = 7.601
-b.taper = 2213.940
-b.height_m = -0.629
+b0                        = 7.601
+b.taper                   = 2213.940
+b.height_m                = -0.629
 b.height_relUpwHeight_sqr = -0.0000482  # squared!
-b.RelUpwHeight_sqr = 0.00269            # squared!!
-b.gapSize = -0.398
+b.RelUpwHeight_sqr        = 0.00269            # squared!!
+b.gapSize                 = -0.398
 
 # Get a vector of coefficients for PINE
 coef.pine = c(b0, b.taper, b.height_m, b.height_relUpwHeight_sqr, b.RelUpwHeight_sqr, b.gapSize)
@@ -24,12 +24,12 @@ coef.pine = c(b0, b.taper, b.height_m, b.height_relUpwHeight_sqr, b.RelUpwHeight
 
 # Norway spruce
 # -----------------------
-b0 = -0.761
-b.taper = 2445.533
-b.height_m = -0.412
+b0                        = -0.761
+b.taper                   = 2445.533
+b.height_m                = -0.412
 b.height_relUpwHeight_sqr = -0.000103
-b.RelUpwHeight_sqr = 0.00648
-b.gapSize = -0.414
+b.RelUpwHeight_sqr        = 0.00648
+b.gapSize                 = -0.414
 
 # Get a vector of coefficients for SPRUCE
 coef.spruce = c(b0, b.taper, b.height_m, b.height_relUpwHeight_sqr, b.RelUpwHeight_sqr, b.gapSize)
@@ -39,12 +39,13 @@ coef.spruce = c(b0, b.taper, b.height_m, b.height_relUpwHeight_sqr, b.RelUpwHeig
 
 # Birch
 # ------------------------
-b0 = 9.150
-b.taper = 2142.711
-b.height_m = -0.632
+b0                        = 9.150
+b.taper                   = 2142.711
+b.height_m                = -0.632
 b.height_relUpwHeight_sqr = -0.0000479
-b.RelUpwHeight_sqr = 0.00269
-b.gapSize = -0.403
+b.RelUpwHeight_sqr        = 0.00269
+b.gapSize                 = -0.403
+
 
 # Get a vector of coefficients for BIRCH
 coef.birch = c(b0, b.taper, b.height_m, b.height_relUpwHeight_sqr, b.RelUpwHeight_sqr, b.gapSize)
@@ -56,11 +57,16 @@ coef.birch = c(b0, b.taper, b.height_m, b.height_relUpwHeight_sqr, b.RelUpwHeigh
 # 1:67 = 0.01492537
 
 
-# Dummy predictors
+
+# --------------------------
+# Dummy example:
+# -------------------------
+
+# Create dummy predictor values
 # calculate taper
-# structure the table
+# reorganize table
 # calculate critical wind speed
-# If the wind speed is more than CWS of a tree, tree will die
+# If the wind speed is more than CWS of a tree, tree needs to die!
 
 n = 5
 df <- data.frame(dbh_cm = c(12,14,20,30,42),
@@ -110,27 +116,3 @@ ggplot(data = df,
 
 
 
-
-
-weight = 2213.940
-
-
-
-
-
-
-
-
-
-
-
-
-alpha = 7.601
-weight = 2213.940
-
-length = -0.032
-height = -0.629
-size = 0.345
-area = 3
-  
-  
