@@ -22,8 +22,8 @@ D_dbh = 50   # diameter at breast height (cm)
 H_max = 50   # total height of the tree  (m)
 hb    = 1.3  # breast height
 
-# Create a vector of the tree sizes
-h = c(0,1,5,10,15,20,25,30,35,40)
+# Create a vector of the  tree segments
+h = 1.3 + c(1:45)  # segments: length = 1m
 
 # predict the diameter at specific height
 d_h = sqrt(D_dbh^2*((H_max-h)/(H_max-hb))^1.6)

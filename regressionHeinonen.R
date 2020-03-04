@@ -16,6 +16,7 @@ b.height_relUpwHeight_sqr = -0.0000482  # squared!
 b.RelUpwHeight_sqr        = 0.00269            # squared!!
 b.gapSize                 = -0.398
 
+
 # Get a vector of coefficients for PINE
 coef.pine = c(b0, b.taper, b.height_m, b.height_relUpwHeight_sqr, b.RelUpwHeight_sqr, b.gapSize)
 
