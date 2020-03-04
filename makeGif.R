@@ -102,7 +102,8 @@ unique(subset(df.bau, year == 2016)$H_dom)
 # Join the geometry table with simulated data
 stand.all<-
   stands.sub %>% 
-  left_join(df.bau, by = c("standid" = "id"))
+  left_join(df.bau, by = c("standid" = "id")) %>% 
+  filter(!is.na(year)) 
 
 # Plot tree height year by year, for one selected regime
 windows()
@@ -112,8 +113,7 @@ ggplot(subset(stand.all, year == 2016)) +
                         high = "darkgreen",
                         space = "Lab", 
                         na.value = "grey", guide = "colourbar")+ 
-  #scale_fill_gradientn(colours = terrain.colors(10)) +
-  #scale_fill_brewer(palette="Greens") +
+ 
   #geom_sf(data = stands.notSimulated, fill = "red") +
   annotation_scale(location = "bl", width_hint = 0.4) +
   annotation_north_arrow(location = "bl", which_north = "true", 
@@ -126,8 +126,8 @@ ggplot(subset(stand.all, year == 2016)) +
                                         size = 0.5), panel.background = element_rect(fill = "aliceblue"))
 
 
-
-ggplot(subset(stand.all, !is.na(year))) + 
+windows()
+ggplot(stand.all) + 
   geom_sf(aes(fill = H_dom)) +
   scale_fill_continuous(low = "lightgreen", 
                         high = "darkgreen",
@@ -141,10 +141,6 @@ ggplot(subset(stand.all, !is.na(year))) +
 
 
 
-
-
-
-
 # Example in R animate
 # https://www.r-graph-gallery.com/271-ggplot2-animated-gif-chart-with-gganimate.html
 
@@ -155,6 +151,7 @@ library(gapminder)
 # Charge libraries:
 library(ggplot2)
 library(gganimate)
+library(transformr)
 
 # Make a ggplot, but add frame=year: one image per year
 ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, color = continent)) +
@@ -165,6 +162,42 @@ ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, color = continent)) +
   labs(title = 'Year: {frame_time}', x = 'GDP per capita', y = 'life expectancy') +
   transition_time(year) +
   ease_aes('linear')
+
+# Save at gif:
+anim_save("271-ggplot2-animated-gif-chart-with-gganimate1.gif")
+
+
+
+
+# My data:
+
+ggplot(stand.all) + 
+  geom_sf(aes(fill = H_dom)) +
+  scale_fill_continuous(low = "lightgreen", 
+                        high = "darkgreen",
+                        space = "Lab", 
+                        na.value = "red", guide = "colourbar")+
+  
+  annotation_scale(location = "bl", width_hint = 0.4) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  theme_bw() +
+  xlab("Longitude") + 
+  ylab("Latitude") +
+ # theme(axis.title=element_blank(),
+  #      axis.text=element_blank(),
+   #     axis.ticks=element_blank()) +
+  # gganimate specific bits:
+  labs(title = 'Pori BAU Year: {current_frame}') +
+  transition_manual(year) +
+  #transition_time(year) +
+  ease_aes('linear')
+
+
+
+
+
 
 # Save at gif:
 anim_save("271-ggplot2-animated-gif-chart-with-gganimate1.gif")
