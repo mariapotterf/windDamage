@@ -44,8 +44,76 @@ setwd("U:/Desktop/2019_selectWatersheds/raw/myDir")
 forest_fc = readOGR(getwd(), 
                     layer = "forest_fc")
 
-windows()
-plot(forest_fc)
+# Identify open edge:
+# read shp forest data row by row
+# for each cell in the middle: 
+# create buffer 16*5 = *) = diameter, r = polomer
+# subset all stands falling within the buffer
+# intersect neighbors woth buffer: is the area > 16*16?? 256 m? 
+#     yes = open_edge == TRUE
+#     no = compare tree tree height between center and neighbors
+# is the difference in tree height > 5 m? 
+#     yes = open_edge == TRUE
+#     no = open_edge == FALSE
+
+# which one is less computationally intense??
+
+#forest_sf <- read_sf("forest_fc.shp")
+
+
+# # --------------------------
+# rgeos::buffer and intersect
+# --------------------------
+
+
+# Subset first row in SpatialPolygonDataFrame
+i = 1
+one = forest_fc[i, ]
+
+# Keep the remaining polygons
+left = forest_fc[-i,]
+
+# Create buffer within distance
+buff = rgeos::gBuffer(one, width = 40)  # diameter 40 m
+
+# Get neighbors of one cell:
+nbrs <- left[which(gTouches(sp::geometry(one),
+                            sp::geometry(left), 
+                            byid = TRUE)),]
+
+# Compare if the values are different 
+height.one  = rep(one@data$treeHeight, nrow(nbrs))
+height.nbrs = nbrs@data$treeHeight
+
+# Get the differences between the neighbouring stands
+difference = height.one - height.nbrs
+
+# If the difference in at least one stand is 
+# in more than 5, set open_edge = TRUE 
+# or if no neighbours find
+
+
+# Does the cell have any neighbors??
+# in no neighbors and the tree height is more then 5
+# , set open_edge == TRUE 
+if_else(nrow(nbrs) == 0 & one$treeHeight > 5, 
+        one$open_edge <- TRUE,   #TRUE
+        if(any(difference > 5)) one$open_edge <- TRUE)
+
+polUpd = one
+
+
+
+
+
+
+
+
+
+
+
+plot(forest_sf)
+
 
 
 
@@ -247,7 +315,6 @@ my.palette <- brewer.pal(n = 7, name = "Greens")
 plot(polys)
 text(polys, 1:length(polys))
 
-
 spplot(polys, 
        "layer", 
        col.regions = my.palette,
@@ -345,22 +412,6 @@ polys@data
 
 
 
-
-
-
-
-# ------------------------------
-# get focal  value moving window
-# ----------------------------
-
-
-
-
-
-
-
-
-# ----------------------------------
 
 
 
