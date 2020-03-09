@@ -2,9 +2,7 @@
 
 # 
 # Peltola Critical wind speeds
-
-
-
+# 1999
 
 
 # ---------------------------------
@@ -18,17 +16,56 @@
 #d(h)^2 = D^2*((H_max-h)/(H_max-hb))^1.6
 
 # What is the stem diameter at specific tree height???
-D_dbh = 50   # diameter at breast height (cm)
-H_max = 50   # total height of the tree  (m)
-hb    = 1.3  # breast height
+D_dbh = 10   # diameter at breast height (cm)
+H_max = 10   # total height of the tree  (m)
+h_dbh    = 1.3  # breast height
+taper = D_dbh/(100*H_max)
 
 # Create a vector of the  tree segments
-h = 1.3 + c(1:45)  # segments: length = 1m
+h = h_dbh + c(1: (H_max-h_dbh))  # segments: length = 1m
 
 # predict the diameter at specific height
-d_h = sqrt(D_dbh^2*((H_max-h)/(H_max-hb))^1.6)
+d_h = sqrt(D_dbh^2*((H_max-h)/(H_max-h_dbh))^1.6)
 
 plot(d_h ~ h, type = "l")
+
+
+
+
+
+# -----------------------------
+
+# Interpret tree taper as ratio?
+# --------------------
+taper = 1/100
+
+h_dbh = 1.3
+D_dbh = 10 
+H_max = 10
+
+# Create a vector of the  tree heights 
+h = h_dbh + c(1: (H_max-h_dbh))  # segments: length = 1m
+
+ 
+
+
+h = 100*c(1:10)
+d_h = c(10:1)
+
+
+
+d_h <- D_dbh - taper*(h-h_dbh)*100
+
+# put height in the same units: centimeters
+# what is the diameter at specific heights? what is teh volume of unique 
+# tree segments?
+20/2000
+10/2000
+50/2000
+
+
+
+2*50*0.001
 
 
 # -------------------------------------------------

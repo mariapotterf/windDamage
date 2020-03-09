@@ -36,10 +36,10 @@ stands.all = read_sf("MV_Pori.shp")
 
 # Get the standid of uqinue stands:
 # subset the shapefiles - only 10 stands
-stands.wind <- unique(df$id)
+stands.simul <- unique(df$id)
 
 # Subset stand geometry:
-stands.sub <- subset(stands.all, standid %in% stands.wind )
+stands.sub <- subset(stands.all, standid %in% stands.simul )
 
 
 
@@ -105,6 +105,9 @@ stand.all<-
   left_join(df.bau, by = c("standid" = "id")) %>% 
   filter(!is.na(year)) 
 
+
+
+
 # Plot tree height year by year, for one selected regime
 windows()
 ggplot(subset(stand.all, year == 2016)) + 
@@ -153,21 +156,6 @@ library(ggplot2)
 library(gganimate)
 library(transformr)
 
-# Make a ggplot, but add frame=year: one image per year
-ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, color = continent)) +
-  geom_point() +
-  scale_x_log10() +
-  theme_bw() +
-  # gganimate specific bits:
-  labs(title = 'Year: {frame_time}', x = 'GDP per capita', y = 'life expectancy') +
-  transition_time(year) +
-  ease_aes('linear')
-
-# Save at gif:
-anim_save("271-ggplot2-animated-gif-chart-with-gganimate1.gif")
-
-
-
 
 # My data:
 
@@ -195,16 +183,40 @@ ggplot(stand.all) +
   ease_aes('linear')
 
 
-
-
-
-
 # Save at gif:
-anim_save("271-ggplot2-animated-gif-chart-with-gganimate1.gif")
+anim_save("pori_BAU.gif")
+
+
+
+ggplot(stand.all) + 
+  geom_sf(aes(fill = BA)) +
+  scale_fill_continuous(low = "lightgreen", 
+                        high = "darkgreen",
+                        space = "Lab", 
+                        na.value = "red", guide = "colourbar")+
+  
+  annotation_scale(location = "bl", width_hint = 0.4) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  theme_bw() +
+  xlab("Longitude") + 
+  ylab("Latitude") +
+  # theme(axis.title=element_blank(),
+  #      axis.text=element_blank(),
+  #     axis.ticks=element_blank()) +
+  # gganimate specific bits:
+  labs(title = 'Pori BAU Year: {current_frame}') +
+  transition_manual(year) +
+  #transition_time(year) +
+  ease_aes('linear')
 
 
 
 
+# Check why do I have NA values in H_dom???
+# because my Harvested_V has increased: 
+# can I replace all NA by ??
 
 
 
@@ -236,6 +248,23 @@ for (k in 1:20) {
 image(X[,,k], col=tim.colors(256)) # show final image in R
 write.gif(X, 'Mandelbrot.gif', col=tim.colors(256), delay=100)
 
+
+
+
+# Another working example:
+
+# Make a ggplot, but add frame=year: one image per year
+ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, color = continent)) +
+  geom_point() +
+  scale_x_log10() +
+  theme_bw() +
+  # gganimate specific bits:
+  labs(title = 'Year: {frame_time}', x = 'GDP per capita', y = 'life expectancy') +
+  transition_time(year) +
+  ease_aes('linear')
+
+# Save at gif:
+anim_save("271-ggplot2-animated-gif-chart-with-gganimate1.gif")
 
 
 

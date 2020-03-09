@@ -25,6 +25,7 @@ library(ggplot2)  # for choropleth map plot
 library(broom) # to convert spatial data to dataframe
 library(mapproj)
 library(maptools)
+
 library(spdep)    # neighbours
 library(rgdal)
 library(rgeos)
@@ -61,25 +62,220 @@ forest_fc = readOGR(getwd(),
 #forest_sf <- read_sf("forest_fc.shp")
 
 
+
+
+
+
+
 # # --------------------------
 # rgeos::buffer and intersect
 # --------------------------
 
 
-# Subset first row in SpatialPolygonDataFrame
-i = 1
+library(spdep)    # neighbours
+library(raster)
+
+
+r <- raster(nrow=11, ncol=6, crs = crs(forest_fc)) #"+init=epsg:2957"
+values(r) <- matrix(data = c(20,  NA, NA, NA, NA,20,
+                             NA, NA, NA, 20, 20, 20, 
+                             NA, NA, 20, 20, 20, 20, 
+                             NA, NA, 20, 20, 20, 20,
+                             NA, NA, 20, 20, 20, 20,
+                             NA, NA, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20),
+                    nrow = 11,
+                    ncol = 6, 
+                    byrow = TRUE)
+
+
+# Convert raster to polygon
+forest_fc <- rasterToPolygons(r)
+forest_fc@data$treeHeight <-  forest_fc@data$layer
+
+
+# Does the polygon has open_edge??
+# Crete new vector to store open_edge value
+forest_fc@data$open_edge <- FALSE
+
+# ---------------------
+
+i = 2
+
+# define stands and leftover forest
+one  = forest_fc[i, ]
+left = forest_fc[-i,]
+
+# # Identify the number of neighbors for each polygon
+# nbrs <- left[which(gTouches(sp::geometry(one),
+#                             sp::geometry(left), 
+#                             byid = TRUE)),]
+# Create buffer and intersectb buffer with neighbors: evalues if any are left?
+buff = buffer(one, 10)
+
+
+# Identify neighbors 
+nbrs.buff <- left[which(gOverlaps(sp::geometry(buff),
+                                  sp::geometry(left), 
+                                  byid = TRUE)),]
+
+windows()
+plot(forest_fc)
+plot(one, add = T, col = "red")
+plot(buff, add = T, col = "green")
+plot(nbrs.buff, add = T, col = "violet")
+
+
+if (nrow(nbrs.buff) == 0) {
+  forest_fc@data[i,]$open_edge <- TRUE  
+  print("zero nbrs")
+} else {
+  print ("more nbrs")
+  print(nrow(nbrs))
+  
+  # Compare the height of the stands: 
+  height.one  = rep(one@data$treeHeight, nrow(nbrs.buff))
+  height.nbrs = nbrs.buff@data$treeHeight
+  
+  # Get the differences between the neighbouring stands
+  difference = height.one - height.nbrs
+  print(difference)
+  
+  # compare here the tree heights of stands
+  if(any(difference > 5)) {
+    forest_fc@data[i,]$open_edge <- TRUE
+    print ("difference more then 5")
+  } else {                    # Check for the gap by the buffer 
+    print ("difference less then 5")
+    # Get the difference between two shapefiles???
+    int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
+    
+        
+    # Is the size of the openning larger than one pixel 16x16 m? 
+    if (!is.null(int.buff.one) ) {
+      print("intersection is not empty")
+      
+      # Calculate area of intersected data
+      int.buff.one.area = gArea(int.buff.one)
+      print("calculating area")
+      
+      if (int.buff.one.area > 16*16) {
+        print("comparing buffs")
+        forest_fc@data[i,]$open_edge <- TRUE
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+forest_fc@data$open_edge <- FALSE
+
+for (i in seq_along(forest_fc)) {
+  
+  # define stands and leftover forest
+  one  = forest_fc[i, ]
+  left = forest_fc[-i,]
+  
+  # Create buffer and intersectb buffer with neighbors: evalues if any are left?
+  buff = buffer(one, 10)
+  
+  
+  # Identify neighbors 
+  nbrs.buff <- left[which(gOverlaps(sp::geometry(buff),
+                                    sp::geometry(left), 
+                                    byid = TRUE)),]
+  
+  
+  if (nrow(nbrs.buff) == 0) {
+    forest_fc@data[i,]$open_edge <- TRUE  
+    print("zero nbrs")
+  } else {
+    print ("more nbrs")
+    print(nrow(nbrs))
+    
+    # Compare the height of the stands: 
+    height.one  = rep(one@data$treeHeight, nrow(nbrs.buff))
+    height.nbrs = nbrs.buff@data$treeHeight
+    
+    # Get the differences between the neighbouring stands
+    difference = height.one - height.nbrs
+    print(difference)
+    
+    # compare here the tree heights of stands
+    if(any(difference > 5)) {
+      forest_fc@data[i,]$open_edge <- TRUE
+      print ("difference more then 5")
+    } else {                    # Check for the gap by the buffer 
+      print ("difference less then 5")
+      # Get the difference between two shapefiles???
+      int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
+      
+      
+      # Is the size of the openning larger than one pixel 16x16 m? 
+      if (!is.null(int.buff.one) ) {
+        print("intersection is not empty")
+        
+        # Calculate area of intersected data
+        int.buff.one.area = gArea(int.buff.one)
+        print("calculating area")
+        
+        if (int.buff.one.area > 16*16) {
+          print("comparing buffs")
+          forest_fc@data[i,]$open_edge <- TRUE
+        }
+      }
+    }
+  }
+  
+}
+
+forest_fc@data
+
+
+
+
+
+
+i = 20
 one = forest_fc[i, ]
 
 # Keep the remaining polygons
 left = forest_fc[-i,]
 
-# Create buffer within distance
-buff = rgeos::gBuffer(one, width = 40)  # diameter 40 m
-
 # Get neighbors of one cell:
 nbrs <- left[which(gTouches(sp::geometry(one),
                             sp::geometry(left), 
                             byid = TRUE)),]
+
+
+nbrs.buff <- left[which(gOverlaps(sp::geometry(buff),
+                            sp::geometry(left), 
+                            byid = TRUE)),]
+
 
 # Compare if the values are different 
 height.one  = rep(one@data$treeHeight, nrow(nbrs))
@@ -91,6 +287,37 @@ difference = height.one - height.nbrs
 # If the difference in at least one stand is 
 # in more than 5, set open_edge = TRUE 
 # or if no neighbours find
+
+# Create buffer and intersectb buffer with neighbors: evalues if any are left?
+buff = buffer(one, 40)
+
+#int.buff.one = raster::intersect(nbrs.buff, buff)
+# Get the difference between two sapefiles???
+int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
+
+# Calculate area of intersected data
+int.buff.one.area = gArea(int.buff.one)
+
+if (int.buff.one.area > 16*16){
+  forest_fc@data[i,]$open_edge <- TRUE
+}
+
+
+
+
+
+plot(forest_fc)
+plot(nbrs, col = "lightgreen", add = T)
+plot(buff, add = T)
+
+plot(one, add = T, col = "red")
+plot(nbrs.buff, add = T, col = "blue")
+plot(int.buff.one, add = T, col = "darkgreen")
+
+
+# how to account for gap or slivers?
+
+
 
 
 # Does the cell have any neighbors??
@@ -251,15 +478,15 @@ library(raster)
 
 
 r <- raster(nrow=11, ncol=6, crs = "+init=epsg:2957")
-values(r) <- matrix(data = c(NA,  NA, NA, NA, NA,1,
+values(r) <- matrix(data = c(10,  NA, NA, NA, NA,1,
                              NA, NA, NA, 1, 1, 1, 
-                             NA, NA, 2, 1, 3, 1, 
+                             NA, NA, 2,20, 3, 1, 
                              NA, NA, 1, 1, 1, 1,
                              NA, NA, 1, 2, 2, 1,
                              NA, NA, 1, 1, 1, NA,
-                             NA, 1, 1, 1, 1, NA,
-                             NA, 1, 1, 1, 1, NA,
-                             NA, 1, 1, 1, 1, NA,
+                             NA, 1, 20, 20, 20, NA,
+                             NA, 1, 20, 20, 20, NA,
+                             NA, 1, 20, 20, 20, NA,
                              NA, 1, 1, 1, NA, NA,
                              NA, 1, NA, NA, NA, NA),
                     nrow = 11,
