@@ -22,9 +22,9 @@
 rm(list = ls())
 
 library(ggplot2)  # for choropleth map plot
-library(broom) # to convert spatial data to dataframe
-library(mapproj)
-library(maptools)
+#library(broom) # to convert spatial data to dataframe
+#library(mapproj)
+#library(maptools)
 
 library(spdep)    # neighbours
 library(rgdal)
@@ -34,7 +34,7 @@ library(raster)
 library(dplyr)
 library(spData)
 library(sf)
-library(RColorBrewer)
+#library(RColorBrewer)
 
 
 # Try real data
@@ -44,6 +44,8 @@ setwd("U:/Desktop/2019_selectWatersheds/raw/myDir")
 # Read input forest stand data
 forest_fc = readOGR(getwd(), 
                     layer = "forest_fc")
+
+my.sf = read_sf("forest_fc.shp")
 
 # Identify open edge:
 # read shp forest data row by row
@@ -57,60 +59,73 @@ forest_fc = readOGR(getwd(),
 #     yes = open_edge == TRUE
 #     no = open_edge == FALSE
 
-# which one is less computationally intense??
+
+# ==================================
+
+# Make a function using 'simplefeature' approach??
 
 
 
-# Create new variable
-forest_fc@data$open_edge <- FALSE
 
 
-# loop through the dataframe
-forest_fc@data$open_edge <- FALSE
-for (i in seq_along(forest_fc)) {
+
+# run on my data
+# ----------------------------------
+
+my.sf$open_edge <- FALSE
+
+# Subset the data to create two independent shps
+i = 15
+
+for (i in 1:nrow(my.sf)) {
   
   # define stands and leftover forest
-  one  = forest_fc[i, ]
-  left = forest_fc[-i,]
+  one  = my.sf[i, ]
+  left = my.sf[-i,]
+  
   
   # Create buffer and intersectb buffer with neighbors: evalues if any are left?
-  buff = buffer(one, 40)
+  buff = st_buffer(one, 40) # distance
   
   
-  # Identify neighbors 
-  nbrs.buff <- left[which(gOverlaps(sp::geometry(buff),
-                                    sp::geometry(left), 
-                                    byid = TRUE)),]
+  # Subset the polygons that overlaps with the buffer
+  nbrs.buff <- left[st_overlaps(buff,left)[[1]],]
   
-  # Conditions for open edge
+  
   if (nrow(nbrs.buff) == 0) {
-    forest_fc@data[i,]$open_edge <- TRUE  
-   
-  } else {
+    my.sf[i,]$open_edge <- TRUE  
+    
+  } else {  # neighbors are smaller than the stands
     
     # Compare the height of the stands: 
-    height.one  = rep(one@data$treeHeight, nrow(nbrs.buff))
-    height.nbrs = nbrs.buff@data$treeHeight
+    height.one  = rep(one$treeHeight, nrow(nbrs.buff))
+    height.nbrs = nbrs.buff$treeHeight
     
     # Get the differences between the neighbouring stands
     difference = height.one - height.nbrs
     
     # compare here the tree heights of stands
     if(any(difference > 5)) {
-      forest_fc@data[i,]$open_edge <- TRUE
-    } else {                    # Check for the gap by the buffer 
-     
+      my.sf[i,]$open_edge <- TRUE
+      
+      # Check if there is a big gap in neighborhood    
+    } else {                     
+      
       # Get the difference between two shapefiles???
-      int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
+      #int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
+      u <- st_union(st_geometry(nbrs.buff), st_geometry(one))
+      int.buff.one = st_difference(st_geometry(nbrs.buff), st_geometry(u)) 
+      #int.buff.one = st_erase(nbrs.buff, u) 
+      
       
       # Is the size of the openning larger than one pixel 16x16 m? 
       if (!is.null(int.buff.one) ) {
         
         # Calculate area of intersected data
-        int.buff.one.area = gArea(int.buff.one)
+        int.buff.one.area = st_area(int.buff.one)
         
-        if (int.buff.one.area > 16*16) {
-          forest_fc@data[i,]$open_edge <- TRUE
+        if (as.numeric(int.buff.one.area) > 16*16) {
+          my.sf[i,]$open_edge <- TRUE
         }
       }
     }
@@ -118,20 +133,209 @@ for (i in seq_along(forest_fc)) {
 }
 
 
+st_erase = function(x, y) st_difference(x, st_union(st_combine(y)))
 
-forest_fc@data
-
-
-plot(forest_fc)
-
+# THis function creates tha all teh stands has open edge!!!
+# need to further test!!!
 
 
-# Make a function
 
-defineOpenEdge <- function(spdf, treeHeight, distance = 40, pixel.width = 16, ...) {
+ggplot(int.buff.one) + 
+  geom_sf() 
+
+
+
+ggplot(int.buff.one) + 
+  geom_sf() +
+  geom_sf(data = u, aes(col = "yellow")) +
+  #geom_sf(data = int.buff.one, aes(col = "blue")) +
+  #geom_sf(data = nbrs.buff) + 
+  geom_sf(data = one, aes(col = "red")) +
+  geom_sf(data = int.buff.one)
+
+
+
+
+
+ggplot(int.buff.one) +
+  geom_sf() #+
+geom_sf(data = buff, aes(color = "red")) +
+  geom_sf(data = nbrs.buff) +
+  geom_sf(data = one) +
+  geom_sf(data = int.buff.one, aes(col = "yellow")) 
+
+
+
+# example: correct erase tool??
+# ----------------------------------------
+
+# Load data
+shp = system.file("shape/nc.shp", package="sf")
+
+my.sf <- st_read(shp, quiet = TRUE)
+
+# Convert crs to projected system to make buffer
+my.sf.web<- st_transform(my.sf, 3857)
+
+# Subset the data to create two independent shps
+i = 10
+
+# Split datasets in two files
+one  = my.sf.web[i, ]
+left = my.sf.web[-i,]
+
+# Create buffer 
+buff = st_buffer(one, 35000 ) # distance
+
+
+# CHeck which polygons overlaps with my buffer
+out.overlap = st_overlaps(buff, left)
+
+
+# Subset the polygons that overlaps with the buffer
+nbrs.buff <- left[st_overlaps(buff,left)[[1]],]
+
+
+u <- st_union(st_geometry(nbrs.buff), st_geometry(one), by_feature = FALSE)
+#u <- st_union(st_combine(st_geometry(nbrs.buff)), 
+ #             st_combine(st_geometry(one)))
+int.buff.one = st_difference(buff, u) 
+
+#int.buff.one = st_sym_difference(st_geometry(buff), st_geometry(u)) 
+
+
+st_erase = function(x, y) st_difference(x, st_union(st_combine(y)))
+erased <- st_erase(buff, u)
+
+#int.buff.one =rgeos::gDifference(st_geometry(u), st_geometry(buff))
+
+#int.buff.one = st_erase(nbrs.buff, u) 
+
+ggplot(buff) + 
+  geom_sf() +
+  geom_sf(data = nbrs.buff) +
+  geom_sf(data = int.buff.one, aes(col = "violet")) +
+  geom_sf(data = u, aes(col = "yellow")) #+
+  #geom_sf(data = one, aes(col = "red")) +
+  #geom_sf(data = buff)
+
+
+library(ggpubr)
+
+p1 <- ggplot(u) + 
+  geom_sf() + 
+  geom_sf(data = buff, fill = "red") + 
+  ggtitle("Buffer") + theme_bw()
+
+p2 <- ggplot(u) + 
+  geom_sf(data = buff) +
+  geom_sf( fill = "red") +
+  #geom_sf(data = int.buff.one, fill = "violet") +
+  ggtitle("Union")  + theme_bw()
+
+p3 <- ggplot(buff) + 
+  geom_sf() +
+  geom_sf(data = nbrs.buff) +
+  geom_sf(data = int.buff.one, fill = "red") +
+  geom_sf(data = u, fill = NA, col  = "black") +
+  ggtitle("Erase buffer - Union") + theme_bw()
+
+  
+
+library("gridExtra")
+grid.arrange(p1, p2, p3, ncol = 3, nrow = 1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+st_overlaps(buff,left)[[1]]
+
+
+
+ggplot(my.sf.web) + geom_sf(aes(fill = AREA))  +
+   geom_sf(data = buff, aes(color = "red")) +
+  geom_sf(data = one) +
+  geom_sf(data = nbrs.buff)
+
+
+
+
+
+# Conditions for open edge:
+#    - no neighbors
+if (nrow(nbrs.buff) == 0) {
+  spdf@data[i,]$open_edge <- TRUE  
+  
+} else {  # neighbors are smaller than the stands
+  
+  # Compare the height of the stands: 
+  height.one  = rep(one@data$treeHeight, nrow(nbrs.buff))
+  height.nbrs = nbrs.buff@data$treeHeight
+  
+  # Get the differences between the neighbouring stands
+  difference = height.one - height.nbrs
+  
+  # compare here the tree heights of stands
+  if(any(difference > 5)) {
+    spdf@data[i,]$open_edge <- TRUE
+    
+    # Check if there is a big gap in neighborhood    
+  } else {                     
+    
+    # Get the difference between two shapefiles???
+    int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
+    
+    # Is the size of the openning larger than one pixel 16x16 m? 
+    if (!is.null(int.buff.one) ) {
+      
+      # Calculate area of intersected data
+      int.buff.one.area = gArea(int.buff.one)
+      
+      if (int.buff.one.area > 16*16) {
+        spdf@data[i,]$open_edge <- TRUE
+      }
+    }
+  }
+}
+
+
+
+
+
+# Make a function: find open edge
+
+identifyOpenEdge <- function(spdf, treeHeight, distance = 40, pixel.width = 16, ...) {
   
   # loop through the dataframe
   spdf@data$open_edge <- FALSE
+  
   for (i in seq_along(spdf)) {
     
     # define stands and leftover forest
@@ -190,7 +394,7 @@ defineOpenEdge <- function(spdf, treeHeight, distance = 40, pixel.width = 16, ..
 
 # Create output file:
 windows()
-outfc = defineOpenEdge(spdf = forest_fc, treeHeight = treeHeight, distance = 10)
+outfc = identifyOpenEdge(spdf = forest_fc, treeHeight = treeHeight, distance = 10)
 
 
 plot(outfc)
@@ -216,7 +420,88 @@ plot(nbrs.buff, add = T, col = "blue")
 plot(int.buff.one, add = T, col = "darkgreen")
 
 
-# how to account for gap or slivers?
+
+
+
+
+
+
+
+
+# ---------------------------------------
+#
+# working example
+
+# -----------------------------------
+
+
+# Create new variable
+forest_fc@data$open_edge <- FALSE
+
+
+# loop through the dataframe
+forest_fc@data$open_edge <- FALSE
+for (i in seq_along(forest_fc)) {
+  
+  # define stands and leftover forest
+  one  = forest_fc[i, ]
+  left = forest_fc[-i,]
+  
+  # Create buffer and intersectb buffer with neighbors: evalues if any are left?
+  buff = buffer(one, 40)
+  
+  
+  # Identify neighbors 
+  nbrs.buff <- left[which(gOverlaps(sp::geometry(buff),
+                                    sp::geometry(left), 
+                                    byid = TRUE)),]
+  
+  # Conditions for open edge
+  if (nrow(nbrs.buff) == 0) {
+    forest_fc@data[i,]$open_edge <- TRUE  
+    
+  } else {
+    
+    # Compare the height of the stands: 
+    height.one  = rep(one@data$treeHeight, nrow(nbrs.buff))
+    height.nbrs = nbrs.buff@data$treeHeight
+    
+    # Get the differences between the neighbouring stands
+    difference = height.one - height.nbrs
+    
+    # compare here the tree heights of stands
+    if(any(difference > 5)) {
+      forest_fc@data[i,]$open_edge <- TRUE
+    } else {                    # Check for the gap by the buffer 
+      
+      # Get the difference between two shapefiles???
+      int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
+      
+      # Is the size of the openning larger than one pixel 16x16 m? 
+      if (!is.null(int.buff.one) ) {
+        
+        # Calculate area of intersected data
+        int.buff.one.area = gArea(int.buff.one)
+        
+        if (int.buff.one.area > 16*16) {
+          forest_fc@data[i,]$open_edge <- TRUE
+        }
+      }
+    }
+  }
+}
+
+
+
+forest_fc@data
+
+
+plot(forest_fc)
+
+
+
+
+
 
 
 

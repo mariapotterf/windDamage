@@ -34,7 +34,7 @@ df <- read.csv( "rsl_without_MV_Pori.csv", sep = ";")
 stands.all = read_sf("MV_Pori.shp")
 
 
-# Get the standid of uqinue stands:
+# Get the standid of unique stands:
 # subset the shapefiles - only 10 stands
 stands.simul <- unique(df$id)
 
@@ -63,7 +63,7 @@ length(unique(df$regime))
 df$id <- as.character(df$id)
 
 
-# Subset by one regime, to create clen attribute table
+# Subset by one regime, to create clean attribute table
 df.bau<-
   df %>% 
   filter(regime == "BAU") %>% 
