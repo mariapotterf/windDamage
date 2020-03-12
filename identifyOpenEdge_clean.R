@@ -75,7 +75,7 @@ my.sf = read_sf("forest_fc.shp")
 my.sf$open_edge <- FALSE
 
 # Subset the data to create two independent shps
-i = 15
+i = 16
 
 for (i in 1:nrow(my.sf)) {
   
@@ -83,15 +83,13 @@ for (i in 1:nrow(my.sf)) {
   one  = my.sf[i, ]
   left = my.sf[-i,]
   
-  
   # Create buffer and intersectb buffer with neighbors: evalues if any are left?
-  buff = st_buffer(one, 40) # distance
-  
+  buff = st_buffer(one, 5) # distance
   
   # Subset the polygons that overlaps with the buffer
   nbrs.buff <- left[st_overlaps(buff,left)[[1]],]
   
-  
+  # If conditions to determine if the forest has open edge or not
   if (nrow(nbrs.buff) == 0) {
     my.sf[i,]$open_edge <- TRUE  
     
@@ -112,10 +110,11 @@ for (i in 1:nrow(my.sf)) {
     } else {                     
       
       # Get the difference between two shapefiles???
-      #int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
-      u <- st_union(st_geometry(nbrs.buff), st_geometry(one))
-      int.buff.one = st_difference(st_geometry(nbrs.buff), st_geometry(u)) 
-      #int.buff.one = st_erase(nbrs.buff, u) 
+      # Add `one` to `neighbors` and dissolve (union) inner boundaries  
+      u <- st_union(rbind(nbrs.buff, one))
+      
+      # Erase existing stands from the buffer
+      int.buff.one = st_difference(st_geometry(buff), st_geometry(u)) 
       
       
       # Is the size of the openning larger than one pixel 16x16 m? 
@@ -132,26 +131,37 @@ for (i in 1:nrow(my.sf)) {
   }
 }
 
-
-st_erase = function(x, y) st_difference(x, st_union(st_combine(y)))
-
-# THis function creates tha all teh stands has open edge!!!
-# need to further test!!!
+my.sf[i,]$open_edge
 
 
 
-ggplot(int.buff.one) + 
-  geom_sf() 
+# There are different results with nbrs.buff10 and 40??
+height.one  = rep(one$treeHeight, nrow(nbrs.buff10))
+height.nbrs10 = nbrs.buff10$treeHeight
+difference10 = height.one - height.nbrs10
+
+
+height.one  = rep(one$treeHeight, nrow(nbrs.buff40))
+height.nbrs40 = nbrs.buff40$treeHeight
+difference40 = height.one - height.nbrs40
 
 
 
-ggplot(int.buff.one) + 
+
+ggplot(my.sf) + 
+  geom_sf(aes(fill = open_edge)) +
+  geom_sf_label(aes(label =  row.names(my.sf)))
+
+
+
+ggplot(my.sf) + 
   geom_sf() +
-  geom_sf(data = u, aes(col = "yellow")) +
-  #geom_sf(data = int.buff.one, aes(col = "blue")) +
+  geom_sf(data = nbrs.buff40, fill = "lightblue") +
+  geom_sf(data = nbrs.buff10, fill = "lightgreen") +
+  geom_sf(data = buff40, fill = "blue") +
+  geom_sf(data = buff10, fill = "green") +
   #geom_sf(data = nbrs.buff) + 
-  geom_sf(data = one, aes(col = "red")) +
-  geom_sf(data = int.buff.one)
+  geom_sf(data = one, fill = "red") 
 
 
 
@@ -166,8 +176,23 @@ geom_sf(data = buff, aes(color = "red")) +
 
 
 
+
+
+
+# ---------------------------------------
 # example: correct erase tool??
 # ----------------------------------------
+
+library(ggplot2)  # for choropleth map plot
+library(spdep)    # neighbours
+library(rgdal)
+library(rgeos)
+library(sf)
+library(raster)
+library(dplyr)
+library(spData)
+library(sf)
+
 
 # Load data
 shp = system.file("shape/nc.shp", package="sf")
@@ -195,21 +220,24 @@ out.overlap = st_overlaps(buff, left)
 # Subset the polygons that overlaps with the buffer
 nbrs.buff <- left[st_overlaps(buff,left)[[1]],]
 
+# Merge together `neighbors`` and `one`
+u <- st_union(rbind(nbrs.buff, one))
 
-u <- st_union(st_geometry(nbrs.buff), st_geometry(one), by_feature = FALSE)
+#u <- st_union(st_geometry(nbrs.buff), st_geometry(one), by_feature = FALSE)
 #u <- st_union(st_combine(st_geometry(nbrs.buff)), 
  #             st_combine(st_geometry(one)))
 int.buff.one = st_difference(buff, u) 
 
-#int.buff.one = st_sym_difference(st_geometry(buff), st_geometry(u)) 
+int.buff.one.area <- st_area(int.buff.one)
 
 
-st_erase = function(x, y) st_difference(x, st_union(st_combine(y)))
-erased <- st_erase(buff, u)
 
-#int.buff.one =rgeos::gDifference(st_geometry(u), st_geometry(buff))
 
-#int.buff.one = st_erase(nbrs.buff, u) 
+
+
+
+
+
 
 ggplot(buff) + 
   geom_sf() +
