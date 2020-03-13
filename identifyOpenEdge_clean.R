@@ -85,24 +85,6 @@ values(r) <- matrix(data = c(20,  NA, NA, NA, NA,20,
 # Convert raster to polygon
 forest_fc <- rasterToPolygons(r)
 
-my.sf<-st_as_sf(forest_fc)
-names(my.sf) <- c("treeHeight", "geometry")
-
-#forest_fc@data$treeHeight <-  forest_fc@data$layer
-
-
-# Does the polygon has open_edge??
-# Crete new vector to store open_edge value
-#forest_fc@data$open_edge <- FALSE
-
-
-
-
-
-
-
-
-
 
 # run on my data
 # ----------------------------------
@@ -113,7 +95,7 @@ names(my.sf) <- c("treeHeight", "geometry")
 my.sf$open_edge <- FALSE
 
 # Subset the data to create two independent shps
-i = 46
+#i = 46
 
 for (i in 1:nrow(my.sf)) {
   print(i)
@@ -171,7 +153,24 @@ for (i in 1:nrow(my.sf)) {
 
 
 
-# ==================================================
+
+
+# -------------------------------
+# Create sf and spdf input data
+# -------------------------------
+
+# SF
+my.sf<-st_as_sf(forest_fc)
+names(my.sf) <- c("treeHeight", "geometry")
+
+
+# SPDF
+forest_fc@data$treeHeight <-  forest_fc@data$layer
+
+
+
+
+# --------------------------------------------------
 # Make open_edge function for sf objects
 # --------------------------------------------------
 
@@ -236,14 +235,119 @@ findOpenEdge_sf <- function(sf, treeHeight, distance = 40, pixel.width = 16, ...
 } 
 
 
-
+# CHeck execution time
+start_time <- Sys.time()
 sf.open<- findOpenEdge_sf(sf = my.sf, treeHeight=treeHeight, distance = 10, pixel.width = 16)
+end_time <- Sys.time()
 
-# run the function for the spdf and check system time
+end_time - start_time
+
+
+
+# --------------------------------------------------
+# Make open_edge function for spdf objects
+# --------------------------------------------------
+
+
+# Make a function: find open edge
+
+identifyOpenEdge_spdf <- function(spdf, treeHeight, distance = 40, pixel.width = 16, ...) {
+  
+  # loop through the dataframe
+  spdf@data$open_edge <- FALSE
+  
+  for (i in seq_along(spdf)) {
+    
+    # define stands and leftover forest
+    one  = spdf[i, ]
+    left = spdf[-i,]
+    
+    # Create buffer and intersectb buffer with neighbors: evalues if any are left?
+    buff = buffer(one, distance)
+    
+    
+    # Identify neighbors 
+    nbrs.buff <- left[which(gOverlaps(sp::geometry(buff),
+                                      sp::geometry(left), 
+                                      byid = TRUE)),]
+    
+    # Conditions for open edge:
+    #    - no neighbors
+    if (nrow(nbrs.buff) == 0) {
+      spdf@data[i,]$open_edge <- TRUE  
+      
+    } else {  # neighbors are smaller than the stands
+      
+      # Compare the height of the stands: 
+      height.one  = rep(one@data$treeHeight, nrow(nbrs.buff))
+      height.nbrs = nbrs.buff@data$treeHeight
+      
+      # Get the differences between the neighbouring stands
+      difference = height.one - height.nbrs
+      
+      # compare here the tree heights of stands
+      if(any(difference > 5)) {
+        spdf@data[i,]$open_edge <- TRUE
+        
+        # Check if there is a big gap in neighborhood    
+      } else {                     
+        
+        # Get the difference between two shapefiles???
+        int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
+        
+        # Is the size of the openning larger than one pixel 16x16 m? 
+        if (!is.null(int.buff.one) ) {
+          
+          # Calculate area of intersected data
+          int.buff.one.area = gArea(int.buff.one)
+          
+          if (int.buff.one.area > 16*16) {
+            spdf@data[i,]$open_edge <- TRUE
+          }
+        }
+      }
+    }
+  }
+  return(spdf) 
+} 
+
+
+# Create output file:
+
+start_time <- Sys.time()
+spdf.open = identifyOpenEdge_spdf(spdf = forest_fc, treeHeight = treeHeight, distance = 10)
+end_time <- Sys.time()
+
+end_time - start_time
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ============================================
+# 
+#   Compare execution time
+#
+# ============================================
+
+# between functions for spdf and sf objects
 #
 
+sleep_for_a_30sec <- function() { Sys.sleep(30) }
 
+start_time <- Sys.time()
+sleep_for_a_30sec()
+end_time <- Sys.time()
 
+end_time - start_time
 
 
 
@@ -316,73 +420,6 @@ if (nrow(nbrs.buff) == 0) {
 
 
 
-
-# Make a function: find open edge
-
-identifyOpenEdge_spdf <- function(spdf, treeHeight, distance = 40, pixel.width = 16, ...) {
-  
-  # loop through the dataframe
-  spdf@data$open_edge <- FALSE
-  
-  for (i in seq_along(spdf)) {
-    
-    # define stands and leftover forest
-    one  = spdf[i, ]
-    left = spdf[-i,]
-    
-    # Create buffer and intersectb buffer with neighbors: evalues if any are left?
-    buff = buffer(one, distance)
-    
-    
-    # Identify neighbors 
-    nbrs.buff <- left[which(gOverlaps(sp::geometry(buff),
-                                      sp::geometry(left), 
-                                      byid = TRUE)),]
-    
-    # Conditions for open edge:
-    #    - no neighbors
-    if (nrow(nbrs.buff) == 0) {
-      spdf@data[i,]$open_edge <- TRUE  
-      
-    } else {  # neighbors are smaller than the stands
-      
-      # Compare the height of the stands: 
-      height.one  = rep(one@data$treeHeight, nrow(nbrs.buff))
-      height.nbrs = nbrs.buff@data$treeHeight
-      
-      # Get the differences between the neighbouring stands
-      difference = height.one - height.nbrs
-      
-      # compare here the tree heights of stands
-      if(any(difference > 5)) {
-        spdf@data[i,]$open_edge <- TRUE
-      
-      # Check if there is a big gap in neighborhood    
-      } else {                     
-        
-        # Get the difference between two shapefiles???
-        int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
-        
-        # Is the size of the openning larger than one pixel 16x16 m? 
-        if (!is.null(int.buff.one) ) {
-          
-          # Calculate area of intersected data
-          int.buff.one.area = gArea(int.buff.one)
-          
-          if (int.buff.one.area > 16*16) {
-            spdf@data[i,]$open_edge <- TRUE
-          }
-        }
-      }
-    }
-  }
- return(spdf) 
-} 
-
-
-# Create output file:
-windows()
-outfc = identifyOpenEdge_spdf(spdf = forest_fc, treeHeight = treeHeight, distance = 10)
 
 
 plot(outfc)
