@@ -1,76 +1,13 @@
 
 
-#source("identifyOpenEdge_clean.R")
-
-getwd()
-
-
 # 
 rm(list = ls())
 
 
+setwd("C:/MyTemp/myGitLab/windDamage")
 
-# Make a function: find open edge
+source("myFunctions.R")
 
-identifyOpenEdge <- function(spdf, treeHeight, distance = 40, pixel.width = 16, ...) {
-  
-  # loop through the dataframe
-  spdf@data$open_edge <- FALSE
-  
-  for (i in seq_along(spdf)) {
-    
-    # define stands and leftover forest
-    one  = spdf[i, ]
-    left = spdf[-i,]
-    
-    # Create buffer and intersectb buffer with neighbors: evalues if any are left?
-    buff = buffer(one, distance)
-    
-    
-    # Identify neighbors 
-    nbrs.buff <- left[which(gOverlaps(sp::geometry(buff),
-                                      sp::geometry(left), 
-                                      byid = TRUE)),]
-    
-    # Conditions for open edge:
-    #    - no neighbors
-    if (nrow(nbrs.buff) == 0) {
-      spdf@data[i,]$open_edge <- TRUE  
-      
-    } else {  # neighbors are smaller than the stands
-      
-      # Compare the height of the stands: 
-      height.one  = rep(one@data$treeHeight, nrow(nbrs.buff))
-      height.nbrs = nbrs.buff@data$treeHeight
-      
-      # Get the differences between the neighbouring stands
-      difference = height.one - height.nbrs
-      
-      # compare here the tree heights of stands
-      if(any(difference > 5)) {
-        spdf@data[i,]$open_edge <- TRUE
-        
-        # Check if there is a big gap in neighborhood    
-      } else {                     
-        
-        # Get the difference between two shapefiles???
-        int.buff.one = rgeos::gDifference(buff, nbrs.buff + one)
-        
-        # Is the size of the openning larger than one pixel 16x16 m? 
-        if (!is.null(int.buff.one) ) {
-          
-          # Calculate area of intersected data
-          int.buff.one.area = gArea(int.buff.one)
-          
-          if (int.buff.one.area > 16*16) {
-            spdf@data[i,]$open_edge <- TRUE
-          }
-        }
-      }
-    }
-  }
-  return(spdf) 
-} 
 
 
 
@@ -97,21 +34,31 @@ setwd("U:/projects/2019_windthrowModel/Janita/outSimulated")
 df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate change is not included
 
 # Read stand geometry
-#stands.all = read_sf("MV_Korsnas.shp")
-stands.all = readOGR(dsn = getwd(),
-                     layer = "MV_Korsnas")
-   
-# Get the standid of unique stands - no all stands were simulated
+df.geom = read_sf("MV_Korsnas.shp")
+#df.geom = readOGR(dsn = getwd(),
+ #                    layer = "MV_Korsnas")
+
+
+# Investigate the fit between simulated data and their geometry:
+# keep only simulated stands and their corresponding geometry
+# ----------------------------------------
+
+extra.stand.geom <- setdiff(unique(df.geom$standid), unique(df$id))
+extra.stand.simul <- setdiff(unique(df$id), unique(df.geom$standid))
+
+
+# Get the standid of unique simulated stands - no all stands were simulated
 stands.simul <- unique(df$id)
 
 # Subset stand geometry:
-stands.sub <- subset(stands.all, standid %in% stands.simul )
+stand.geom.sub <- subset(df.geom, standid %in% stands.simul )
 
 # convert the stand id "integer" to the 'character'
 df$id <- as.character(df$id)
 
 
 # Subset by one regime, to create clean attribute table
+# here also the geometry can differ???
 df.bau<-
   df %>% 
   filter(regime == "BAU") %>% 
@@ -119,14 +66,14 @@ df.bau<-
 
 
 # Is there the same number of simulated stands and stands with geometry??
-setdiff(unique(stands.sub$standid), unique(df.bau$id))
+setdiff(unique(stand.geom.sub$standid), unique(df.bau$id))
 
 # Need to have teh same ids in stand geometry and in simulated data
-length(unique(stands.sub$standid))
+length(unique(stand.geom.sub$standid))
 length(unique(df.bau$id))
 
 # Subset just stand geometry that has simulated data on 
-stands.bau.geom <- subset(stands.all, standid %in% unique(df.bau$id))
+stands.bau.geom <- subset(df.geom, standid %in% unique(df.bau$id))
 
 length(unique(stands.bau.geom$standid))
 length(unique(df.bau$id))
@@ -141,17 +88,11 @@ setdiff(unique(stands.bau.geom$standid),
 
 # JOin the simulated data with the stand geometry
 # Join the geometry table with simulated data
-
-
-
-
 stand.merged <- sp::merge(stands.bau.geom,
                           df.bau, 
                           duplicateGeoms = TRUE,
                           by.x = "standid", by.y = "id")
 
-
-# how to filter the data in SPDF format???
 
 
 
@@ -166,17 +107,53 @@ stand.merged.2016 <-
 head(stand.merged.2016)
 
 
-# Convert spdf to sf to make animation
-out_sf<-st_as_sf(stand.merged) #
+
+# ----------------------------
+# Calculate the open_edge for the 2016
+# ----------------------------
 
 
-out_sf <- out_sf %>% 
-  filter(!is.na(year)) %>% 
-  mutate(H_dom = replace_na(H_dom, 0))
+stand.merged.2016.edge <- findOpenEdge_sf(stand.merged.2016, H_dom, 40, 16)
 
 
-# Get data:
-#library(gapminder)
+ggplot(stand.merged.2016.edge) +
+  geom_sf(aes(fill = open_edge))
+
+
+
+#
+# Split dataframe into multiple dataframe list 
+# Excecute the function on each of dataframe
+
+outEdge<-
+  stand.merged %>% 
+  group_by(year) %>% 
+  group_split() %>% 
+  findOpenEdge_sf(.)
+  
+
+
+
+# split dataframe into list of dataframes
+out <- split(stand.merged, f = stand.merged$year)
+
+# Apply a function over a dataframe list
+
+out.edge <- lapply(out, findOpenEdge_sf)
+
+
+# Convert back to dataframe
+out.edge.df <- dplyr::bind_rows(out.edge)
+
+
+# !!!
+# How to convert list of df to df while keeping geometry???
+
+
+# --------------------------------
+#       Make a git
+# -------------------------------
+
 
 # Charge libraries:
 library(ggplot2)
@@ -186,8 +163,8 @@ library(transformr)
 
 # My data:
 
-ggplot(out_sf) + 
-  geom_sf(aes(fill = H_dom)) +
+ggplot(out.edge.df) + 
+  geom_sf(aes(fill = open_edge)) +
   scale_fill_continuous(low = "lightgreen", 
                         high = "darkgreen",
                         space = "Lab", 
