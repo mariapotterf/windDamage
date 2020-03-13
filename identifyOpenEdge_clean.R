@@ -160,8 +160,9 @@ for (i in 1:nrow(my.sf)) {
 # -------------------------------
 
 # SF
-my.sf<-st_as_sf(forest_fc)
-names(my.sf) <- c("treeHeight", "geometry")
+# Example for raster data
+#my.sf<-st_as_sf(forest_fc)
+#names(my.sf) <- c("treeHeight", "geometry")
 
 
 # SPDF
@@ -234,13 +235,11 @@ findOpenEdge_sf <- function(sf, treeHeight, distance = 40, pixel.width = 16, ...
   return(sf) 
 } 
 
-
-# CHeck execution time
-start_time <- Sys.time()
+# Create output:
 sf.open<- findOpenEdge_sf(sf = my.sf, treeHeight=treeHeight, distance = 10, pixel.width = 16)
-end_time <- Sys.time()
 
-end_time - start_time
+# Real data:
+sf.open<- findOpenEdge_sf(sf = my.sf, treeHeight=treeHeight, distance = 10, pixel.width = 16)
 
 
 
@@ -314,11 +313,7 @@ identifyOpenEdge_spdf <- function(spdf, treeHeight, distance = 40, pixel.width =
 
 # Create output file:
 
-start_time <- Sys.time()
 spdf.open = identifyOpenEdge_spdf(spdf = forest_fc, treeHeight = treeHeight, distance = 10)
-end_time <- Sys.time()
-
-end_time - start_time
 
 
 
@@ -341,14 +336,23 @@ end_time - start_time
 # between functions for spdf and sf objects
 #
 
-sleep_for_a_30sec <- function() { Sys.sleep(30) }
 
+# SF
 start_time <- Sys.time()
-sleep_for_a_30sec()
+sf.open<- findOpenEdge_sf(sf = my.sf, treeHeight=treeHeight, distance = 10, pixel.width = 16)
 end_time <- Sys.time()
 
 end_time - start_time
 
+
+
+
+# SPDF
+start_time <- Sys.time()
+spdf.open = identifyOpenEdge_spdf(spdf = forest_fc, treeHeight = treeHeight, distance = 10)
+end_time <- Sys.time()
+
+end_time - start_time
 
 
 
