@@ -21,11 +21,7 @@
 # \\fileservices.ad.jyu.fi\homes\mpotterf\Desktop\2019_selectWatersheds\raw\out_MV_Kitee.gpkg\main.stand
 rm(list = ls())
 
-library(ggplot2)  # for choropleth map plot
-#library(broom) # to convert spatial data to dataframe
-#library(mapproj)
-#library(maptools)
-
+library(ggplot2)  
 library(spdep)    # neighbours
 library(rgdal)
 library(rgeos)
@@ -65,29 +61,72 @@ my.sf = read_sf("forest_fc.shp")
 # Make a function using 'simplefeature' approach??
 
 
+library(spdep)    # neighbours
+library(raster)
+
+
+r <- raster(nrow=11, ncol=6, crs = crs(forest_fc)) #"+init=epsg:2957"
+values(r) <- matrix(data = c(20,  NA, NA, NA, NA,20,
+                             NA, NA, NA, 20, 20, 20, 
+                             NA, NA, 20, 20, 20, 20, 
+                             NA, NA, 20, 20, 20, 20,
+                             NA, NA, 20, 20, 20, 20,
+                             NA, NA, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20),
+                    nrow = 11,
+                    ncol = 6, 
+                    byrow = TRUE)
+
+
+# Convert raster to polygon
+forest_fc <- rasterToPolygons(r)
+
+my.sf<-st_as_sf(forest_fc)
+names(my.sf) <- c("treeHeight", "geometry")
+
+#forest_fc@data$treeHeight <-  forest_fc@data$layer
+
+
+# Does the polygon has open_edge??
+# Crete new vector to store open_edge value
+#forest_fc@data$open_edge <- FALSE
+
+
+
+
+
+
 
 
 
 
 # run on my data
 # ----------------------------------
+# make fake stand tree height numbers
+
+#my.sf$treeHeight <-1:nrow(my.sf)
 
 my.sf$open_edge <- FALSE
 
 # Subset the data to create two independent shps
-i = 16
+i = 46
 
 for (i in 1:nrow(my.sf)) {
+  print(i)
   
   # define stands and leftover forest
   one  = my.sf[i, ]
   left = my.sf[-i,]
   
   # Create buffer and intersectb buffer with neighbors: evalues if any are left?
-  buff = st_buffer(one, 5) # distance
+  buff = st_buffer(one, 10) # distance
   
   # Subset the polygons that overlaps with the buffer
-  nbrs.buff <- left[st_overlaps(buff,left)[[1]],]
+  nbrs.buff <- left[st_intersects(buff, left, sparse =  FALSE),]
   
   # If conditions to determine if the forest has open edge or not
   if (nrow(nbrs.buff) == 0) {
@@ -116,14 +155,13 @@ for (i in 1:nrow(my.sf)) {
       # Erase existing stands from the buffer
       int.buff.one = st_difference(st_geometry(buff), st_geometry(u)) 
       
-      
-      # Is the size of the openning larger than one pixel 16x16 m? 
-      if (!is.null(int.buff.one) ) {
-        
+      # check if gaps exists 
+      if (length(int.buff.one) > 0 ) {
+     
         # Calculate area of intersected data
         int.buff.one.area = st_area(int.buff.one)
         
-        if (as.numeric(int.buff.one.area) > 16*16) {
+        if (as.numeric(int.buff.one.area) > 16*16)  {
           my.sf[i,]$open_edge <- TRUE
         }
       }
@@ -131,147 +169,78 @@ for (i in 1:nrow(my.sf)) {
   }
 }
 
-my.sf[i,]$open_edge
 
 
+# ==================================================
+# Make open_edge function for sf objects
+# --------------------------------------------------
 
-# There are different results with nbrs.buff10 and 40??
-height.one  = rep(one$treeHeight, nrow(nbrs.buff10))
-height.nbrs10 = nbrs.buff10$treeHeight
-difference10 = height.one - height.nbrs10
-
-
-height.one  = rep(one$treeHeight, nrow(nbrs.buff40))
-height.nbrs40 = nbrs.buff40$treeHeight
-difference40 = height.one - height.nbrs40
-
-
-
-
-ggplot(my.sf) + 
-  geom_sf(aes(fill = open_edge)) +
-  geom_sf_label(aes(label =  row.names(my.sf)))
-
-
-
-ggplot(my.sf) + 
-  geom_sf() +
-  geom_sf(data = nbrs.buff40, fill = "lightblue") +
-  geom_sf(data = nbrs.buff10, fill = "lightgreen") +
-  geom_sf(data = buff40, fill = "blue") +
-  geom_sf(data = buff10, fill = "green") +
-  #geom_sf(data = nbrs.buff) + 
-  geom_sf(data = one, fill = "red") 
-
-
-
-
-
-ggplot(int.buff.one) +
-  geom_sf() #+
-geom_sf(data = buff, aes(color = "red")) +
-  geom_sf(data = nbrs.buff) +
-  geom_sf(data = one) +
-  geom_sf(data = int.buff.one, aes(col = "yellow")) 
-
-
-
-
-
-
-# ---------------------------------------
-# example: correct erase tool??
-# ----------------------------------------
-
-library(ggplot2)  # for choropleth map plot
-library(spdep)    # neighbours
-library(rgdal)
-library(rgeos)
-library(sf)
-library(raster)
-library(dplyr)
-library(spData)
-library(sf)
-
-
-# Load data
-shp = system.file("shape/nc.shp", package="sf")
-
-my.sf <- st_read(shp, quiet = TRUE)
-
-# Convert crs to projected system to make buffer
-my.sf.web<- st_transform(my.sf, 3857)
-
-# Subset the data to create two independent shps
-i = 10
-
-# Split datasets in two files
-one  = my.sf.web[i, ]
-left = my.sf.web[-i,]
-
-# Create buffer 
-buff = st_buffer(one, 35000 ) # distance
-
-
-# CHeck which polygons overlaps with my buffer
-out.overlap = st_overlaps(buff, left)
-
-
-# Subset the polygons that overlaps with the buffer
-nbrs.buff <- left[st_overlaps(buff,left)[[1]],]
-
-# Merge together `neighbors`` and `one`
-u <- st_union(rbind(nbrs.buff, one))
-
-#u <- st_union(st_geometry(nbrs.buff), st_geometry(one), by_feature = FALSE)
-#u <- st_union(st_combine(st_geometry(nbrs.buff)), 
- #             st_combine(st_geometry(one)))
-int.buff.one = st_difference(buff, u) 
-
-int.buff.one.area <- st_area(int.buff.one)
-
-
-
-
-
-
-
-
-
-
-ggplot(buff) + 
-  geom_sf() +
-  geom_sf(data = nbrs.buff) +
-  geom_sf(data = int.buff.one, aes(col = "violet")) +
-  geom_sf(data = u, aes(col = "yellow")) #+
-  #geom_sf(data = one, aes(col = "red")) +
-  #geom_sf(data = buff)
-
-
-library(ggpubr)
-
-p1 <- ggplot(u) + 
-  geom_sf() + 
-  geom_sf(data = buff, fill = "red") + 
-  ggtitle("Buffer") + theme_bw()
-
-p2 <- ggplot(u) + 
-  geom_sf(data = buff) +
-  geom_sf( fill = "red") +
-  #geom_sf(data = int.buff.one, fill = "violet") +
-  ggtitle("Union")  + theme_bw()
-
-p3 <- ggplot(buff) + 
-  geom_sf() +
-  geom_sf(data = nbrs.buff) +
-  geom_sf(data = int.buff.one, fill = "red") +
-  geom_sf(data = u, fill = NA, col  = "black") +
-  ggtitle("Erase buffer - Union") + theme_bw()
-
+findOpenEdge_sf <- function(sf, treeHeight, distance = 40, pixel.width = 16, ...) {
   
+  # loop through the dataframe
+  sf$open_edge <- FALSE
+  
+  for (i in 1:nrow(sf)) {
+    
+    # define stands and leftover forest
+    one  = sf[i, ]
+    left = sf[-i,]
+    
+    # Create buffer and intersectb buffer with neighbors: evalues if any are left?
+    buff = st_buffer(one, distance) # distance
+    
+    # Subset the polygons that overlaps with the buffer
+    nbrs.buff <- left[st_intersects(buff, left, sparse =  FALSE),]
+    
+    # If conditions to determine if the forest has open edge or not
+    if (nrow(nbrs.buff) == 0) {
+      sf[i,]$open_edge <- TRUE  
+      
+    } else {  # neighbors are smaller than the stands
+      
+      # Compare the height of the stands: 
+      height.one  = rep(one$treeHeight, nrow(nbrs.buff))
+      height.nbrs = nbrs.buff$treeHeight
+      
+      # Get the differences between the neighbouring stands
+      difference = height.one - height.nbrs
+      
+      # compare here the tree heights of stands
+      if(any(difference > 5)) {
+        sf[i,]$open_edge <- TRUE
+        
+        # Check if there is a big gap in neighborhood    
+      } else {                     
+        
+        # Get the difference between two shapefiles???
+        # Add `one` to `neighbors` and dissolve (union) inner boundaries  
+        u <- st_union(rbind(nbrs.buff, one))
+        
+        # Erase existing stands from the buffer
+        int.buff.one = st_difference(st_geometry(buff), st_geometry(u)) 
+        
+        # check if gaps exists 
+        if (length(int.buff.one) > 0 ) {
+          
+          # Calculate area of intersected data
+          int.buff.one.area = st_area(int.buff.one)
+          
+          if (as.numeric(int.buff.one.area) > pixel.width^2)  {
+            sf[i,]$open_edge <- TRUE
+          }
+        }
+      }
+    }
+  }
+  return(sf) 
+} 
 
-library("gridExtra")
-grid.arrange(p1, p2, p3, ncol = 3, nrow = 1)
+
+
+sf.open<- findOpenEdge_sf(sf = my.sf, treeHeight=treeHeight, distance = 10, pixel.width = 16)
+
+# run the function for the spdf and check system time
+#
 
 
 
@@ -302,15 +271,6 @@ grid.arrange(p1, p2, p3, ncol = 3, nrow = 1)
 
 
 
-
-st_overlaps(buff,left)[[1]]
-
-
-
-ggplot(my.sf.web) + geom_sf(aes(fill = AREA))  +
-   geom_sf(data = buff, aes(color = "red")) +
-  geom_sf(data = one) +
-  geom_sf(data = nbrs.buff)
 
 
 
@@ -359,7 +319,7 @@ if (nrow(nbrs.buff) == 0) {
 
 # Make a function: find open edge
 
-identifyOpenEdge <- function(spdf, treeHeight, distance = 40, pixel.width = 16, ...) {
+identifyOpenEdge_spdf <- function(spdf, treeHeight, distance = 40, pixel.width = 16, ...) {
   
   # loop through the dataframe
   spdf@data$open_edge <- FALSE
@@ -422,7 +382,7 @@ identifyOpenEdge <- function(spdf, treeHeight, distance = 40, pixel.width = 16, 
 
 # Create output file:
 windows()
-outfc = identifyOpenEdge(spdf = forest_fc, treeHeight = treeHeight, distance = 10)
+outfc = identifyOpenEdge_spdf(spdf = forest_fc, treeHeight = treeHeight, distance = 10)
 
 
 plot(outfc)
