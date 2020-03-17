@@ -12,7 +12,7 @@ source("myFunctions.R")
 
 
 # ----------------------------------
-# start the stcprit: using rgdal library
+# start the script: using rgdal library
 # ----------------------------------
 
 
@@ -37,6 +37,49 @@ df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate ch
 df.geom = read_sf("MV_Korsnas.shp")
 #df.geom = readOGR(dsn = getwd(),
  #                    layer = "MV_Korsnas")
+
+
+
+# Test if the function works: create new H_dom variable, 
+# fill in with pre-defined colours
+# make for multiple landscapes (time)
+# to see if the function works
+
+# clean up unnecessary columns
+out<- subset(df.geom, select = c("standid"))
+
+sf1<-out
+sf2<-out
+sf3<-out
+
+# Create new landscapes with different tree heights 
+sf1$H_dom <- rep(20, nrow(sf1))
+
+# CReate another landscape
+sf2$H_dom <- rep(c(20, 30), each = nrow(df.geom)/2)
+sf3$H_dom <- rep(c(20, 30), nrow(df.geom)/2)
+
+
+
+
+
+# Calculate open edge
+sf1.open =  findOpenEdge_sf(sf = sf1, H_dom = H_dom, distance = 10, pixel.width = 16)
+sf2.open = findOpenEdge_sf(sf = sf2, H_dom = H_dom, distance = 10, pixel.width = 16)
+sf3.open = findOpenEdge_sf(sf = sf3, H_dom = H_dom, distance = 10, pixel.width = 16)
+
+plot(sf1.open["open_edge"])
+plot(sf2.open["open_edge"])
+plot(sf3.open["open_edge"])
+
+
+
+
+
+
+
+
+
 
 
 # Investigate the fit between simulated data and their geometry:
@@ -111,11 +154,6 @@ stand.merged.2096 <-
   filter(year == 2096) 
 
 
-library(RColorBrewer)
-display.brewer.all()
-
-cols <- brewer.pal(3, "Greens")  # isolate colors
-pal <- colorRampPalette(cols)    # create a gradient
 
 
 
@@ -127,19 +165,6 @@ plot(stand.merged.2016["H_dom"], col = pal, main = "H_2016", key.pos = NULL, res
 plot(stand.merged.2096["H_dom"], main = "H_2096", key.pos = NULL, reset = FALSE)
 
 
-
-# Check the mean H_dom height by years/landscape
-aggregate(H_dom ~ year,stand.merged, mean )
-
-ggplot(stand.merged, aes(x = year, y = H_dom, group = year)) +
-  geom_boxplot()
-
-
-
-head(stand.merged.2016)
-
-
-
 # ----------------------------
 # Calculate the open_edge for the 2016
 # ----------------------------
@@ -147,12 +172,12 @@ head(stand.merged.2016)
 
 stand.merged.2016.edge <- findOpenEdge_sf(stand.merged.2016, H_dom, 40, 16)
 
-stand.merged.2066.edge <- findOpenEdge_sf(stand.merged.2066, H_dom, 40, 16)
+stand.merged.2096.edge <- findOpenEdge_sf(stand.merged.2096, H_dom, 40, 16)
 
 
 #par(mfrow = c(1,2) )
 plot(stand.merged.2016.edge["open_edge"], main = "H_2016", key.pos = NULL, reset = FALSE)
-plot(stand.merged.2066.edge["open_edge"], main = "H_2066", key.pos = NULL, reset = FALSE)
+plot(stand.merged.2096.edge["open_edge"], main = "H_2096", key.pos = NULL, reset = FALSE)
 
 
 
@@ -182,14 +207,15 @@ grid.arrange(p1, p2)
 #
 # Split dataframe into multiple dataframe list 
 # Excecute the function on each of dataframe
+# need to get out objects of sf an dataframe
 
-outEdge<-
-  stand.merged %>% 
-  group_by(year) %>% 
-  group_split() #%>% 
+#outEdge<-
+ # stand.merged %>% 
+#  group_by(year) %>% 
+ # group_split() #%>% 
   #findOpenEdge_sf(.)
-  
-findOpenEdge_sf(sf = outEdge[[1]], treeHeight = H_dom)
+  #
+#out1<-findOpenEdge_sf(sf = outEdge[[1]], H_dom = H_dom)
 
 
 # split dataframe into list of dataframes
@@ -224,12 +250,12 @@ library(transformr)
 
 # My data:
 
-ggplot(stand.merged) + 
-  geom_sf(aes(fill = H_dom)) +
-  scale_fill_continuous(low = "lightgreen", 
-                        high = "darkgreen",
-                        space = "Lab", 
-                        na.value = "red", guide = "colourbar")+
+ggplot(out.edge.df) + # stand.merged 
+  geom_sf(aes(fill = open_edge)) + # H_dom
+  #scale_fill_continuous(low = "lightgreen", 
+   #                     high = "darkgreen",
+    #                    space = "Lab", 
+     #                   na.value = "red", guide = "colourbar")+
   
   annotation_scale(location = "bl", width_hint = 0.4) +
   annotation_north_arrow(location = "bl", which_north = "true", 
@@ -249,7 +275,7 @@ ggplot(stand.merged) +
 
 
 # Save at gif:
-anim_save("korsnas_BAU.gif")
+anim_save("korsnas_BAU_open_edge.gif")
 
 
 
