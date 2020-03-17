@@ -3,7 +3,7 @@
 # My functions:
 
 # LIst my functions:
-findOpenEdge_sf <- function(sf, treeHeight, distance = 40, pixel.width = 16, ...) {
+findOpenEdge_sf <- function(sf, H_dom, distance = 40, pixel.width = 16, ...) {
   
   # loop through the dataframe
   sf$open_edge <- FALSE
@@ -20,6 +20,7 @@ findOpenEdge_sf <- function(sf, treeHeight, distance = 40, pixel.width = 16, ...
     # Subset the polygons that overlaps with the buffer
     nbrs.buff <- left[st_intersects(buff, left, sparse =  FALSE),]
     
+    
     # If conditions to determine if the forest has open edge or not
     if (nrow(nbrs.buff) == 0) {
       sf[i,]$open_edge <- TRUE  
@@ -27,8 +28,8 @@ findOpenEdge_sf <- function(sf, treeHeight, distance = 40, pixel.width = 16, ...
     } else {  # neighbors are smaller than the stands
       
       # Compare the height of the stands: 
-      height.one  = rep(one$treeHeight, nrow(nbrs.buff))
-      height.nbrs = nbrs.buff$treeHeight
+      height.one  = rep(one$H_dom, nrow(nbrs.buff))
+      height.nbrs = nbrs.buff$H_dom
       
       # Get the differences between the neighbouring stands
       difference = height.one - height.nbrs
