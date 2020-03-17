@@ -1,5 +1,14 @@
 
 
+# 
+rm(list = ls())
+
+# Read the fin\unction
+
+setwd("C:/MyTemp/myGitLab/windDamage")
+source("myFunctions.R")
+
+
 # Test new library 
 # sf objects
 
@@ -16,6 +25,196 @@ library(raster)
 library(dplyr)
 library(spData)
 library(sf)
+
+# Read real data just to get crs
+# Set working directory
+setwd("U:/projects/2019_windthrowModel/Janita/outSimulated")
+
+# Read stand geometry
+df.geom = read_sf("MV_Korsnas.shp")
+
+
+
+
+
+
+# Test if the fuinction correctly loops over lit of data
+
+r1 <- raster(nrow=11, ncol=6, crs = crs(df.geom)) #"+init=epsg:2957"
+values(r1) <- matrix(data = c(20,  NA, NA, NA, NA,20,
+                             NA, NA, NA, 20, 20, 20, 
+                             NA, NA, 20, 20, 20, 20, 
+                             NA, NA, 20, 20, 20, 20,
+                             NA, NA, 20, 20, 20, 20,
+                             NA, NA, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20),
+                    nrow = 11,
+                    ncol = 6, 
+                    byrow = TRUE)
+
+
+# Convert raster to polygon
+my.sf1<-st_as_sf(rasterToPolygons(r1))
+names(my.sf1) <- c("treeHeight", "geometry")
+
+
+
+
+# make raster r2
+r2 <- r1
+values(r2) <- matrix(data = c(20,  NA, NA, NA, NA,20,
+                              NA, NA, NA, 20, 20, 20, 
+                              NA, NA, 20, 20, 20, 20, 
+                              NA, NA, 20, 20, 20, 20,
+                              NA, NA, 20, 20, 20, 20,
+                              NA, NA, 20, 20, 20, 20,
+                              NA, 20, 20, 20, 20, 20,
+                              NA, 20, 20,  0,  0, 20,
+                              NA, 20, 20,  0,  0, 20,
+                              NA, 20, 20, 20, 20, 20,
+                              NA, 20, 20, 20, 20, 20),
+                     nrow = 11,
+                     ncol = 6, 
+                     byrow = TRUE)
+
+
+# Convert raster to polygon
+my.sf2<-st_as_sf(rasterToPolygons(r2))
+names(my.sf2) <- c("treeHeight", "geometry")
+
+
+# Make raster 3
+
+r3 <- r1
+values(r3) <- matrix(data = c(20,  NA, NA, NA, NA,20,
+                              NA, NA, NA, 20, 20, 20, 
+                              NA, NA, 5,  8, 20, 20, 
+                              NA, NA, 20, 10, 20, 20,
+                              NA, NA, 20, 20, 0, 20,
+                              NA, NA, 20, 20, 20, 20,
+                              NA, 20, 20, 20, 0, 20,
+                              NA, 20, 20, 20, 20, 20,
+                              NA, 20, 20, 0, 20, 20,
+                              NA, 20, 20, 20, 20, 20,
+                              NA, 20, 1, 0, 0, 20),
+                     nrow = 11,
+                     ncol = 6, 
+                     byrow = TRUE)
+
+
+# Convert raster to polygon
+my.sf3<-st_as_sf(rasterToPolygons(r3))
+names(my.sf3) <- c("treeHeight", "geometry")
+
+
+
+
+
+
+
+
+
+
+
+
+# list without open_edge calculated
+my.ls1<-list(my.sf1, my.sf2)
+my.ls2<-list(my.sf1, my.sf2, my.sf3)
+
+
+
+# Try ifg open_edge function works on both:
+sf1<-findOpenEdge_sf(sf = my.sf1, 
+                     treeHeight=treeHeight, 
+                     distance = 10, 
+                     pixel.width = 16)
+
+
+sf2<-findOpenEdge_sf(sf = my.sf2, 
+                     treeHeight=treeHeight, 
+                     distance = 10, 
+                     pixel.width = 16)
+
+
+plot(sf1)
+plot(sf2)
+
+
+
+# seems that individually algorith works
+
+# Put data together in a list of sfs objects, try again
+my.ls<-list(sf1, sf2)
+
+
+
+# run the function just on one of them
+my.ls[[2]]
+
+
+plot(my.ls[[2]])
+
+# are teh files in a list and original identical??
+identical(my.ls[[2]], sf2)
+
+
+
+# Does the function works on a element of a list?
+outLs1<-findOpenEdge_sf(sf = my.ls1[[2]], 
+                treeHeight=treeHeight, 
+                distance = 10, 
+                pixel.width = 16)
+
+
+# Lapply a function over the list 
+out<-lapply(my.ls2, findOpenEdge_sf)
+
+plot(out[[3]])
+
+
+
+
+
+#my.sf$open_edge <- FALSE
+
+
+# Create output:
+sf.open<- findOpenEdge_sf(sf = my.sf, treeHeight=treeHeight, distance = 10, pixel.width = 16)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Load data
