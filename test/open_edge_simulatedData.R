@@ -93,14 +93,46 @@ stand.merged <- sp::merge(stands.bau.geom,
                           duplicateGeoms = TRUE,
                           by.x = "standid", by.y = "id")
 
+# Replace H_dom missing values by 0
+stand.merged <-
+  stand.merged %>% 
+  mutate(H_dom = replace_na(H_dom, 0))
 
 
-
-# Try to calculate open_edge index for one year
+# Calculate open_edge index for one year
 stand.merged.2016 <- 
   stand.merged %>% 
-  filter(year == 2016) %>% 
-  mutate(H_dom = replace_na(H_dom, 0))
+  filter(year == 2016) 
+ 
+
+
+stand.merged.2096 <- 
+  stand.merged %>% 
+  filter(year == 2096) 
+
+
+library(RColorBrewer)
+display.brewer.all()
+
+cols <- brewer.pal(3, "Greens")  # isolate colors
+pal <- colorRampPalette(cols)    # create a gradient
+
+
+
+# Seems that the function is ok, vhy the open_edge does not change over time? need to run it one by one??
+
+
+par(mfrow = c(1,2) )
+plot(stand.merged.2016["H_dom"], col = pal, main = "H_2016", key.pos = NULL, reset = FALSE)
+plot(stand.merged.2096["H_dom"], main = "H_2096", key.pos = NULL, reset = FALSE)
+
+
+
+# Check the mean H_dom height by years/landscape
+aggregate(H_dom ~ year,stand.merged, mean )
+
+ggplot(stand.merged, aes(x = year, y = H_dom, group = year)) +
+  geom_boxplot()
 
 
 
@@ -115,9 +147,35 @@ head(stand.merged.2016)
 
 stand.merged.2016.edge <- findOpenEdge_sf(stand.merged.2016, H_dom, 40, 16)
 
+stand.merged.2066.edge <- findOpenEdge_sf(stand.merged.2066, H_dom, 40, 16)
 
-ggplot(stand.merged.2016.edge) +
+
+#par(mfrow = c(1,2) )
+plot(stand.merged.2016.edge["open_edge"], main = "H_2016", key.pos = NULL, reset = FALSE)
+plot(stand.merged.2066.edge["open_edge"], main = "H_2066", key.pos = NULL, reset = FALSE)
+
+
+
+
+# shows the same output of open_edge!!!
+
+
+library(gridExtra)
+p1<- ggplot(stand.merged.2016.edge) +
   geom_sf(aes(fill = open_edge))
+
+
+p2<- ggplot(stand.merged.2111.edge) +
+  geom_sf(aes(fill = open_edge))
+
+
+
+grid.arrange(p1, p2)
+
+# Get the function to work !!! by individual shapes
+# retunr same outputs of open edge!!!
+
+
 
 
 
@@ -128,10 +186,10 @@ ggplot(stand.merged.2016.edge) +
 outEdge<-
   stand.merged %>% 
   group_by(year) %>% 
-  group_split() %>% 
-  findOpenEdge_sf(.)
+  group_split() #%>% 
+  #findOpenEdge_sf(.)
   
-
+findOpenEdge_sf(sf = outEdge[[1]], treeHeight = H_dom)
 
 
 # split dataframe into list of dataframes
@@ -143,11 +201,14 @@ out.edge <- lapply(out, findOpenEdge_sf)
 
 
 # Convert back to dataframe
-out.edge.df <- dplyr::bind_rows(out.edge)
-
+#out.edge.df <- dplyr::bind_rows(out.edge)
+out.edge.df <- rbind(out.edge, deparse.level = 1)
+#rbind_rows_sf(out.edge, deparse.level = 1)
 
 # !!!
 # How to convert list of df to df while keeping geometry???
+out.edge.df<- sf::st_as_sf(data.table::rbindlist(out.edge))
+
 
 
 # --------------------------------
@@ -163,8 +224,8 @@ library(transformr)
 
 # My data:
 
-ggplot(out.edge.df) + 
-  geom_sf(aes(fill = open_edge)) +
+ggplot(stand.merged) + 
+  geom_sf(aes(fill = H_dom)) +
   scale_fill_continuous(low = "lightgreen", 
                         high = "darkgreen",
                         space = "Lab", 
@@ -181,7 +242,7 @@ ggplot(out.edge.df) +
   #      axis.text=element_blank(),
   #     axis.ticks=element_blank()) +
   # gganimate specific bits:
-  labs(title = 'KOrsnas BAU Year: {current_frame}') +
+  labs(title = 'Korsnas BAU Year: {current_frame}') +
   transition_manual(year) +
   #transition_time(year) +
   ease_aes('linear')
