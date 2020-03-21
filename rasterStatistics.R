@@ -94,9 +94,9 @@ poly.t@data$avgTempSum <- rowMeans(do.call(cbind, ls.sum))
 
 
 
+# ==================================================
 
-
-# working example how to calculate mean value between ataframes by rows!
+# working example how to calculate mean value between dataframes by rows!
 df1 = data.frame(val = c(4,1,0))
 df2 = data.frame(val = c(5,2,1))
 df3 = data.frame(val = c(6,3,2))
