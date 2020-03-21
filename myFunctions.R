@@ -63,3 +63,58 @@ findOpenEdge_sf <- function(sf, H_dom, distance = 40, pixel.width = 16, ...) {
   }
   return(sf) 
 } 
+
+
+
+
+# ===================================
+# Calculate daily temperatures
+# from raster data
+#--------------------------------------
+
+
+# Make a function
+calculateDailyMeans <- function(sf, gridNames, ...) {
+  
+  # Inputs:
+  # sf = simple feature class
+  # gridnames = list of the bricks in working directory
+  
+  # Get the centroid from polygons:
+  # change the projection to raster CSC
+  sf.t <- st_transform(sf, st_crs(r.grds[[1]]))
+  
+  # calculate convex hull
+  border = st_union(sf.t, by_feature = FALSE)
+  
+  # Calculate centroids
+  centroids <- st_centroid(border, byid = TRUE)
+  
+  # process rasters to extract the rastervalues
+  r.grds <- lapply(gridNames, brick)
+  
+  # Get the mean temparature value per day per stand (stand contains multiple vectors)
+  ls.means<- lapply(r.grds, function(r) {
+    raster::extract(r, 
+                    as_Spatial(centroids))  # fun=mean,na.rm=TRUE, df=TRUE
+  })
+  
+  # Remove the base temperatture = 5 c from each daily mean
+  ls.diff <- lapply(ls.means, function(df) df - 5)
+  
+  # calculate the difference with base value
+  ls.posit <- lapply(ls.diff, function(df) {
+    df[df<0] <- 0
+    return(df)
+  })
+  
+  # Sum up the positive difference value by year
+  ls.sum <- lapply(ls.posit, rowSums)
+  
+  
+  # Calculate the means for each row in a DF list
+  # add it as a new attribute to stands
+  dailyMean  <- rowMeans(do.call(cbind, ls.sum))
+  return(dailyMean)
+  
+}
