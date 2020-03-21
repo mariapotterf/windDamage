@@ -27,52 +27,52 @@ library(rgdal)
 library(ggspatial)
 
 
-# Set working directory
-setwd("U:/projects/2019_windthrowModel/Janita/outSimulated")
-
-# read simulated data
-df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate change is not included
-
-# Read stand geometry
-df.geom = read_sf("MV_Korsnas.shp")
-#df.geom = readOGR(dsn = getwd(),
- #                    layer = "MV_Korsnas")
-
-
-
-# Test if the function works: create new H_dom variable, 
-# fill in with pre-defined colours
-# make for multiple landscapes (time)
-# to see if the function works
-
-# clean up unnecessary columns
-out<- subset(df.geom, select = c("standid"))
-
-sf1<-out
-sf2<-out
-sf3<-out
-
-# Create new landscapes with different tree heights 
-sf1$H_dom <- rep(20, nrow(sf1))
-
-# CReate another landscape
-sf2$H_dom <- rep(c(20, 30), each = nrow(df.geom)/2)
-sf3$H_dom <- rep(c(20, 30), nrow(df.geom)/2)
-
-
-
-
-
-# Calculate open edge
-sf1.open =  findOpenEdge_sf(sf = sf1, H_dom = H_dom, distance = 10, pixel.width = 16)
-sf2.open = findOpenEdge_sf(sf = sf2, H_dom = H_dom, distance = 10, pixel.width = 16)
-sf3.open = findOpenEdge_sf(sf = sf3, H_dom = H_dom, distance = 10, pixel.width = 16)
-
-plot(sf1.open["open_edge"])
-plot(sf2.open["open_edge"])
-plot(sf3.open["open_edge"])
-
-
+# # Set working directory
+# setwd("U:/projects/2019_windthrowModel/Janita/outSimulated")
+# 
+# # read simulated data
+# df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate change is not included
+# 
+# # Read stand geometry
+# df.geom = read_sf("MV_Korsnas.shp")
+# #df.geom = readOGR(dsn = getwd(),
+#  #                    layer = "MV_Korsnas")
+# 
+# 
+# 
+# # Test if the function works: create new H_dom variable, 
+# # fill in with pre-defined colours
+# # make for multiple landscapes (time)
+# # to see if the function works
+# 
+# # clean up unnecessary columns
+# out<- subset(df.geom, select = c("standid"))
+# 
+# sf1<-out
+# sf2<-out
+# sf3<-out
+# 
+# # Create new landscapes with different tree heights 
+# sf1$H_dom <- rep(20, nrow(sf1))
+# 
+# # CReate another landscape
+# sf2$H_dom <- rep(c(20, 30), each = nrow(df.geom)/2)
+# sf3$H_dom <- rep(c(20, 30), nrow(df.geom)/2)
+# 
+# 
+# 
+# 
+# 
+# # Calculate open edge
+# sf1.open =  findOpenEdge_sf(sf = sf1, H_dom = H_dom, distance = 10, pixel.width = 16)
+# sf2.open = findOpenEdge_sf(sf = sf2, H_dom = H_dom, distance = 10, pixel.width = 16)
+# sf3.open = findOpenEdge_sf(sf = sf3, H_dom = H_dom, distance = 10, pixel.width = 16)
+# 
+# plot(sf1.open["open_edge"])
+# plot(sf2.open["open_edge"])
+# plot(sf3.open["open_edge"])
+# 
+# 
 
 
 
