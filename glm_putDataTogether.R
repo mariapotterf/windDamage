@@ -97,5 +97,7 @@ df.geom$windSpeed <- raster::extract(wind.r, stand.centr)
 
 # Mineral soil depth
 # ----------------------
-soilDepthPath = 
+# soilDepthPath = 
+# wrom which LUKE tile to take the data? korsnas
+
                  
