@@ -28,13 +28,13 @@ library(ggspatial)
 
 
 # # Set working directory
-# setwd("U:/projects/2019_windthrowModel/Janita/outSimulated")
+setwd("U:/projects/2019_windthrowModel/Janita/outSimulated")
 # 
 # # read simulated data
-# df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate change is not included
+df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate change is not included
 # 
 # # Read stand geometry
-# df.geom = read_sf("MV_Korsnas.shp")
+df.geom = read_sf("MV_Korsnas.shp")
 # #df.geom = readOGR(dsn = getwd(),
 #  #                    layer = "MV_Korsnas")
 # 
@@ -161,7 +161,7 @@ stand.merged.2096 <-
 
 
 par(mfrow = c(1,2) )
-plot(stand.merged.2016["H_dom"], col = pal, main = "H_2016", key.pos = NULL, reset = FALSE)
+plot(stand.merged.2016["H_dom"], main = "H_2016", key.pos = NULL, reset = FALSE)
 plot(stand.merged.2096["H_dom"], main = "H_2096", key.pos = NULL, reset = FALSE)
 
 
@@ -181,8 +181,6 @@ plot(stand.merged.2096.edge["open_edge"], main = "H_2096", key.pos = NULL, reset
 
 
 
-
-# shows the same output of open_edge!!!
 
 
 library(gridExtra)
@@ -238,7 +236,7 @@ out.edge.df<- sf::st_as_sf(data.table::rbindlist(out.edge))
 
 
 # --------------------------------
-#       Make a git
+#       Make a gif
 # -------------------------------
 
 
