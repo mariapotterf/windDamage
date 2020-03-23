@@ -1,6 +1,6 @@
 
 
-# Puta data together
+# Collect attributes for Suvanto's model
 # ------------------------
 
 # get glm for the sample simulated stand
@@ -149,13 +149,30 @@ df.geom$soilFertilityClass <- ifelse(df.geom$soilFertility <= 3, "fertile", "poo
 # organic = peatlands polygons
 # mineral-fine = clay and fine sands
 # mineral-coarse = sands and coarser soils
+# Data stored as gdb
+#U:\rawData\Finland\maapera_200k_etrs_tm35fin_gdb\maapera_200k.gdb
+# U:\rawData\Finland\maapera_200k_etrs_tm35fin_gdb\maapera_200k.gdb\maapera_200k\mp200k_maalajit
+require(rgdal)
+require(sf)
+soilTypeGDB = "U:/rawData/Finland/maapera_200k_etrs_tm35fin_gdb/maapera_200k.gdb"
+soil.poly <- st_read(dsn = soilTypeGDB,
+                      layer = "maapera_200k/mp200k_maalajit")  # ,driver = "FileGDB"
 
 
+# List all feature classes in a file geodatabase
+subset(ogrDrivers(), grepl("GDB", name))
+fc_list <- ogrListLayers(soilTypeGDB)
+print(fc_list)
+
+
+
+fc <- readOGR(dsn=paste(soilTypeGDB, "maapera_200k", sep = "/"),
+              layer="mp200k_maalajit") # maapera_200k/mp200k_maalajit
 
 # ---------------------
 # Save sf object
 # ----------------------
-st_write(df.geom, paste0(inDataPath, "outKorsnas_att.shp"))
+st_write(df.geom, paste0(inDataPath, "outKorsnas_att.shp"), delete_dsn=TRUE)
 
 
 
