@@ -294,9 +294,9 @@ time_thinning   <-  factor(sample(c("0-5", "6-10", ">10"),
                         levels = c("0-5", "6-10", ">10"))
 windSpeed       <- runif(length(species), min = 10, max = 30)
 open_stand      <- ifelse(rbinom(length(species), 1, 0.9), "FALSE", "TRUE") 
-soilType        <- sample(c("mineral coarse", "mineral fine",
-                            "organic"),
-                        length(species), replace = TRUE)
+soilType        <- factor(sample(c("mineral coarse", "mineral fine","organic"),
+                        length(species), replace = TRUE),
+                        levels = c("mineral coarse", "mineral fine","organic"))
 soilDepthLess30 <- ifelse(rbinom(length(species), 1, 0.5),
                           "FALSE","TRUE")
 siteFertility   <- factor(sample(c("poor", "fertile"),
@@ -546,6 +546,7 @@ df.ord$pred.manual <- logit2prob(rowSums(part.df))
 The Suvanto's coefficients were replaced in the model. Need to use original `df` data, without `log` values of height and wind speed, as this is included in a formula. 
 
 ```{r}
+
 # Calcutate probability values given the example data
 df.ord$predict.wind <- predict.glm(windRisk.m, 
                                    df, 
