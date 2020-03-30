@@ -155,7 +155,7 @@ names(my.coefs)
 # Complete df.bin by missing combination of values
 df.bin$logHeight <- log(df.bin$height)
 df.bin$logHeight_speciesspruce <- df.bin$logHeight * df.bin$species.spruce
-df.bin$logHeight_speciesother <- df.bin$logHeight * df.bin$species.other
+df.bin$logHeight_speciesother  <- df.bin$logHeight * df.bin$species.other
 
 # remove the original height column, keep only log(height)
 # remove reference species category
@@ -356,24 +356,6 @@ fake.m <- glm(formula = wind_damage ~ species + log(height)  +
 ### List real coefficients estimates 
 
 ```{r}
-
-
-# Suvanto's coefficients (more accurate from Susanne code, 6 digits)
-# intercept                    = - 14.69037
-# b1.spec.spruce               = - 8.494159
-# b2.spec.other                = - 9.314355
-# b3.log.height                = + 1.660898   # log
-# b4.last_thinning.6.10        = - 0.2981861
-# b5.last_thinning.over.10     = - 0.84402
-# b6.log.wind                  = + 0.7489579   # log
-# b7.open_stand_border         = + 0.3103782
-# b8.soil_min.fine             = - 0.3556811
-# b9.soil_organic              = - 0.2160042
-# b10.soil_depth.less.30cm      = + 0.2141003
-# b11.site_fertility            = - 0.425096
-# b12.temperature_sum           = + 0.09585469
-# b13.spec.spruce.X.log.height  = + 1.634359 
-# b14.spec.other.X.log.height   = + 1.624776
 
 # Suvanto's coefficients (more accurate from Susanne code): 20 digits
 intercept                    = - 14.690374506245104769
@@ -593,6 +575,14 @@ Try to get raw datadata
 # Try to extract row data, 'kuvio' df is not available
 # s.raw<-eval(getCall(ex$glm1)$data)
 ```
+
+What is the range of predicted values?
+
+```{r}
+round(range(ex$glm1$fitted.values), 3)
+
+```
+
 
 Raw data is not available, just larger data table or values used in a model. Keep this values to run some operations:
 
