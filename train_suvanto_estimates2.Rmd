@@ -1,0 +1,769 @@
+---
+title: "Recreate wind risk glm model"
+author: "Maria Potterf"
+date: "12/16/2019"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list = ls()) 
+
+```
+# GLM
+
+`glm()` is generalized linear model. Here is a general formula, where `y` is a sum of intercept and B1*x1, etc:
+
+y =  intercept + B1*predictor1 + ... +  Bn *predictor1*predictor2 in interactions
+
+The interaction between predictors is simply Xn*Xm and model estimates individual coefficients for this interaction as well. If the model uses `logit-link` the predicted `y` value is a logit and need to to converetd back to probability.
+
+## Categorical variables
+
+Categorical variables are handled in a form of binary clases, i.e. dummy variables. For example, from long format, where species are listed row by row, where each row represents one stand:
+
+```{r}
+
+
+
+df.categor <- data.frame(species = c("spruce",
+                                     "spruce",
+                                     "pine",
+                                     "other",
+                                     "other"))
+
+```
+
+Categorical data are coded are factors. THe firt factors is considered as a `reference` class, i.e. other classes are compared relative to the reference class. If the `pine` is my reference class, the probability of `spruce` is calculated compared to `pine`. 
+
+
+We need to convert categorical variables to binary (dummy) classes. This allow to include them in mathematical equation (i.e. species*height): 
+
+
+```{r message=FALSE}
+
+library(fastDummies)
+
+out.bin <- fastDummies::dummy_cols(df.categor)  
+
+
+```
+
+# Understand glm() coefficients
+
+
+Create a small working example to understand how the categorical variables and interactions are written and interpreted in `glm()` model. The glm outputs the logit of the `y`, which need to be converetd back to probability values. Here is a function to convert logit to probability from [Sebastian Sauer](https://sebastiansauer.github.io/convert_logit2prob/) 
+
+
+```{r}
+
+
+
+# Convert logit to probabilities
+logit2prob <- function(logit){
+  odds <- exp(logit)
+  prob <- odds / (1 + odds)
+  return(prob)
+}
+
+```
+
+## Make dummy data 
+
+Need to fully understand:
+
+- categorical (and reference) data handling
+- `log(predictor)`
+- interaction between variables in `y = A + B*x..` equation
+
+The equation brings be `logit.y`. This needs to be converted to `y` as probability values. 
+
+
+
+```{r}
+
+
+# Create fake data
+set.seed(42)
+
+row.num = 20
+
+species         <- factor(rep(c("pine", "spruce", "other"), 
+                          each = row.num), 
+                          levels = c("pine", "spruce", "other"))
+height          <- c(runif(row.num, min = 10, max = 200),
+                     runif(row.num, min = 0, max = 100),
+                     runif(row.num, min = 30, max = 150))
+windSpeed       <- runif(length(species), min = 10, max = 30)
+wind_damage     <- rbinom(length(species), 1, 0.4)
+
+
+
+# put data together
+df <- data.frame(species, 
+                     height,
+                     windSpeed,
+                     wind_damage) # stringsAsFactors = FALSE
+
+```
+
+First, I will create a fake simple model. Based on calculated coefficients, I will try to recalculate `y` manually and compare my manual results with predicted values calculated by `predict()` function.
+
+```{r}
+
+# Create a model
+logit.df <- glm(wind_damage ~  log(height) + windSpeed + species + log(height):species, 
+                data = df, family = binomial("logit")) # "logit"
+
+```
+
+
+Extract the intercept and coefficients to manually calculate `y`. Convert the categorical variables to binary variables. The number of coefficients and columns in a dataframe has to be the same (intercept should be included either in df as `1` or later addet to partial tables). 
+
+
+```{r}
+
+# get intercept
+my.interc <- coef(logit.df)["(Intercept)"]
+
+# convert my rank into binary classes
+bin.species.df <- varhandle::to.dummy(df$species, "species")
+```
+
+Also, I need to include the a datatable extra columns to handle interactions between variables: one column by one interaction. Make dataframe column names the same as coefficients names to make sure they have the same order.
+
+```{r}
+
+# merge binary and original table,
+# remove wind damage data 
+df.bin<-cbind(bin.species.df, 
+              subset(df, 
+                     select = -c(species,wind_damage)))
+
+# Create vector of coefficients to multiple the data frame 
+my.coefs <- logit.df$coefficients
+
+names(my.coefs)
+
+# Complete df.bin by missing combination of values
+df.bin$logHeight <- log(df.bin$height)
+df.bin$logHeight_speciesspruce <- df.bin$logHeight * df.bin$species.spruce
+df.bin$logHeight_speciesother <- df.bin$logHeight * df.bin$species.other
+
+# remove the original height column, keep only log(height)
+# remove reference species category
+df.bin<-subset(df.bin, select = -c(height, species.pine))
+
+# add column to be multiplied by intercept
+df.bin$interc<-1
+
+# CReate vector of correct dataframe order and reorder dataframe
+col.order <- c("interc" ,
+               "logHeight",
+               "windSpeed",
+               "species.spruce",
+               "species.other" ,                            
+               "logHeight_speciesspruce",
+               "logHeight_speciesother")                  
+
+
+# Order the df by columns
+df.bin<-df.bin[col.order]
+
+
+```
+
+
+###### Multiply the dataframe by vectors
+
+```{r}
+
+# calculate partial df 
+# the final column need to be summed up
+part.df <- sweep(df.bin, 2, my.coefs, "*")
+
+# sum by rows (intercept is included in dataframe)
+df.bin$pred.man<-logit2prob(rowSums(part.df))
+
+# Calcutate probability values given the example data
+df.bin$predict.wind <- predict.glm(logit.df, 
+                                   df, 
+                                   type = "response")
+
+```
+
+### Calculate `y `manually by row
+
+Explicitely specify the predictor and coeficient values. If the reference category (here `pine`) is included, `beta` is zero, therefore it is not included in the  equation. 
+
+
+```{r}
+
+# Read the first rows:
+
+# Fill the coefficients in equation
+
+# y = a + b1x1 + b2x2 + bnxn + bx1*x2
+logit.y = 2.09677276 +                    # Intercept 
+          -0.20928799 * 5.213920 +         # b1 * log_height 
+          -0.03713999 * 23.51215           # b2 * wind
+
+
+# this equals: logit(y) 
+(logit.y)
+
+```
+
+Convert logit value back to probability:
+
+```{r}
+
+# calculate the y value
+logit2prob(logit.y)
+```
+
+Check manually and automatically calculated probabilites:
+
+```{r}
+
+head(df.bin)
+tail(df.bin)
+
+
+
+# Calculate the difference between the values
+df.bin$diff<- round(df.bin$pred.man,5) - round(df.bin$predict.wind, 5)
+
+range(df.bin$diff)
+
+# This section works
+
+```
+
+If the predicted and manual values are rounded to 5 decimals, their difference is 0. 
+
+Great, my manual calculation of probability equals my probability using `predict.glm()` function!
+
+
+# Get Suvanto 2019 coefficients
+
+#### Reference: 
+
+Suvanto, S., Peltoniemi, M., Tuominen, S., Strandström, M., Lehtonen, A., 2019. High-resolution mapping of forest vulnerability to wind for disturbance-aware forestry. For. Ecol. Manage. 453, 117619. https://doi.org/10.1016/j.foreco.2019.117619
+
+#### List of applied variables (Table 1):
+
+![List of applied variables](images/suvanto_variables.PNG)
+
+
+#### List of GLM model results (Table 3):
+
+![GLM model results](images/suvanto_glm_estimates.PNG){width=450px}
+
+
+#### To make sure that my equation interpretation is correct:
+
+  - create a fake data containing all Suvanto's predictors
+  - follow the factor order of categorical variables to keep the same reference classes 
+  - replace the model coefficients by Suvanto's ones and predict values
+  - predict values manually by creating `logit.y = a + b1*x1 + ... + bn*xn*xm`
+  - the predicted values from the model and by manual computing has to be same
+
+## Create full fake data
+
+```{r}
+set.seed(42)
+
+row.num = 80
+
+species         <- factor(rep(c("pine", "spruce", "other"), 
+                            each = row.num), 
+                         levels = c("pine", "spruce", "other"))
+height          <- c(runif(row.num, min = 10, max = 200),
+                     runif(row.num, min = 0, max = 100),
+                     runif(row.num, min = 30, max = 150))
+time_thinning   <-  factor(sample(c("0-5", "6-10", ">10"),
+                        length(species), replace = TRUE), 
+                        levels = c("0-5", "6-10", ">10"))
+windSpeed       <- runif(length(species), min = 10, max = 30)
+open_stand      <- ifelse(rbinom(length(species), 1, 0.9), "FALSE", "TRUE") 
+soilType        <- sample(c("mineral coarse", "mineral fine",
+                            "organic"),
+                        length(species), replace = TRUE)
+soilDepthLess30 <- ifelse(rbinom(length(species), 1, 0.5),
+                          "FALSE","TRUE")
+siteFertility   <- factor(sample(c("poor", "fertile"),
+                        length(species),
+                        replace = TRUE),
+                        levels = c("poor", "fertile"))
+tempSum         <- runif(length(species), min = 6, max = 16)
+#damageDensity  <- rep(0, length(species))
+
+wind_damage     <- rbinom(length(species), 1, 0.4)
+
+
+# put data together
+df<-data.frame(species, 
+               height,
+               time_thinning,
+               windSpeed,
+               open_stand,
+               soilType,
+               soilDepthLess30,
+               siteFertility,
+               tempSum,
+               wind_damage)
+
+
+# Get summary for species
+summary(df)
+
+aggregate(height ~ species, df, mean)
+
+library(ggplot2)
+
+ggplot(df, aes(x = species, y = height)) +
+  geom_boxplot()
+
+```
+
+
+## Create full fake glm() model:
+
+```{r}
+
+fake.m <- glm(formula = wind_damage ~ species + log(height)  +  
+            time_thinning + 
+            log(windSpeed) + open_stand + soilType +
+            soilDepthLess30 + 
+            siteFertility + tempSum +
+            log(height):species, 
+            data = df, 
+            family = "binomial") # family = binomial(link = "logit")
+
+#summary(fake.m)
+
+```
+
+
+### List real coefficients estimates 
+
+```{r}
+
+
+# Suvanto's coefficients (more accurate from Susanne code, 6 digits)
+# intercept                    = - 14.69037
+# b1.spec.spruce               = - 8.494159
+# b2.spec.other                = - 9.314355
+# b3.log.height                = + 1.660898   # log
+# b4.last_thinning.6.10        = - 0.2981861
+# b5.last_thinning.over.10     = - 0.84402
+# b6.log.wind                  = + 0.7489579   # log
+# b7.open_stand_border         = + 0.3103782
+# b8.soil_min.fine             = - 0.3556811
+# b9.soil_organic              = - 0.2160042
+# b10.soil_depth.less.30cm      = + 0.2141003
+# b11.site_fertility            = - 0.425096
+# b12.temperature_sum           = + 0.09585469
+# b13.spec.spruce.X.log.height  = + 1.634359 
+# b14.spec.other.X.log.height   = + 1.624776
+
+# Suvanto's coefficients (more accurate from Susanne code): 20 digits
+intercept                    = - 14.690374506245104769
+b1.spec.spruce               = - 8.494158565180855547
+b2.spec.other                = - 9.314355152502169943
+b3.log.height                = + 1.660897636823469137   # log
+b4.last_thinning.6.10        = - 0.298186071853962231
+b5.last_thinning.over.10     = - 0.844019963540904472
+b6.log.wind                  = + 0.748957880201017501   # log
+b7.open_stand_border         = + 0.310378186345018792
+b8.soil_min.fine             = - 0.355681075669793900
+b9.soil_organic              = - 0.216004202249671151
+b10.soil_depth.less.30cm      = + 0.214100256449853671
+b11.site_fertility            = - 0.425096042510456240
+b12.temperature_sum           = + 0.095854694562656148
+b13.spec.spruce.X.log.height  = + 1.634359050870280550 
+b14.spec.other.X.log.height   = + 1.624775941830151726
+
+
+# Put coefficients in a vector, to replace the coefficients in a formula
+suvantoCoeffs<-c(intercept, 
+                 b1.spec.spruce,
+                 b2.spec.other,
+                 b3.log.height,
+                 b4.last_thinning.6.10,
+                 b5.last_thinning.over.10,
+                 b6.log.wind,
+                 b7.open_stand_border,
+                 b8.soil_min.fine,
+                 b9.soil_organic,
+                 b10.soil_depth.less.30cm,
+                 b11.site_fertility,
+                 b12.temperature_sum,
+                 b13.spec.spruce.X.log.height,
+                 b14.spec.other.X.log.height)
+
+
+```
+
+#### Replace the dummy coefficients by real ones
+
+Create a new model with the real Suvanto's coefficients. This will be help to test if the model predict the same values as manual calculation.
+
+```{r}
+
+# First, copy the model
+windRisk.m <- fake.m
+
+
+# replace coefficients:
+windRisk.m$coefficients<-suvantoCoeffs
+
+
+# create new data, just change tree height variable
+df2<-df
+df2$height<- c(runif(row.num, min = 10, max = 200),
+              runif(row.num, min = 0, max = 300),
+              runif(row.num, min = 30, max = 150))
+
+df2$predicted<-predict.glm(windRisk.m, df2, type="response")
+
+
+```
+
+### Manually calculate y
+
+In order to calculate the vector of coefficients by the dataframe, the leght of vector and number of columns in a dataframe has to be the same. 
+
+Need to: 
+
+- Convert all categorical data to binary dummy classes
+- create new columns for interactions
+- convert `height` and `windSpeed` to logarithms
+
+Identify the categorical variables:
+
+```{r}
+
+# convert my categorial variables into binary classes
+# create vector of colnames with categorical variables
+categVars <- c("species", 
+               "time_thinning", 
+               "open_stand",
+               "soilType", 
+               "soilDepthLess30",
+               "siteFertility")
+
+```
+
+Restructure the `dataframe` to have binary and quantitative data, and has culomns corresponding to vector of coefficients.
+
+```{r}
+
+library(fastDummies)
+
+df.bin <- fastDummies::dummy_cols(df,
+                                  select_columns = categVars, # only categorical
+                                  remove_first_dummy = TRUE)  # remove reference category
+
+# remove the original variables and observed value of damages
+df.bin<-df.bin[ , !(names(df.bin) %in% c(categVars,
+                                         "wind_damage"))]
+
+
+# complete the dataframe by interactions 
+# to have the same amount of columns as number of coefficients
+# add logarithm in a formula
+# add columnf for intersectp => fill with 1
+df.bin$interc <- 1
+
+df.bin$log_height <- log(df.bin$height)
+df.bin$log_Wspeed <- log(df.bin$windSpeed)
+
+# add interactions
+df.bin$spec.spruce.X.log.height <- df.bin$species_spruce * df.bin$log_height
+df.bin$spec.other.X.log.height  <- df.bin$species_other  * df.bin$log_height
+
+
+```
+
+
+#### Order the table manually to correspond the order of coefficients
+
+```{r}
+# to put it in correct order
+colnames.ordered<-c("interc",
+                    "species_spruce",
+                    "species_other",
+                    "log_height",
+                    "time_thinning_6-10", 
+                    "time_thinning_>10",
+                    "log_Wspeed",
+                    "open_stand_TRUE",
+                    "soilType_mineral fine",
+                    "soilType_organic",
+                    "soilDepthLess30_TRUE",
+                    "siteFertility_fertile",
+                    "tempSum",
+                    "spec.spruce.X.log.height",
+                    "spec.other.X.log.height" )
+
+# order the dataframe to corresponds columnwise to coefficients
+# keep only specified columns
+df.ord<-df.bin[colnames.ordered]
+                  
+```
+
+###### Multiply the dataframe by vectors
+
+First calculate each column by the corresponding coefficient (intercetpt multiplies by 1) and then sum up each row. As the third step, convert `logit.y` values back to probability values. 
+
+```{r}
+
+# calculate partial df 
+# the final column need to be summed up
+part.df <- sweep(df.ord, 2, suvantoCoeffs, "*")
+
+```
+
+Convert sum of `y.logit` values to probability values
+
+```{r}
+# sum by rows and add intercept value
+df.ord$pred.manual <- logit2prob(rowSums(part.df))
+
+```
+
+#### Calculate probability based on model
+
+The Suvanto's coefficients were replaced in the model. Need to use original `df` data, without `log` values of height and wind speed, as this is included in a formula. 
+
+```{r}
+# Calcutate probability values given the example data
+df.ord$predict.wind <- predict.glm(windRisk.m, 
+                                   df, 
+                                   type = "response")
+
+
+df.ord$diff<- round(df.ord$pred.manual,6) - round(df.ord$predict.wind,6)
+
+range(df.ord$diff)
+
+hist(df.ord$diff)
+
+```
+ 
+ 
+<font size="5"> Seems that both probability values are the same! Hip hip hurraaa!! </font>
+
+```{r}
+head(df.ord)
+tail(df.ord)
+```
+
+## Read Kyle's .Rdata file
+
+Read individual objects from the .Rdata file, including Suvanto's model 
+
+
+```{r}
+# Read Suvanto's objects:
+
+load("U:/projects/2019_windthrowModel/models_update_DDclass_3.RData", ex <- new.env())
+#ls.str(ex)
+
+# ls(ex) # list the objects in a Rdata
+
+# Specify number of digits for coefficients
+print(summary(ex$glm1)$coefficients,digits=20)
+```
+
+
+Try to get raw datadata
+
+```{r}
+# Try to extract row data, 'kuvio' df is not available
+# s.raw<-eval(getCall(ex$glm1)$data)
+```
+
+Raw data is not available, just larger data table or values used in a model. Keep this values to run some operations:
+
+```{r}
+
+# apply model to predict the values
+# this is the model frame (modified, with calculated logarithms)
+s.mod.frame<-ex$glm1$model
+
+# remove density and weights
+s.df.noDens<-subset(s.mod.frame, select = -c(`kde20_class`, `(weights)`))
+
+# summary(ex$glm1)
+
+# Create a new model to neglect the density and weights
+# original model:
+# glm(formula = tuulituho_uusi ~ puulaji_group + log(max_kpit) + 
+#     puulaji_group:log(max_kpit) + harv_aika_3class + log(wind_max) + 
+#     open_nbr + maalaji3 + mineral_alle30cm + kasvuptyyp_2class + 
+#     ddsum5_bilinear + kde20_class, family = "binomial", data = kuviot, 
+#     weights = metsa_ala_scaled)
+
+# I am using the data with applied logarithms; therefore I am not using log(XX) anymore. This is just the name of the column, specified by ``
+glm.noDens<- glm(formula = tuulituho_uusi ~ puulaji_group + `log(max_kpit)` +
+                  puulaji_group:`log(max_kpit)` + harv_aika_3class + 
+                  `log(wind_max)` + open_nbr + maalaji3 + 
+                  mineral_alle30cm +
+                  kasvuptyyp_2class + ddsum5_bilinear, 
+                  family = "binomial", 
+                  data = s.df.noDens)
+
+# order the Suvanto's data as my columns are ordered
+# convert to binary classes
+# add interaction columns
+
+# convert to dummy variables
+library(fastDummies)
+
+s.mod.frame.bin <- fastDummies::dummy_cols(s.df.noDens,
+                                           remove_first_dummy = TRUE)  # remove reference category
+
+# Complete the dataframe
+s.mod.frame.bin$interc<-1
+
+s.mod.frame.bin$spec.spruce.X.log.height <- s.mod.frame.bin$puulaji_group_2*s.mod.frame.bin$`log(max_kpit)`
+
+s.mod.frame.bin$spec.other.X.log.height  <- s.mod.frame.bin$puulaji_group_3*s.mod.frame.bin$`log(max_kpit)`
+
+# multiply by coefficients
+# check if predicted values fit manual calculation
+suvanto.col.ord<- c("interc",
+                    "puulaji_group_2",
+                    "puulaji_group_3",
+                    "log(max_kpit)",
+                    "harv_aika_3class_6",
+                    "harv_aika_3class_11",
+                    "log(wind_max)",
+                    "open_nbr_TRUE", 
+                    "maalaji3_MINERAL_FINE",
+                    "maalaji3_ORGANIC",
+                    "mineral_alle30cm_TRUE",
+                    "kasvuptyyp_2class_TUORE",
+                    "ddsum5_bilinear",
+                    "spec.spruce.X.log.height",
+                    "spec.other.X.log.height")    
+
+# find differences between two column names
+setdiff(names(s.mod.frame.bin),
+        suvanto.col.ord)
+
+# keep only necessary columns
+s.ord<-s.mod.frame.bin[suvanto.col.ord]
+
+# Calculate probability manually
+logit.y = intercept +
+                 b1.spec.spruce*1 +
+                 b2.spec.other*0+
+                 b3.log.height*5.590987 +
+                 b4.last_thinning.6.10*0 +
+                 b5.last_thinning.over.10*0+
+                 b6.log.wind*2.535674+
+                 b7.open_stand_border*1 +
+                 b8.soil_min.fine*0+
+                 b9.soil_organic*0 +
+                 b10.soil_depth.less.30cm*0+
+                 b11.site_fertility*1+
+                 b12.temperature_sum*13.29379 +
+                 b13.spec.spruce.X.log.height*5.590987 +
+                 b14.spec.other.X.log.height * 0
+
+
+y = logit2prob(logit.y)
+
+# multiply each column by coefficient
+# the final column need to be summed up
+part.s.df <- sweep(s.ord, 2, suvantoCoeffs, "*")
+
+# sum by rows and add intercept value
+s.ord$pred.manual <- logit2prob(rowSums(part.s.df))
+
+
+# calculate predicted values
+s.ord$pred.model <-predict.glm(glm.noDens, 
+                               s.df.noDens,
+                               type = "response")
+# get fitted values from model without damage densities
+s.ord$fitted <-glm.noDens$fitted.values
+
+s.ord$diff1 <- round(s.ord$pred.manual, 5) - round(s.ord$pred.model, 5)
+
+s.ord$diff.fit <- round(s.ord$pred.model, 5) - round(s.ord$fitted, 5)
+
+range(s.ord$diff1)
+range(s.ord$diff.fit)
+
+
+```
+
+## Why are the manually calculated probability and fitted values different? Maybe some badly applied logaritm? 
+
+```{r}
+
+# calculate y manually
+
+
+#       interc puulaji_group_2 puulaji_group_3 log(max_kpit) harv_aika_3class_6
+# 22427      1               1               0      5.590987                  0
+#       harv_aika_3class_11 log(wind_max) open_nbr_TRUE maalaji3_MINERAL_FINE maalaji3_ORGANIC
+# 22427                   0      2.535674             1                     0                0
+#       mineral_alle30cm_TRUE kasvuptyyp_2class_TUORE ddsum5_bilinear spec.spruce.X.log.height
+# 22427                     0                       1        13.29379                 5.590987
+#       spec.other.X.log.height pred.manual fitted    diff
+# 22427                       0      0.1542 0.5488 -0.3946
+
+
+
+```
+#
+
+Check for differences between my model and Susanne model
+
+```{r}
+# maajali = soiltype
+# puulaji = species type
+# kasvup = growth type ~ (fertility)
+# aika = time
+# alle = under
+
+
+#tuulituho_uusi ~ puulaji_group + log(max_kpit) + puulaji_group:log(max_kpit) + 
+#    harv_aika_3class + log(wind_max) + open_nbr + maalaji3 + 
+#    mineral_alle30cm + kasvuptyyp_2class + ddsum5_bilinear + 
+#    kde20_class
+
+
+
+# my model
+#wind_damage ~ species + log(height) + time_thinning + log(windSpeed) + 
+#    open_stand + soilType + soilDepthLess30 + siteFertility + 
+#    tempSum + log(height):species
+
+
+# models formula are the same
+
+# check out glm1 model objects
+# can I get the raw data?
+# 
+
+# weights is models were aplied to account for density ratio
+# likely can be skipped
+
+
+
+```
+ 
