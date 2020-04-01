@@ -562,10 +562,14 @@ Read individual objects from the .Rdata file, including Suvanto's model
 load("U:/projects/2019_windthrowModel/models_update_DDclass_3.RData", ex <- new.env())
 #ls.str(ex)
 
-# ls(ex) # list the objects in a Rdata
+ls(ex) # list the objects in a Rdata
+
+ls(ex$glm1)  # list what is within the glm1 object
 
 # Specify number of digits for coefficients
 print(summary(ex$glm1)$coefficients,digits=20)
+
+
 ```
 
 
@@ -573,7 +577,14 @@ Try to get raw datadata
 
 ```{r}
 # Try to extract row data, 'kuvio' df is not available
-# s.raw<-eval(getCall(ex$glm1)$data)
+#s.raw<-eval(getCall(ex$glm1)$data)
+s.raw<- ex$glm1$data
+
+
+# are columns used in glm1 formula present in raw data?? can I extract them??
+
+
+
 ```
 
 What is the range of predicted values?
@@ -701,7 +712,8 @@ range(s.ord$diff.fit)
 
 ```
 
-## Why are the manually calculated probability and fitted values different? Maybe some badly applied logaritm? 
+## Why are the manually calculated probability and fitted values different? Maybe some badly applied logaritm? or it is because I don't have `kde20_class` ???
+
 
 ```{r}
 
@@ -730,6 +742,7 @@ Check for differences between my model and Susanne model
 # kasvup = growth type ~ (fertility)
 # aika = time
 # alle = under
+# tuulituho_uusi = new wind damage
 
 
 #tuulituho_uusi ~ puulaji_group + log(max_kpit) + puulaji_group:log(max_kpit) + 
