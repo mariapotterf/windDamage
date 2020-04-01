@@ -183,7 +183,10 @@ plot(stand.merged.2096.edge["open_edge"], main = "H_2096", key.pos = NULL, reset
 
 
 
+
 library(gridExtra)
+
+
 p1<- ggplot(stand.merged.2016.edge) +
   geom_sf(aes(fill = open_edge))
 
@@ -207,14 +210,6 @@ grid.arrange(p1, p2)
 # Excecute the function on each of dataframe
 # need to get out objects of sf an dataframe
 
-#outEdge<-
- # stand.merged %>% 
-#  group_by(year) %>% 
- # group_split() #%>% 
-  #findOpenEdge_sf(.)
-  #
-#out1<-findOpenEdge_sf(sf = outEdge[[1]], H_dom = H_dom)
-
 
 # split dataframe into list of dataframes
 out <- split(stand.merged, f = stand.merged$year)
@@ -223,13 +218,6 @@ out <- split(stand.merged, f = stand.merged$year)
 
 out.edge <- lapply(out, findOpenEdge_sf)
 
-
-# Convert back to dataframe
-#out.edge.df <- dplyr::bind_rows(out.edge)
-out.edge.df <- rbind(out.edge, deparse.level = 1)
-#rbind_rows_sf(out.edge, deparse.level = 1)
-
-# !!!
 # How to convert list of df to df while keeping geometry???
 out.edge.df<- sf::st_as_sf(data.table::rbindlist(out.edge))
 
@@ -247,6 +235,35 @@ library(transformr)
 
 
 # My data:
+
+
+ggplot(stand.merged) + #  
+  geom_sf(aes(fill = H_dom)) + # H_dom
+  scale_fill_continuous(low = "lightgreen", 
+                       high = "darkgreen",
+                      space = "Lab", 
+                     na.value = "red", guide = "colourbar")+
+  
+  annotation_scale(location = "bl", width_hint = 0.4) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  theme_bw() +
+  xlab("Longitude") + 
+  ylab("Latitude") +
+  # theme(axis.title=element_blank(),
+  #      axis.text=element_blank(),
+  #     axis.ticks=element_blank()) +
+  # gganimate specific bits:
+  labs(title = 'Korsnas BAU Year: {current_frame}') +
+  transition_manual(year) +
+  #transition_time(year) +
+  ease_aes('linear')
+
+
+
+
+
 
 ggplot(out.edge.df) + # stand.merged 
   geom_sf(aes(fill = open_edge)) + # H_dom
