@@ -529,7 +529,7 @@ The Suvanto's coefficients were replaced in the model. Need to use original `df`
 
 ```{r}
 
-# Calcutate probability values given the example data
+# Calculate probability values given the example data
 df.ord$predict.wind <- predict.glm(windRisk.m, 
                                    df, 
                                    type = "response")
@@ -579,6 +579,10 @@ Try to get raw datadata
 # Try to extract row data, 'kuvio' df is not available
 #s.raw<-eval(getCall(ex$glm1)$data)
 s.raw<- ex$glm1$data
+
+# what is the range of 'ddsum5_bilinear' values?
+range(s.raw$ddsum5_bilinear)
+range(s.raw$ddsum5_simple, na.rm = T )
 
 
 # are columns used in glm1 formula present in raw data?? can I extract them??
@@ -770,4 +774,23 @@ Check for differences between my model and Susanne model
 
 
 ```
+ 
+ Susanne is ising in this formula the wind damage deisity estimates as well,and have 3 groups of wind damage. To get rid of the includeing of the wind damage density I can either convert it all to 0 and reclalculate it and ccheck if data fits. But, I have previously found that my manual replacement of coefficients in the model 
+```{r} 
+# First, copy the model
+windRisk.m <- fake.m
+# replace coefficients:
+windRisk.m$coefficients<-suvantoCoeffs
+```
+ and manual calculation of ym including conversion from logit to probability have the same results!  
+ 
+ 
+# Conclusion: 
+
+Use the fake model with replaced coefficients!!! Make sure that:  
+- categorical variables are stored as factors
+- correct ordered factor levels
+
+ 
+
  
