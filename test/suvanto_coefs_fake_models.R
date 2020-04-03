@@ -85,6 +85,18 @@ fake.m <- glm(formula = wind_damage ~ species + log(height)  +
 # ----------------------------
 # Get Suvanto's coefficients
 # ---------------------------
+
+
+# Convert logit to probabilities
+logit2prob <- function(logit){
+  odds <- exp(logit)
+  prob <- odds / (1 + odds)
+  return(prob)
+}
+
+
+
+
 # Suvanto's coefficients (more accurate from Susanne code): 20 digits
 intercept                    = - 14.690374506245104769
 b1.spec.spruce               = - 8.494158565180855547
