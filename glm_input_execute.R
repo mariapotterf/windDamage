@@ -20,7 +20,6 @@ rm(list = ls())
 
 setwd("C:/MyTemp/myGitLab/windDamage")
 
-
 source("myFunctions.R")
 
 
@@ -80,19 +79,92 @@ df      <- subset(df,id %in% stands.complete)
 df.geom <- subset(df.geom, standid %in% stands.complete)
 
 
-# Subset one FM regime from simulated data
-df.bau<-
+
+# -----------------------------------------------
+# Which stands have the same amout on executed regimes on them?
+# Idea: have teh largest landscape under one management at every year
+# recreate the constant landscape over year and management
+# subset stands that have 20 regimes on them
+# OR subset that the regimes that have the most stands?
+# -----------------------------------------------
+# how many management I have every year?
+
+# select just those regimes
+tab1 <- as.data.frame(table(df$year, df$regime))
+
+# the number or management applied over each landscape is different over time
+# to have a consistent landscape: always teh same stand, with different 
+# management regime, changing over time, I need to subset the sam stands
+# how many management I have every year???
+table(tab1$Var1, tab1$Var2)
+
+# How oftern every management occurs?
+table(tab1$Var2, tab1$Freq)
+
+# Subset the BAU values, and it's stand IDs to get ~ 6 regimes: 276 stands
+fin.stands<-unique(subset(df, regime == "BAU")$id)
+
+# Subset df table to have only those regimes:
+df.sim<-
   df %>% 
-  filter(regime == "BAU") %>% 
+  filter(id %in% fin.stands) %>% 
   mutate(regime = factor(regime))        # drop unused factors
+
+
+# Subset one FM regime from simulated data
+#df.bau<-
+ # df %>% 
+ # filter(regime == "BAU") %>% 
+ # mutate(regime = factor(regime))        # drop unused factors
 
 
 # Merge geometry and simulated data for one management regime
 stand.merged <- sp::merge(df.geom,
-                          df.bau, 
+                          df.sim, 
                           duplicateGeoms = TRUE,
                           by.x = "standid", 
                           by.y = "id")
+
+
+# Replace H_dom missing values by 0
+stand.merged <-
+  stand.merged %>% 
+  mutate(H_dom = replace_na(H_dom, 0.01))
+
+
+# Split dataframe into multiple dataframes list 
+# Excecute the function on each of dataframe
+# need to get out objects of sf an dataframe
+# Need to split by year and management regime!!!
+# ===========================================
+
+# split dataframe into list of dataframes
+out.split <- split(stand.merged, 
+                   f = stand.merged$year)
+
+# Apply a function over a dataframe list
+# !!!!! runniong for 10 mins?? started at 10:45
+# I have ~ 6 regimes * 20 time steps = 120
+# previously: 20 time steps were genereated within 2-5 min??
+out.edge <- lapply(out.split, findOpenEdge_sf)
+
+# How to convert list of df to df while keeping geometry???
+out.edge.df.bau<- sf::st_as_sf(data.table::rbindlist(out.edge.bau))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # -------------------------------
