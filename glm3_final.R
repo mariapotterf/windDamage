@@ -7,10 +7,51 @@
 # ===============================
 
 
+# 
+rm(list = ls())
+
+
+setwd("C:/MyTemp/myGitLab/windDamage")
+
+# Read libraries
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library()
+library(rgdal)
+library(ggpubr)
+library(sf)
+library(rgdal)
+library(ggspatial)
+library(rgeos)
+library(raster)
+library(dplyr)
+library(spData)
+library(sf)
+library(RColorBrewer)
 
 
 
+# Set working directory
+inDataPath = "U:/projects/2019_windthrowModel/Janita/outSimulated"
+setwd(inDataPath)
 
+
+# read data with calculated open_edge
+df <- data.table::fread("open_edge_calc_fast.csv") 
+
+# st_read do not return tibble just spatial dataframe
+df.geom = st_read("outKorsnas_att.shp")
+
+
+# Find same stands id between geometry and simulated data 
+# and keep those
+stands.complete = Reduce(intersect, list(df$standid, df.geom$standid))
+
+# Reduce df and df.geom to the same stands
+df      <- subset(df,standid %in% stands.complete)
+df.geom <- subset(df.geom, standid %in% stands.complete)
 
 
 
