@@ -161,17 +161,27 @@ out.split <- split(stand.merged,
 # previously: 20 time steps were genereated within 2-5 min??
 out.fin <- lapply(out.split, findOpenEdge_sf)
 
+# Out.fin has 440 dataframes: length(out.fin)
+# the output object is sf and dataframe
+#> class(out.fin[[333]])
+#[1] "sf"         "data.frame"
 
-out.df <- Reduce(rbind, out.fin)
-# How to convert list of df to df while keeping geometry???
-#out.edge.df<- sf::st_as_sf(data.table::rbindlist(out.fin))
+# Convert out.fin to simple dataframe without geometry
+df.ls <- lapply(out.fin, function(i) {i %>% st_set_geometry(NULL)})
+
+
+# Merge dataframes in a list into single dataframe file
+df.all <- do.call("rbind", df.ls)
+
 
 # BInd the list of dataframes together, no need to keep geometries anymore
 
 # export the dataframe
 
-write.csv(out.df, "open_edge_calc.csv")
+write.csv(df.all, "open_edge_calc.csv")
 
+# Factor alternative?
+data.table::fwrite(df.all, "open_edge_calc_fast.csv")
 
 
 
