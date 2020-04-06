@@ -1,0 +1,219 @@
+---
+title: "open_edge_over time"
+author: "majca"
+date: "March 24, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## R Markdown
+
+This files illustrated the changes in stands with open edge in BAU management regime 
+
+```{r echo = FALSE, comment=NA, message = FALSE, warning=FALSE}
+
+# 
+rm(list = ls())
+
+
+setwd("C:/MyTemp/myGitLab/windDamage")
+
+source("myFunctions.R")
+
+
+# ----------------------------------
+# start the script: using rgdal library
+# ----------------------------------
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(rgdal)
+library(ggpubr)
+library(sf)
+library(rgdal)
+library(ggspatial)
+
+
+# # Set working directory
+setwd("U:/projects/2019_windthrowModel/Janita/outSimulated")
+# 
+# # read simulated data
+df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate change is not included
+# 
+# # Read stand geometry
+df.geom = read_sf("MV_Korsnas.shp")
+
+# Investigate the fit between simulated data and their geometry:
+# keep only simulated stands and their corresponding geometry
+# ----------------------------------------
+#extra.stand.geom <- setdiff(unique(df.geom$standid), unique(df$id))
+#extra.stand.simul <- setdiff(unique(df$id), unique(df.geom$standid))
+
+
+# Get the standid of unique simulated stands - no all stands were simulated
+#stands.simul <- unique(df$id)
+
+# Subset stand geometry:
+#stand.geom.sub <- subset(df.geom, standid %in% stands.simul )
+
+# convert the stand id "integer" to the 'character'
+#df$id <- as.character(df$id)
+
+
+# Subset by one regime, to create clean attribute table
+# here also the geometry can differ???
+df.bau<-
+  df %>% 
+  filter(regime == "BAU") %>% 
+  mutate(regime = factor(regime))        # drop unused factors
+
+
+df.cc1<-
+  df %>% 
+  filter(regime == "CCF_1") %>% 
+  mutate(regime = factor(regime))        # drop unused factors
+
+
+# Get vectors of stands common between management and 
+# geometry
+stands.compl.bau = Reduce(intersect, 
+                          list(df.bau$id, df.geom$standid))
+stands.compl.cc1 = Reduce(intersect, 
+                          list(df.cc1$id, df.geom$standid))
+
+
+# Reduce df and df.geom to the same stands
+df.bau <- subset(df.bau,id %in% stands.compl.bau)
+df.bau.geom <- subset(df.geom, standid %in% stands.compl.bau)
+
+
+df.cc1 <- subset(df.cc1,id %in% stands.compl.cc1)
+df.cc1.geom <- subset(df.geom, standid %in% stands.compl.cc1)
+
+
+# BAU !!!!!
+# ================
+
+
+# JOin the simulated data with the stand geometry
+# Join the geometry table with simulated data
+stand.merged.bau <- sp::merge(df.bau.geom,
+                              df.bau, 
+                              duplicateGeoms = TRUE,
+                              by.x = "standid", by.y = "id")
+
+# Replace H_dom missing values by 0
+stand.merged.bau <-
+  stand.merged.bau %>% 
+  mutate(H_dom = replace_na(H_dom, 0))
+
+
+#
+# Split dataframe into multiple dataframes list 
+# Excecute the function on each of dataframe
+# need to get out objects of sf an dataframe
+
+# split dataframe into list of dataframes
+out.bau <- split(stand.merged.bau, f = stand.merged.bau$year)
+
+# Apply a function over a dataframe list
+
+out.edge.bau <- lapply(out.bau, findOpenEdge_sf)
+
+# How to convert list of df to df while keeping geometry???
+out.edge.df.bau<- sf::st_as_sf(data.table::rbindlist(out.edge.bau))
+
+
+
+
+# CCF1 !!!!!
+# ================
+
+
+# JOin the simulated data with the stand geometry
+# Join the geometry table with simulated data
+stand.merged.cc1 <- sp::merge(df.cc1.geom, 
+                              df.cc1, 
+                              duplicateGeoms = TRUE,
+                              by.x = "standid", by.y = "id")
+
+# Replace H_dom missing values by 0
+stand.merged.cc1 <-
+  stand.merged.cc1 %>% 
+  mutate(H_dom = replace_na(H_dom, 0))
+
+
+#
+# Split dataframe into multiple dataframe list 
+# Excecute the function on each of dataframe
+# need to get out objects of sf an dataframe
+
+
+# split dataframe into list of dataframes
+out.cc1 <- split(stand.merged.cc1, f = stand.merged.cc1$year)
+
+# Apply a function over a dataframe list
+
+out.edge.cc1 <- lapply(out.cc1, findOpenEdge_sf)
+
+# How to convert list of df to df while keeping geometry???
+out.edge.df.cc1<- sf::st_as_sf(data.table::rbindlist(out.edge.cc1))
+
+
+
+
+
+```
+
+## Distribution of open_edge stands within Korsnas under BAU management
+
+```{r  echo=FALSE, message = FALSE, warning=F, fig.width=5, fig.height=4}
+# Charge libraries:
+library(ggplot2)
+library(gganimate)
+library(transformr)
+
+
+ggplot(out.edge.df.bau) + # stand.merged 
+  geom_sf(aes(fill = open_edge)) + # H_dom
+  annotation_scale(location = "bl", width_hint = 0.4) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  theme_bw() +
+  xlab("Longitude") + 
+  ylab("Latitude") +
+    # gganimate specific bits:
+  labs(title = 'Korsnas BAU Year: {current_frame}') +
+  transition_manual(year) +
+  #transition_time(year) +
+  ease_aes('linear')
+
+
+```
+
+## Distribution of open_edge stands within Korsnas under CCF1 management
+
+```{r echo=FALSE, message = FALSE, warning=FALSE, fig.width=5, fig.height=4}
+
+ggplot(out.edge.df.cc1) + # stand.merged 
+  geom_sf(aes(fill = open_edge)) + # H_dom
+  annotation_scale(location = "bl", width_hint = 0.4) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  theme_bw() +
+  xlab("Longitude") + 
+  ylab("Latitude") +
+    # gganimate specific bits:
+  labs(title = 'Korsnas CCF_1 Year: {current_frame}') +
+  transition_manual(year) +
+  #transition_time(year) +
+  ease_aes('linear')
+
+```
