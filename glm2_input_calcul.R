@@ -149,14 +149,6 @@ stand.merged$reg_year <- paste(stand.merged$regime,
 out.split <- split(stand.merged, 
                    f = stand.merged$reg_year)
 
-
-# drop unused factors - need to finnish if needed
-#out.split <- lapply(out.split, 
- #                   function(df) {df$regime <- factor(df$regime)})
-
-# out2 <- findOpenEdge_sf(out.split[[6]])
-# Apply a function over a dataframe list
-# !!!!! runniong for 10 mins?? started at 10:45
 # I have ~ 6 regimes * 20 time steps = 120
 # previously: 20 time steps were genereated within 2-5 min??
 out.fin <- lapply(out.split, findOpenEdge_sf)
@@ -177,10 +169,9 @@ df.all <- do.call("rbind", df.ls)
 # BInd the list of dataframes together, no need to keep geometries anymore
 
 # export the dataframe
+# write.csv(df.all, "open_edge_calc.csv")
 
-write.csv(df.all, "open_edge_calc.csv")
-
-# Factor alternative?
+# Faster alternative to save up CSV file
 data.table::fwrite(df.all, "open_edge_calc_fast.csv")
 
 
