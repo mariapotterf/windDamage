@@ -175,7 +175,7 @@ wind_damage     <- rbinom(length(species), 1, 0.4)
 
 
 # put data together
-df<-data.frame(species, 
+df.fake<-data.frame(species, 
                H_dom,
                time_thinning,
                windSpeed,
@@ -208,7 +208,7 @@ fake.m <- glm(formula = wind_damage ~ species + log(H_dom)  +
                 soilDepthLess30 + 
                 siteFertility + tempSum +
                 log(H_dom):species, 
-              data = df, 
+              data = df.fake, 
               family = "binomial") # family = binomial(link = "logit")
 
 
@@ -265,15 +265,15 @@ windRisk.m$coefficients<-suvantoCoeffs
 
 
 # create new data, just change tree H_dom variable
-df2<-df
-df2$H_dom<- c(runif(row.num, min = 10, max = 200),
+df.fake2<-df.fake
+df.fake2$H_dom<- c(runif(row.num, min = 10, max = 200),
                runif(row.num, min = 0, max = 300),
                runif(row.num, min = 30, max = 150))
 
 
 # Normally predicted values - converted from logit values
-df2$predicted<-predict.glm(windRisk.m, 
-                           df2, 
+df.fake2$predicted<-predict.glm(windRisk.m, 
+                           df.fake2, 
                            type="response")
 
 
@@ -299,12 +299,12 @@ categVars <- c("species",
 
 library(fastDummies)
 
-df.bin <- fastDummies::dummy_cols(df,
+df.fake.bin <- fastDummies::dummy_cols(df.fake,
                                   select_columns = categVars, # only categorical
                                   remove_first_dummy = TRUE)  # remove reference category
 
 # remove the original variables and observed value of damages
-df.bin<-df.bin[ , !(names(df.bin) %in% c(categVars,
+df.fake.bin<-df.fake.bin[ , !(names(df.fake.bin) %in% c(categVars,
                                          "wind_damage"))]
 
 
@@ -312,14 +312,14 @@ df.bin<-df.bin[ , !(names(df.bin) %in% c(categVars,
 # to have the same amount of columns as number of coefficients
 # add logarithm in a formula
 # add columnf for intersectp => fill with 1
-df.bin$interc <- 1
+df.fake.bin$interc <- 1
 
-df.bin$log_H_dom <- log(df.bin$H_dom)
-df.bin$log_Wspeed <- log(df.bin$windSpeed)
+df.fake.bin$log_H_dom <- log(df.fake.bin$H_dom)
+df.fake.bin$log_Wspeed <- log(df.fake.bin$windSpeed)
 
 # add interactions
-df.bin$spec.spruce.X.log.H_dom <- df.bin$species_spruce * df.bin$log_H_dom
-df.bin$spec.other.X.log.H_dom  <- df.bin$species_other  * df.bin$log_H_dom
+df.fake.bin$spec.spruce.X.log.H_dom <- df.fake.bin$species_spruce * df.fake.bin$log_H_dom
+df.fake.bin$spec.other.X.log.H_dom  <- df.fake.bin$species_other  * df.fake.bin$log_H_dom
 
 
 # to put it in correct order
@@ -341,17 +341,17 @@ colnames.ordered<-c("interc",
 
 # order the dataframe to corresponds columnwise to coefficients
 # keep only specified columns
-df.ord<-df.bin[colnames.ordered]
+df.fake.ord<-df.fake.bin[colnames.ordered]
 
 
 # Multiply the dataframe columns by vector of coefficients
 
-# calculate partial df 
+# calculate partial df.fake 
 # the final column need to be summed up
-part.df <- sweep(df.ord, 2, suvantoCoeffs, "*")
+part.df.fake <- sweep(df.fake.ord, 2, suvantoCoeffs, "*")
 
 # sum by rows and add intercept value
-df.ord$pred.manual <- logit2prob(rowSums(part.df))
+df.fake.ord$pred.manual <- logit2prob(rowSums(part.df.fake))
 
 # Convert logit to probabilities
 logit2prob <- function(logit){
@@ -363,22 +363,22 @@ logit2prob <- function(logit){
 
 
 # sum by rows and add intercept value
-df.ord$pred.manual <- logit2prob(rowSums(part.df))
+df.fake.ord$pred.manual <- logit2prob(rowSums(part.df.fake))
 
 
 # Calculate teh probability based on model: 
 # the manual calculation (with logits) and this should be the same!!
 # Calcutate probability values given the example data
-df.ord$predict.wind <- predict.glm(windRisk.m, 
-                                   df, 
+df.fake.ord$predict.wind <- predict.glm(windRisk.m, 
+                                   df.fake, 
                                    type = "response")
 
 
 # Compare manual probability estimation and 
 # calculated using the model
-df.ord$diff<- round(df.ord$pred.manual,6) - round(df.ord$predict.wind,6)
+df.fake.ord$diff<- round(df.fake.ord$pred.manual,6) - round(df.fake.ord$predict.wind,6)
 
-range(df.ord$diff)
+range(df.fake.ord$diff)
 
 # ----------------------
 # conclusions! easier to recreate model and just replace the coefficeint for it, 
