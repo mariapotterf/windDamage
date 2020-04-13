@@ -50,29 +50,13 @@ df.geom = st_read("outKorsnas_att.shp")
 stands.complete = Reduce(intersect, list(df$standid, df.geom$standid))
 
 # Reduce df and df.geom to the same stands
+# df.geom = just in case for visualisation, no need 
+# for wind disk calculation!!!!
 df      <- subset(df,standid %in% stands.complete)
 df.geom <- subset(df.geom, standid %in% stands.complete)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # -------------------------------
-
 # !!! Add missing columns: - create fake data!!!!
 # variables used fromSIMO instead from rasters:
 # will be later replaced directly from SIMO
@@ -82,38 +66,38 @@ df.geom <- subset(df.geom, standid %in% stands.complete)
 # PEAT - identify where is peat
 # 
 # -----------------------------------
-stand.merged$time_thinning <- factor(sample(c("0-5", "6-10", ">10"),
-                                            nrow(stand.merged), replace = TRUE), 
-                                     levels = c("0-5", "6-10", ">10"))
+df$time_thinning <- factor(sample(c("0-5", "6-10", ">10"),
+                                  nrow(df), replace = TRUE), 
+                                  levels = c("0-5", "6-10", ">10"))
 
-stand.merged$soiltyp <- factor(sample(c("mineral coarse", 
-                                        "mineral fine",
-                                        "organic"), nrow(stand.merged), replace = TRUE),
+df$soiltyp <- factor(sample(c("mineral coarse", 
+                              "mineral fine",
+                              "organic"), nrow(df), replace = TRUE),
                                levels = c("mineral coarse", 
                                           "mineral fine",
                                           "organic")) 
 
 # replace NA values - due to centroids not overlapping with raster
-stand.merged$slFrtlC <- replace_na(stand.merged$slFrtlC, "poor")
+df$slFrtlC <- replace_na(df$slFrtlC, "poor")
 
 # Soil depth: TRUE & FALSE
 # soil depth < 30: 1 = TRUE, 0 = FALSE
-stand.merged$solDpth <- factor(ifelse(rbinom(nrow(stand.merged), 1, 0.5),
+df$solDpth <- factor(ifelse(rbinom(nrow(df), 1, 0.5),
                                       "FALSE","TRUE"))
 
 
 # Subset columns crucial for glm()
-my.cols.glm <- c("standid",
-                 "area",
-                 "year",
-                 "species",
-                 "H_dom", 
-                 "time_thinning",
-                 "windSpd",
-                 "soiltyp",         
-                 "solDpth",
-                 "slFrtlC", 
-                 "avgTemp")
+#my.cols.glm <- c("standid",
+ #                "area",
+ #                "year",
+ #                "species",
+ #                "H_dom", 
+ #                "time_thinning",
+ #                "windSpd",
+ #                "soiltyp",         
+ #                "solDpth",
+ #                "slFrtlC", 
+ #                "avgTemp")
 
 # Replace the species values
 # seems that these data have only pine???
@@ -121,62 +105,45 @@ my.cols.glm <- c("standid",
 # need to use MAIN_SP from simulated data !! 
 # or mntrspc
 
-stand.merged<-
-  stand.merged %>% 
+df<-
+  df %>% 
   mutate(species = case_when(mntrspc == 1 ~ "pine",
                              mntrspc == 2 ~ "spruce",
                              TRUE ~ "other")) %>% 
-  mutate(H_dom = replace_na(H_dom, 0.01)) %>%   # no possible to get log(0)
-  dplyr::select(my.cols.glm)  %>%      # select columns 
+  mutate(H_dom = replace_na(H_dom, 0.01)) %>%  # no possible to get log(0)  
+  mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
+ # dplyr::select(my.cols.glm)  %>%      # select columns 
   mutate_if(is.character, as.factor)   # convert all characters to factor
 
 
 
 
 # Change column names to correspond glm() 
-colnames(stand.merged)[colnames(stand.merged) == 'windSpd'] <- 'windSpeed'
-colnames(stand.merged)[colnames(stand.merged) == 'soiltyp'] <- 'soilType'
-colnames(stand.merged)[colnames(stand.merged) == 'solDpth'] <- 'soilDepthLess30'
-colnames(stand.merged)[colnames(stand.merged) == 'slFrtlC'] <- 'siteFertility'
-colnames(stand.merged)[colnames(stand.merged) == 'avgTemp'] <- 'tempSum'
+colnames(df)[colnames(df) == 'windSpd'] <- 'windSpeed'
+colnames(df)[colnames(df) == 'soiltyp'] <- 'soilType'
+colnames(df)[colnames(df) == 'solDpth'] <- 'soilDepthLess30'
+colnames(df)[colnames(df) == 'slFrtlC'] <- 'siteFertility'
+colnames(df)[colnames(df) == 'avgTemp'] <- 'tempSum'
 
 
 
 # subset just one year
-stand.merged.2016 <- 
-  stand.merged %>% 
+df.2016 <- 
+  df %>% 
   filter(year == 2016) 
 
-
-# Calculate open edge:
-stand.merged.2016<- findOpenEdge_sf(stand.merged.2016, 
-                                    H_dom, 
-                                    distance = 40, 
-                                    pixel.width = 16)
-
-
-
-
-colnames(stand.merged.2016)
-nrow(stand.merged.2016)
-
+df1 <- df
 
 # -----------------------------------
 #
 # Reorganize the input data to fit Suvanto model's requirement
 # 
 # -----------------------------------
-stand.merged.2016$H_dom = stand.merged.2016$H_dom * 10       # H_dom is Suvanto is in decimeters, in SIMO in meters 
-# H_dom is Suvanto is in decimeters, in SIMO in meters 
 
 # Correct order of variables, factors & levels
 # need to have same names of columns?? YES
 # when data are sourced (source()), they are all available in my script
-
-
-# Convert spatial file to NULL geometry = normal dataframe
-my.df<-stand.merged.2016
-st_geometry(my.df) <- NULL  # get rid of geometry
+source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
 
 # Check the factors and levels in the dataset:
@@ -191,15 +158,11 @@ keep <- c("species",
           "siteFertility",
           "tempSum")
 
-str(my.df)
+str(df)
 
 
 # subset only needed columns:
-df.sub<-my.df[, keep]
-
-# Add fake wind damage:
-#df.sub$wind_damage_fake  <- rbinom(nrow(df.sub), 1, 0.4)
-
+df.sub<-df[, keep]
 
 
 # -----------------------------------------
@@ -228,6 +191,7 @@ df.sub$soilDepthLess30  <- factor(df.sub$soilDepthLess30,
 df.sub$siteFertility    <- factor(df.sub$siteFertility,
                                   levels = c("poor", 
                                              "fertile"))
+df.sub$tempSum    <- df.sub$tempSum/100   # according to Susane 
 
 
 # ------------------------------------------
@@ -237,268 +201,141 @@ df.sub$siteFertility    <- factor(df.sub$siteFertility,
 # try to inclrease the variability??
 
 # if teh
-df.sub$tempSum <- runif(nrow(df.sub), 
-                        min = 12, 
-                        max = 12)#*100
+#df.sub$tempSum <- runif(nrow(df.sub), 
+#                        min = 12, 
+#                        max = 12)#*100
 
 
 df.sub$windDamagePred <- predict.glm(windRisk.m,
                                      df.sub,
                                      type="response")
 
-range(df.sub$windDamagePred)
-# all wind damage prediction is 1!!!
-# is iot becauise of low variability in fake values??
+range(df.sub$windDamagePred, na.rm = T)
 
 
-# compare msimulated input data with fake input data that allow the range 0-1
+# add wind risk values to original data to obtain year!!!
+df$windRisk <- df.sub$windDamagePred 
 
-df$predicted <- predict.glm(windRisk.m,
-                            df,
-                            type="response")
 
-# Try to change temperature sum???
-runif(length(species), min = 6, max = 16)
 
+# -------------------------
+#    Visualise results
+# -------------------------
+#
 
+# get basic statistics: 
+# wind risk by forest management
+# by time
+# does widn risk increases with % of low stands open_edge = TRUE
 
+# keep just few regimes:
+# --------------------------
+# select just those regimes
+tab1 <- as.data.frame(table(df$year, df$regime))
 
+# the number or management applied over each landscape is different over time
+# to have a consistent landscape: always teh same stand, with different 
+# management regime, changing over time, I need to subset the sam stands
+# i ned to grop by year and regime!!!
 
+# Subset the BAU values, and it's stand IDs to get ~ 6 regimes: 276 stands
+fin.stands<-as.numeric(unique(subset(df, regime == "BAU")$standid))
 
+#fin.stands = c(3576574)
 
-library(fastDummies)
+# Subset df table to have only those regimes:
+# !!!!! does not sufset only few regimes
+# how to make sure that my landscape is always same for all management regimes???
+df.sim<-
+  df %>% 
+  group_by(regime, year) %>% 
+  filter(all(fin.stands %in% standid)) %>%   # filter just the group group that have all values
+  filter(standid %in% fin.stands)  %>%           # second to keep only specific values
+  ungroup() %>% 
+  mutate(regime = factor(regime))        # drop unused factors
 
 
+table(df.sim$regime)
 
 
 
 
 
 
+# ------------------------
+# Analyse the data & 
+#     Make boxplots:
+# --------------------------
+library(ggplot2)
 
+# Temporal dynamics of wind risk oof management
+ggplot(df.sim, 
+       aes(x = as.factor(year),
+               y = windRisk)) +
+  geom_boxplot() + 
+  facet_grid(. ~ regime)
 
 
+# Is the wind risk the same for all regimes in the first simulation year??
+p.windRisk <- ggplot(subset(df.sim, year == 2016), 
+       aes(x = regime,
+           y = windRisk)) +
+  geom_boxplot() +
+  ggtitle("Wind risk 2016")
 
+p.H_dom <- ggplot(subset(df.sim, year == 2016), 
+       aes(x = regime,
+           y = H_dom)) +
+  geom_boxplot() +
+  ggtitle("H_dom 2016")
 
 
+p.BA <- ggplot(subset(df.sim, year == 2016), 
+       aes(x = regime,
+           y = BA)) +
+  geom_boxplot()  +
+  ggtitle("BA 2016")
 
 
+ggarrange(p.windRisk, p.H_dom, p.BA, 
+          labels = c("A", "B", "C"),
+          ncol = 3, nrow = 1)
 
-library(fastDummies)
+# Why initial stand conditions are not the same 
+#  between management regimes???
+# ------------------------------------------
+# How many stands with open edge each regime has??
 
-df.bin <- fastDummies::dummy_cols(df,
-                                  select_columns = categVars, # only categorical
-                                  remove_first_dummy = TRUE)  # remove reference category
+# Sum up the area& count of stands with open_edge = TRUE
+head(df.sim)
 
-# remove the original variables and observed value of damages
-df.bin<-df.bin[ , !(names(df.bin) %in% c(categVars,
-                                         "wind_damage"))]
+# how many stands with open_edge == TRUE are in every year by manage regime?
 
+open.edge.count<- 
+  df %>% 
+  group_by(year, regime) %>% 
+  filter(open_edge == TRUE) %>% 
+  tally() %>% 
+  arrange(regime)
+    
 
-# complete the dataframe by interactions 
-# to have the same amount of columns as number of coefficients
-# add logarithm in a formula
-# add columnf for intersectp => fill with 1
-df.bin$interc <- 1
+ggplot(open.edge.count, 
+       aes(x = as.factor(year),
+           y = n, 
+           group = regime,
+           color = regime)) +
+  geom_line() + 
+ # facet_grid(. ~ regime) +
+  ggtitle("Count of stands with open edge")
 
-df.bin$log_height <- log(df.bin$height)
-df.bin$log_Wspeed <- log(df.bin$windSpeed)
 
-# add interactions
-df.bin$spec.spruce.X.log.height <- df.bin$species_spruce * df.bin$log_height
-df.bin$spec.other.X.log.height  <- df.bin$species_other  * df.bin$log_height
+  
+  
+  
+  
 
 
 
-# to put it in correct order
-colnames.ordered<-c("interc",
-                    "species_spruce",
-                    "species_other",
-                    "log_height",
-                    "time_thinning_6-10", 
-                    "time_thinning_>10",
-                    "log_Wspeed",
-                    "open_stand_TRUE",
-                    "soilType_mineral fine",
-                    "soilType_organic",
-                    "soilDepthLess30_TRUE",
-                    "siteFertility_fertile",
-                    "tempSum",
-                    "spec.spruce.X.log.height",
-                    "spec.other.X.log.height" )
-
-# order the dataframe to corresponds columnwise to coefficients
-# keep only specified columns
-df.ord<-df.bin[colnames.ordered]
-
-
-# calculate partial df 
-# the final column need to be summed up
-part.df <- sweep(df.ord, 2, suvantoCoeffs, "*")
-
-# sum by rows and add intercept value
-df.ord$pred.manual <- logit2prob(rowSums(part.df))
-
-
-
-# ---------------------------
-
-# Can I directly import Suvanto's model?
-# Thaen I can use just predict() function, 
-# no need to split categorical data into binary
-
-# how to know if my probability values are correctly calculated?
-# try to subset Suvanto's raw data and again evaluate?
-# originally, I was comparing predict() outcomes with manually calculated y values
-# 
-
-
-
-
-
-
-
-# -----------------------------------
-# my data
-# ---------------------------------
-
-library(fastDummies)
-
-
-# select categorical data
-categVars <- c("species", 
-               "time_thinning", 
-               "open_edge",
-               "soiltyp", 
-               "solDpth",
-               "slFrtlC")
-
-
-# Define correct level order: 
-df$species   <- factor(df$species,   levels = c("pine", "spruce", "other"))
-df$solDpth   <- factor(df$solDpth,   levels = c("FALSE", "TRUE"))
-df$open_edge <- factor(df$open_edge, levels = c("FALSE", "TRUE"))
-df$slFrtlC   <- factor(df$slFrtlC,   levels = c("poor", "fertile"))
-
-# all my stands are just pine!!! this makes different table output
-df.bin <- fastDummies::dummy_cols(df,
-                                  select_columns = categVars, # only categorical
-                                  remove_first_dummy = TRUE)  # remove reference category
-
-# remove the original variables and observed value of damages
-df.bin<-df.bin[ , !(names(df.bin) %in% c(categVars))]
-
-
-# Complete missing columns:
-#  - intercept
-#  - logarithms
-#  - interactions
-# Need to have the same number of columns as coefficients
-df.bin$interc     <- 1
-df.bin$log_height <- log(df.bin$H_dom)
-df.bin$log_Wspeed <- log(df.bin$windSpd)
-
-
-# add interactions
-df.bin$spec.spruce.X.log.height <- df.bin$species_spruce * df.bin$log_height
-df.bin$spec.other.X.log.height  <- df.bin$species_other  * df.bin$log_height
-
-
-names(df.bin)
-
-
-# ---------------------------
-#     Order the columns: 
-# ---------------------------
-
-# to put it in correct order
-colnames.ordered<-c("interc",
-                    "species_spruce",
-                    "species_other",
-                    "log_height",
-                    "time_thinning_6-10", 
-                    "time_thinning_>10",
-                    "log_Wspeed",
-                    "open_edge_TRUE",
-                    "soiltyp_mineral fine",
-                    "soiltyp_organic",
-                    "solDpth_TRUE",
-                    "slFrtlC_fertile",
-                    "avgTemp",
-                    "spec.spruce.X.log.height",
-                    "spec.other.X.log.height" )
-
-
-# order the dataframe to corresponds columnwise to coefficients
-# keeps only specified columns
-df.ord<-df.bin[colnames.ordered]
-
-
-# ---------------------------------
-#      Get coefficients:
-# ---------------------------------
-
-
-
-# Suvanto's coefficients (more accurate from Susanne code): 20 digits
-intercept                    = - 14.690374506245104769
-b1.spec.spruce               = - 8.494158565180855547
-b2.spec.other                = - 9.314355152502169943
-b3.log.height                = + 1.660897636823469137   # log
-b4.last_thinning.6.10        = - 0.298186071853962231
-b5.last_thinning.over.10     = - 0.844019963540904472
-b6.log.wind                  = + 0.748957880201017501   # log
-b7.open_stand_border         = + 0.310378186345018792
-b8.soil_min.fine             = - 0.355681075669793900
-b9.soil_organic              = - 0.216004202249671151
-b10.soil_depth.less.30cm      = + 0.214100256449853671
-b11.site_fertility            = - 0.425096042510456240
-b12.temperature_sum           = + 0.095854694562656148
-b13.spec.spruce.X.log.height  = + 1.634359050870280550 
-b14.spec.other.X.log.height   = + 1.624775941830151726
-
-
-# Put coefficients in a vector, to replace the coefficients in a formula
-suvantoCoeffs<-c(intercept, 
-                 b1.spec.spruce,
-                 b2.spec.other,
-                 b3.log.height,
-                 b4.last_thinning.6.10,
-                 b5.last_thinning.over.10,
-                 b6.log.wind,
-                 b7.open_stand_border,
-                 b8.soil_min.fine,
-                 b9.soil_organic,
-                 b10.soil_depth.less.30cm,
-                 b11.site_fertility,
-                 b12.temperature_sum,
-                 b13.spec.spruce.X.log.height,
-                 b14.spec.other.X.log.height)
-
-
-
-# Multiple the dataframe by vector
-# calculate partial df 
-# the final column need to be summed up
-part.df <- sweep(df.ord, 2, suvantoCoeffs, "*")
-
-
-# Function: convert logit to probability
-# Convert logit to probabilities
-logit2prob <- function(logit){
-  odds <- exp(logit)
-  prob <- odds / (1 + odds)
-  return(prob)
-}
-
-
-# Convert sum of `y.logit` values to probability values
-# sum by rows and add intercept value
-df.ord$pred.manual <- logit2prob(rowSums(part.df))
-
-#####
-
-###!!!! predicted values are all equal 1 !!! What's is the problem???
 
 
 
