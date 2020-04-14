@@ -45,40 +45,12 @@ df <- data.table::fread("open_edge_calc_fast.csv")
 # now the data are stored by 15 stands, need to read them all
 #--------------------------------------------------------
 
-myPathAll = "C:/MyTemp/myGitLab/SIMO_output_clemens/simo_output/output"
-setwd(myPathAll)
-
-
-# Read only files containing _NO_ = no wind scenario
-# ^ anchor the beginning (if you begin with power, you end up with money (Evan Misshula, ))
-# https://r4ds.had.co.nz/strings.html#basic-matches
-my.no.wind = list.files(myPathAll,
-                      pattern="^without_MV_Korsnas_Wind_NO*") # ends with .csv$, \\. matches .
-
-# Read all dtaframes in a loop
-my.df.list = lapply(my.no.wind, function(x) {read.csv(x, sep = ";")})
-df.new = do.call("rbind", my.df.list)
 
 
 # To speed up: use the soil, peat, tHIN chanracteristics by the regime
 # and replace those values in my original stand data with open)edges calculated
 # (make sure that open_edge calculation fit???) I might have a different 
 # SA & SA_DWexstract regimes???
-
-# CHeck how differ the df and df.new - newly simulated data???
-# in regimes
-# I need mostly soil conditions for my previously read data
-head(df.new)
-
-unique(df.new$regime)  # 23
-unique(df$regime)      # 22 - having SA_DWextraction named as SA
-
-
-
-unique(df.new$MAIN_SP)  # 2 0 4 3 1 9 6 5
-unique(df.new$SC) 
-
-
 
 
 head(df)
@@ -88,21 +60,21 @@ head(df)
 # Reclassify values:
 # NEED TO GET SOIL_CLASS, now missing!!! use raster data instead
 # SOIL_CLASS_SIMPLE contains all: peatland, coarse & fine 
-df.new<-
-  df.new %>% 
-  mutate(PEAT.v = case_when(PEAT == 0 ~ "mineral soil",
-                            PEAT == 1 ~ "peat")) %>%
-  mutate(SC.v = case_when(SC %in% 1:4 ~ "fertile",              ### !!!! Check this again!!!
-                          SC %in% 5:6 ~ "poor"))                # COMPLETE SOIL CALSS to get mineral coarse/fine??
+#df.new<-
+ # df.new %>% 
+#  mutate(PEAT.v = case_when(PEAT == 0 ~ "mineral soil",
+#                            PEAT == 1 ~ "peat")) %>%
+#  mutate(SC.v = case_when(SC %in% 1:4 ~ "fertile",              ### !!!! Check this again!!!
+#                          SC %in% 5:6 ~ "poor"))                # COMPLETE SOIL CALSS to get mineral coarse/fine??
 
 
 
 
-
+# -----------------------------------------
 
 
 # st_read do not return tibble just spatial dataframe
-df.geom = st_read("outKorsnas_att.shp")
+df.geom = st_read("U:/projects/2019_windthrowModel/Janita/outSimulated/outKorsnas_att.shp")
 
 
 # Find same stands id between geometry and simulated data 
@@ -113,33 +85,40 @@ stands.complete = Reduce(intersect, list(df$standid, df.geom$standid))
 # df.geom = just in case for visualisation, no need 
 # for wind disk calculation!!!!
 df          <- subset(df,      standid %in% stands.complete)
-df.new      <- subset(df.new,  id      %in% stands.complete)
 df.geom     <- subset(df.geom, standid %in% stands.complete)
 
 
+# Check the length
+length(unique(df$standid))
+length(unique(df.geom$standid))
 
-# add individual variables from new df: PEAT, FERTILITTY, THIN
-keep.new.c <- c("id","year",  "regime", "SC", "PEAT", "MAIN_SP", "THIN")
+
+# add individual variables from new df: PEAT, FERTILITTY, THIN to keep 
+#keep.new.c <- c("id","year",  "regime", "SC", "PEAT", "MAIN_SP", "THIN")
+
 # Keep only necessary columns
-df.new.sub <- subset(df.new, select = keep.new.c, regime != "SA")
+#df.new.sub <- subset(df.new, select = keep.new.c, regime != "SA")
 
 # rename the id fields
-names(df.new.sub)[names(df.new.sub) == "id"] <- "standid"
+#names(df.new.sub)[names(df.new.sub) == "id"] <- "standid"
 
-df.new.sub$regime <- as.character(df.new.sub$regime)
+#df.new.sub$regime <- as.character(df.new.sub$regime)
+
+
+# CHeck how merging works on data subset
+#d.thin <- subset(df.m, regime == "BAUwT_m5")
+
+
 
 
 # Merge df and df.new together
-df.m <-
-  df %>% 
-  left_join(df.new.sub)
+#df.m <-
+ # df %>% 
+  #left_join(df.new.sub)
 
 
 # Subset one thinning regime: how can I calculate years from last thinning??
-unique(df.m$regime)
-
-
-d.thin <- subset(df.m, regime == "BAUwT_m5")
+#unique(df.m$regime)
 
 
 
@@ -154,6 +133,11 @@ d.thin <- subset(df.m, regime == "BAUwT_m5")
 # PEAT - identify where is peat
 # 
 # -----------------------------------
+
+#df<- df
+ # mutate(soilType = case_when(PEAT == 0 ~ "mineral soil",
+            #                  PEAT == 1 ~ "peat")) %>%
+  
 df$time_thinning <- factor(sample(c("0-5", "6-10", ">10"),
                                   nrow(df), replace = TRUE), 
                                   levels = c("0-5", "6-10", ">10"))
@@ -279,7 +263,7 @@ df.sub$soilDepthLess30  <- factor(df.sub$soilDepthLess30,
 df.sub$siteFertility    <- factor(df.sub$siteFertility,
                                   levels = c("poor", 
                                              "fertile"))
-df.sub$tempSum    <- df.sub$tempSum/100   # according to Susane 
+df.sub$tempSum          <- df.sub$tempSum/100   # according to Susane 
 
 
 # ------------------------------------------
@@ -299,7 +283,9 @@ df.sub$windDamagePred <- predict.glm(windRisk.m,
                                      type="response")
 
 range(df.sub$windDamagePred, na.rm = T)
+# 1.007350e-13 3.602978e-01
 
+# Get Suvanto's predicted values???
 
 # add wind risk values to original data to obtain year!!!
 df$windRisk <- df.sub$windDamagePred 
@@ -356,12 +342,13 @@ table(df.sim$regime)
 # --------------------------
 library(ggplot2)
 
-# Temporal dynamics of wind risk oof management
+# Temporal dynamics of wind risk of management
 ggplot(df.sim, 
        aes(x = as.factor(year),
                y = windRisk)) +
   geom_boxplot() + 
-  facet_grid(. ~ regime)
+  facet_grid(. ~ regime) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
 # Is the wind risk the same for all regimes in the first simulation year??
@@ -369,20 +356,23 @@ p.windRisk <- ggplot(subset(df.sim, year == 2016),
        aes(x = regime,
            y = windRisk)) +
   geom_boxplot() +
-  ggtitle("Wind risk 2016")
+  ggtitle("Wind risk 2016") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 p.H_dom <- ggplot(subset(df.sim, year == 2016), 
        aes(x = regime,
            y = H_dom)) +
   geom_boxplot() +
-  ggtitle("H_dom 2016")
+  ggtitle("H_dom 2016")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
 p.BA <- ggplot(subset(df.sim, year == 2016), 
        aes(x = regime,
            y = BA)) +
   geom_boxplot()  +
-  ggtitle("BA 2016")
+  ggtitle("BA 2016")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
 ggarrange(p.windRisk, p.H_dom, p.BA, 
@@ -414,7 +404,105 @@ ggplot(open.edge.count,
            color = regime)) +
   geom_line() + 
  # facet_grid(. ~ regime) +
-  ggtitle("Count of stands with open edge")
+  ggtitle("Count of stands with open edge") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+
+
+# Investigate when the THIN happen???
+df.thin <- subset(df, regime == "BAUwT_GTR")
+
+
+# Track down history of one stand:
+# when does thinning occured??
+
+subset(df.thin, standid == 12469153,
+       select = c("standid", "year", "THIN"))
+
+
+
+
+# Investigate when the THIN happen???
+df.cc2<- subset(df, regime == "CCF_2")
+
+
+# Track down history of one stand:
+# when does thinning occured??
+
+subset(df.cc2, standid == 12469153,
+       select = c("standid", "year", "THIN"))
+
+
+
+# Check for monetary values??
+
+
+
+
+
+
+
+
+# Merge df data with geometry
+# Join the geometry table with simulated data
+
+# ----------------------------------------
+df.bau <- subset(df.sim, regime == "BAU")
+# convert factor to integer
+df.geom$standid <- as.numeric(as.character(df.geom$standid ))
+
+# Merge data together
+df.bau.g<-
+  df.geom %>% 
+  left_join(df.bau, by = "standid") %>% 
+  filter(!is.na(year)) 
+
+
+# Plot the variable over years:
+# Plot attribute information:
+windows()
+ggplot(df.bau.g) +
+  geom_sf(aes(fill = windRisk)) + 
+  facet_wrap(.~year)
+
+
+
+# Get data:
+library(gapminder)
+
+# Charge libraries:
+library(ggplot2)
+library(gganimate)
+library(transformr)
+
+
+# My data:
+
+ggplot(df.bau.g) + 
+  geom_sf(aes(fill = windRisk)) +
+  scale_fill_continuous(low = "lightgreen", 
+                        high = "darkgreen",
+                        space = "Lab", 
+                        na.value = "white", guide = "colourbar")+
+  
+  annotation_scale(location = "bl", width_hint = 0.4) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  theme_bw() +
+  xlab("Longitude") + 
+  ylab("Latitude") +
+  # theme(axis.title=element_blank(),
+  #      axis.text=element_blank(),
+  #     axis.ticks=element_blank()) +
+  # gganimate specific bits:
+  labs(title = 'WindRISK BAU Year: {current_frame}') +
+  transition_manual(year) +
+  #transition_time(year) +
+  ease_aes('linear')
+
+
 
 
   
