@@ -1,0 +1,42 @@
+branching_group,regime,avohaakut,db name
+,,,
+NA,SA,,
+,,,
+Selection cut_1,CCF_1,,
+Selection cut_2,CCF_2,,
+Selection cut_3,CCF_3,,
+Selection cut_4,CCF_4,,
+,,,
+Selection cut,CCF,,
+,,,
+Long rotation harvest 5,BAU_5,LRH5,ROT
+Long rotation harvest 10,BAU_10,LRH10,ROT
+Long rotation harvest 15,BAU_15,LRH15,ROT
+Long rotation harvest 30,BAU_30,LRH30,ROT
+,,,
+Long rotation harvest 10 p," ""xxx1""",,
+Long rotation harvest 30 p," ""xxx2"" ",,
+,,,
+Long rotation thinning 5,BAUwT_5,LRT5,ROT
+Long rotation thinning 10,BAUwT_10,LRT10,ROT
+Long rotation thinning 15,BAUwT_15,LRT15,ROT
+Long rotation thinning 30,BAUwT_30,LRT30,ROT
+,,,
+Short rotation harvest 5,BAU_m5,SR5,ROT
+Short rotation thinning 5,BAUwT_m5,SRT5,ROT
+,,,
+Short rotation harvest 30 n," ""xxx3""",,
+Short rotation harvest 10 n," ""xxx4""",,
+,,,
+Tapio harvest nature scene,BAUwGTR,TTN,ROT
+Tapio harvest without thinnings 10,BAUwoT_10,THNS,ROT
+Tapio harvest without thinnings -20,BAUwoT_m20,THwoTM20,ROT
+Tapio harvest without thinnings,BAUwoT,THwoT,ROT
+Tapio harvest,BAU,TH,ROT
+Tapio thinning nature,BAUwT_GTR,THNS,ROT
+Tapio thinning,BAUwT,TT,ROT
+,,,
+Tapio harvest without thinnings 30 n," ""xxx5""",,
+Tapio harvest without thinnings 10 n," ""xxx6""",,
+Tapio harvest without thinnings 10 p," ""xxx7""",,
+Tapio harvest without thinnings 30 p," ""xxx8""",,
