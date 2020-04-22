@@ -1,7 +1,7 @@
 
-# 
+# ------------------------------------------
 # Recreate complex landscape for the optimal solutions
-# 
+# --------------------------------
 
 # Read .csv files of optimal solutions
 # if there is not 1.0 solution: 
@@ -20,6 +20,7 @@
 rm(list = ls())
 
 library(sf)
+library(dplyr)
 
 
 myPathAll = "C:/MyTemp/myGitLab/windDamage/input"
@@ -33,7 +34,7 @@ df.names = list.files(myPathAll,
 
 # Read all dataframes in a loop
 my.df.list = lapply(df.names, function(x) {
-                     read.csv(x, sep = ";")
+                     read.csv(x, sep = ";", stringsAsFactors = FALSE)
   }
   )
 
@@ -41,18 +42,27 @@ my.df.list = lapply(df.names, function(x) {
 df = do.call("rbind", my.df.list)
 
 # Need to rename the regimes back to the Avohakkut pois codes
+# Read the regime file and use the new regimes names
+# how are the CCF scenarios coded?
+regim_names <- read.csv("C:/MyTemp/myGitLab/windDamage/regimes_BAU_avohak.csv", 
+                        sep = ";", 
+                        stringsAsFactors = FALSE)
 
-
+# Add the avohaakut names of the regimes
+df <- df %>%
+  left_join(regim_names, 
+            by = "branching_group", 
+            all.x = TRUE)
 
 # All regimes are SA, replace SA_DFextract by SA
 #if(df$regime == "SA_DWextract", "SA")
-df$regime[df$regime == "SA_DWextract"]  <- "SA" 
+# df$regime[df$regime == "SA_DWextract"]  <- "SA" 
 
 # get the unique simulated stands
 my.stands <- unique(df$id)
 
 
-#unique(df$gpkg)
+unique(df$gpkg)
 
 
 # Read stand geometry
@@ -63,7 +73,7 @@ df.geom.all <- read_sf("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
 df.geom.sub<- subset(df.geom.all, KUVIO_ID %in% my.stands)
 
 # Get the final stand id between stand geometry and simulated data 
-my.stands.sub <- unique(df.geom.sub$standid)
+my.stands.sub <- unique(df.geom.sub$KUVIO_ID)
 
 
 
@@ -110,20 +120,18 @@ readOptimal <- function(df.path, ...) {
 }
 
 
-
-
 # For stand that have multiple FM, keep only the largest one
-subset(optim, V3 != 1) # here, all stands are == 1! 
+#subset(optim, V3 != 1) # here, all stands are == 1! 
 
 # For each stand find teh right conditions
-unique(optim$V2)
+#unique(optim$V2)
 
-table(optim$V2)
+#table(optim$V2)
 
 
 # Read all optimal solutions to 
 # see applied regimes?? 
-# 
+# -------------------------------
 setwd("C:/MyTemp/avohaakut_db/solutions")
 df.optim = list.files(pattern=".csv$",
                       full.names = TRUE) # ends with .csv$, \\. matches .
