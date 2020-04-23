@@ -21,6 +21,7 @@ rm(list = ls())
 
 library(sf)
 library(dplyr)
+library(stringr)
 
 
 myPathAll = "C:/MyTemp/myGitLab/windDamage/input"
@@ -50,23 +51,67 @@ lapply(my.df.list, function(df) unique(df$branching_group))
 lapply(my.df.list, name)
 
 
-
 # Merge tables into one
 df = do.call("rbind", my.df.list)
 
 
+# The branching description is incorrect- the names are shifted 
+# needs to be corected by database names first    
+# rename CCF_X_40 -> CCF_X_45
+unique(df$gpkg)
+unique(df$branching_group)
+
+df<- df %>% 
+  mutate(gpkg_new = str_replace(gpkg, "RCP45_NEW_", ""))
+
+# How to do it???
+ddd <- subset(df, gpkg_new == "CCF_4_15")
+ddd %>% 
+  select(branching_group, gpkg_new)
+
+unique(paste(df$branching_group, df$gpkg_new, sep = " "))
+
+
+# Woprking example
+my.df <- data.frame(wrong  = c("a_1", "a_1_5", "a_1_10", "a_2_10", "a_1_15"),
+                    better = c("cc_1", "cc_1_5",  "cc_1_10", "cc_1_15", "cc_2_20"))
+
+my.df %>% 
+  filter(str_length(wrong) == 6) %>% 
+  mutate(wanted = str_replace(wrong,
+                              str_sub(wrong, start = -2), 
+                              str_sub(better, start = -2)))
+  
+
+#    wrong  better  wanted
+# 1    a_1    cc_1    cc_1
+# 2  a_1_5  cc_1_5  cc_1_5 
+# 3 a_1_10 cc_1_10 cc_1_10
+# 4 a_2_10 cc_1_15 cc_2_15
+# 5 a_1_15 cc_2_20 cc_1_20
+
+
+str_sub("cc_2_20", start = -2)  # subset the last two characters
+
 # ----------------------------------------------
-# Recreeate the management regimes to corresponds avohaakut names
+# Recreate the management regimes to corresponds avohaakut names
 # ----------------------------------------------
 
 # Clean up the regimes based on the 'branching group'
-# These names need to correspond optimal scenarios
-# or I can simply convert optimal regimes to new values???
+# # Correct names are in regimes.csv table 
+# Remove the SA_DW_extract or NA management from the all .dbs,
+# keep only regime in _SA name specified in .db name ($gpkg)
 # Add correct management regimes to the _SA db name
 
-df %>% 
-  mutate(reg_opt <- case_when(
-    grepl("Selection cut_", branching_group) ~ "CCF_"))
+#df1 <- df %>%
+ #   mutate(reg_opt <- case_when(
+  #     grepl("Selection cut_", branching_group) ~ "CCF_"))
+
+# do not use previously derived regimes, as now we have new ones
+# unique(df$regime)
+
+
+
 
 
 
@@ -83,16 +128,34 @@ df <- df %>%
             by = "branching_group", 
             all.x = TRUE)
 
-# All regimes are SA, replace SA_DFextract by SA
-#if(df$regime == "SA_DWextract", "SA")
-# df$regime[df$regime == "SA_DWextract"]  <- "SA" 
+
+unique(df$avohaakut)
+unique(df$branching_group)
+
+
+# Filter data: remove all with 'df$branching_group', keep only ones that tahve _SA
+# in the gpkg names 
+# split in two: SA, no SA, in SA replace brangich group name, drop other
+
+# Drop all rows that do not 
+# have RCP45_NEW_SA and have branching_group = NA
+# keep only RCP45_SA as SA scenarios
+df.no.sa <- df %>% 
+  filter(gpkg != "RCP45_NEW_SA" & !is.na(branching_group)) 
+
+df.sa <-
+  df %>% 
+  filter(gpkg == "RCP45_NEW_SA")
+
+# rbind data together
+df.av <- rbind(df.no.sa, 
+               df.sa)
+
 
 # get the unique simulated stands
-my.stands <- unique(df$id)
+#my.stands <- unique(df.av$id)
 
 
-# Get unique databases names
-unique(df$gpkg) # all named as CCF_4
 
 
 # Read stand geometry
@@ -168,6 +231,15 @@ dfs.opt = do.call("rbind", df.opt.ls)
 
 # Check what management are there??
 sort(unique(dfs.opt$regime))  # 58 regimes
+sort(unique(df.av$avohaakut)) 
+
+
+# some regims area missing from simuylated data?
+setdiff(sort(unique(dfs.opt$regime)),
+        sort(unique(df.av$avohaakut)) )
+
+
+
 
 write.csv(sort(unique(dfs.opt$regime)), 
           "C:/MyTemp/myGitLab/windDamage/params/regimes_58.csv")
