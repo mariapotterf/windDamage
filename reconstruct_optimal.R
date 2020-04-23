@@ -38,8 +38,37 @@ my.df.list = lapply(df.names, function(x) {
   }
   )
 
+
+# What regimes are in each .db?
+lapply(my.df.list, function(df) unique(df$regime))  # they differ in # of manageement regimes
+
+# Every selection cut has 1 to 4 indication in 'branching_group'! (CCF_1 - CCF_4) 
+# need to combine with the regime! 
+# Why 
+lapply(my.df.list, function(df) unique(df$branching_group))
+
+lapply(my.df.list, name)
+
+
+
 # Merge tables into one
 df = do.call("rbind", my.df.list)
+
+
+# ----------------------------------------------
+# Recreeate the management regimes to corresponds avohaakut names
+# ----------------------------------------------
+
+# Clean up the regimes based on the 'branching group'
+# These names need to correspond optimal scenarios
+# or I can simply convert optimal regimes to new values???
+# Add correct management regimes to the _SA db name
+
+df %>% 
+  mutate(reg_opt <- case_when(
+    grepl("Selection cut_", branching_group) ~ "CCF_"))
+
+
 
 # Need to rename the regimes back to the Avohakkut pois codes
 # Read the regime file and use the new regimes names
@@ -62,7 +91,8 @@ df <- df %>%
 my.stands <- unique(df$id)
 
 
-unique(df$gpkg)
+# Get unique databases names
+unique(df$gpkg) # all named as CCF_4
 
 
 # Read stand geometry
@@ -76,22 +106,24 @@ df.geom.sub<- subset(df.geom.all, KUVIO_ID %in% my.stands)
 my.stands.sub <- unique(df.geom.sub$KUVIO_ID)
 
 
-
+# -----------------------------
 # Read optimal solution:
 # -----------------------------
-# Replace teh characters to correctly read data into 3 columns
-txt <-  readLines("C:/MyTemp/avohaakut_db/solutions/Bundles_2_nocow_NPV_MANAGE_price_three_0_0_1_1_ALL0.csv")
-optim <-read.table(text = gsub("[()\",\t]", " ", txt))
 
-names(optim) <- c("id", "regime", "proportion")
+# Test on one file:
+# ---------------------------
+
+# Replace teh characters to correctly read data into 3 columns
+#txt <-  readLines("C:/MyTemp/avohaakut_db/solutions/Bundles_2_nocow_NPV_MANAGE_price_three_0_0_1_1_ALL0.csv")
+#optim <-read.table(text = gsub("[()\",\t]", " ", txt))
+
+#names(optim) <- c("id", "regime", "proportion")
 
 # keep only the largest proportion by the stand
-optim.max<-
-  optim %>%
-  dplyr::group_by(id) %>%
-  filter(proportion == max(proportion))
-
-# ---------------------------
+#optim.max<-
+ # optim %>%
+  #dplyr::group_by(id) %>%
+  #filter(proportion == max(proportion))
 
 
 # Make a function to read the optimal data correctly and 
@@ -120,15 +152,6 @@ readOptimal <- function(df.path, ...) {
 }
 
 
-# For stand that have multiple FM, keep only the largest one
-#subset(optim, V3 != 1) # here, all stands are == 1! 
-
-# For each stand find teh right conditions
-#unique(optim$V2)
-
-#table(optim$V2)
-
-
 # Read all optimal solutions to 
 # see applied regimes?? 
 # -------------------------------
@@ -144,8 +167,15 @@ dfs.opt = do.call("rbind", df.opt.ls)
 
 
 # Check what management are there??
-unique(dfs.opt$regime)  # 58 regimes
+sort(unique(dfs.opt$regime))  # 58 regimes
 
+write.csv(sort(unique(dfs.opt$regime)), 
+          "C:/MyTemp/myGitLab/windDamage/params/regimes_58.csv")
+
+# How to merge the 58 regimes with my databases??? 
+
+unique(df$gpkg) 
+unique(df$regime)
 
 
 
