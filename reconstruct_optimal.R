@@ -72,7 +72,7 @@ ddd %>%
 unique(paste(df$branching_group, df$gpkg_new, sep = " "))
 
 
-# Woprking example
+# Working example
 my.df <- data.frame(wrong  = c("a_1", "a_1_5", "a_1_10", "a_2_10", "a_1_15"),
                     better = c("cc_1", "cc_1_5",  "cc_1_10", "cc_1_15", "cc_2_20"))
 
