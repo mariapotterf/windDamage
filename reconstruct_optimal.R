@@ -16,6 +16,9 @@
 # read the stand geometry, calculate open_edge and wind risk
 
 
+# Simulated data have wringly indicated branching group name _10 should be _15, _15 -> _20 etc.
+# need to first correct those, and then merge full regimes names
+
 
 rm(list = ls())
 
@@ -41,14 +44,12 @@ my.df.list = lapply(df.names, function(x) {
 
 
 # What regimes are in each .db?
-lapply(my.df.list, function(df) unique(df$regime))  # they differ in # of manageement regimes
+#lapply(my.df.list, function(df) unique(df$regime))  # they differ in # of manageement regimes
 
 # Every selection cut has 1 to 4 indication in 'branching_group'! (CCF_1 - CCF_4) 
 # need to combine with the regime! 
 # Why 
-lapply(my.df.list, function(df) unique(df$branching_group))
-
-lapply(my.df.list, name)
+#lapply(my.df.list, function(df) unique(df$branching_group))
 
 
 # Merge tables into one
@@ -66,32 +67,32 @@ df<- df %>%
 
 # How to do it???
 ddd <- subset(df, gpkg_new == "CCF_4_15")
-ddd %>% 
-  select(branching_group, gpkg_new)
-
-unique(paste(df$branching_group, df$gpkg_new, sep = " "))
 
 
-# Working example
-my.df <- data.frame(wrong  = c("a_1", "a_1_5", "a_1_10", "a_2_10", "a_1_15"),
-                    better = c("cc_1", "cc_1_5",  "cc_1_10", "cc_1_15", "cc_2_20"))
+# Filter the data only to Selection cut
+# and having more characters at the end
+# split into two dataframes, and then merge into one
 
-my.df %>% 
-  filter(str_length(wrong) == 6) %>% 
-  mutate(wanted = str_replace(wrong,
-                              str_sub(wrong, start = -2), 
-                              str_sub(better, start = -2)))
-  
+df.selection <- 
+  df %>%
+  filter(grepl("Selection cut", branching_group) & str_length(branching_group) == 18) %>% 
+  mutate(branching_new = str_replace(branching_group,
+                                  str_sub(branching_group, start = -2), 
+                                  str_sub(gpkg_new, start = -2)))
 
-#    wrong  better  wanted
-# 1    a_1    cc_1    cc_1
-# 2  a_1_5  cc_1_5  cc_1_5 
-# 3 a_1_10 cc_1_10 cc_1_10
-# 4 a_2_10 cc_1_15 cc_2_15
-# 5 a_1_15 cc_2_20 cc_1_20
+df.orig <- 
+  df %>%
+  filter(!grepl("Selection cut", branching_group) | 
+           (grepl("Selection cut", branching_group) & str_length(branching_group) != 18)) %>% 
+  mutate(branching_new = branching_group) 
 
 
-str_sub("cc_2_20", start = -2)  # subset the last two characters
+
+# rbind both datasets
+df<- rbind(df.selection, 
+           df.orig)
+
+
 
 # ----------------------------------------------
 # Recreate the management regimes to corresponds avohaakut names
@@ -102,17 +103,6 @@ str_sub("cc_2_20", start = -2)  # subset the last two characters
 # Remove the SA_DW_extract or NA management from the all .dbs,
 # keep only regime in _SA name specified in .db name ($gpkg)
 # Add correct management regimes to the _SA db name
-
-#df1 <- df %>%
- #   mutate(reg_opt <- case_when(
-  #     grepl("Selection cut_", branching_group) ~ "CCF_"))
-
-# do not use previously derived regimes, as now we have new ones
-# unique(df$regime)
-
-
-
-
 
 
 # Need to rename the regimes back to the Avohakkut pois codes
@@ -125,9 +115,13 @@ regim_names <- read.csv("C:/MyTemp/myGitLab/windDamage/regimes_BAU_avohak.csv",
 # Add the avohaakut names of the regimes
 df <- df %>%
   left_join(regim_names, 
-            by = "branching_group", 
+            by = c("branching_new" = "branching_group"),
+            #by.x = "branching_new",
+            #by.y = "branching_group", 
             all.x = TRUE)
 
+
+# DONE !@!!!!
 
 unique(df$avohaakut)
 unique(df$branching_group)
