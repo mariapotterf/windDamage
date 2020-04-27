@@ -127,10 +127,10 @@ unique(df$avohaakut)
 unique(df$branching_group)
 
 
-# Filter data: remove all with 'df$branching_group', keep only ones that tahve _SA
+# Filter data: remove all with 'df$branching_group', keep only ones that have _SA
 # in the gpkg names 
 # split in two: SA, no SA, in SA replace brangich group name, drop other
-
+# ------------------------------------------------------------
 # Drop all rows that do not 
 # have RCP45_NEW_SA and have branching_group = NA
 # keep only RCP45_SA as SA scenarios
@@ -185,6 +185,7 @@ my.stands.sub <- unique(df.geom.sub$KUVIO_ID)
 
 # Make a function to read the optimal data correctly and 
 # to filter just the prevailing forest management by stand
+# function also keep just one stand with the gighest proportion of management
 readOptimal <- function(df.path, ...) {
   
   # read individual lines
@@ -219,6 +220,20 @@ df.optim = list.files(pattern=".csv$",
 # Read all dataframes in a loop
 df.opt.ls = lapply(df.optim, readOptimal)
 
+
+# Check if tehy all have the 1475 stands???
+lapply(df.opt.ls, function(df) length(unique(df$id)))
+
+
+
+# Subset the original table as one by one???
+
+
+
+
+
+
+
 # Merge tables into one
 dfs.opt = do.call("rbind", df.opt.ls)
 
@@ -235,8 +250,8 @@ setdiff(sort(unique(dfs.opt$regime)),
 
 
 
-write.csv(sort(unique(dfs.opt$regime)), 
-          "C:/MyTemp/myGitLab/windDamage/params/regimes_58.csv")
+#write.csv(sort(unique(dfs.opt$regime)), 
+ #         "C:/MyTemp/myGitLab/windDamage/params/regimes_58.csv")
 
 # How to merge the 58 regimes with my databases??? 
 
