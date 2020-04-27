@@ -89,7 +89,7 @@ lapply(df.opt.ls, function(df) length(unique(df$id)))
 # Subset the original table as one by one???
 opt_sol <- df.opt.ls[[16]]
 
-# Filter data by regime and by id
+# Filter data by regime and by id using semi_join
 df_opt16 <- df %>% 
   semi_join(opt_sol, 
             by = c("id" = "id", 
@@ -120,6 +120,11 @@ df_opt16 <-
 
 plot(subset(df_opt16, year == 2016)["H_dom"])
 plot(subset(df_opt16, year == 2016)["avohaakut"])
+
+
+
+
+
 
 
 
