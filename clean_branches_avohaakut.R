@@ -7,13 +7,8 @@
 
 # Need to:
 # read the .csv  files from simulated data
-# read the optimal solution
-# filter the simulated data by solutions
-# read the stand geometry, calculate open_edge and wind risk
-
-
-# Simulated data have wringly indicated branching group name _10 should be _15, _15 -> _20 etc.
-# need to first correct those, and then merge full regimes names
+# correct the branching_group names: name _10 should be _15, _15 -> _20 etc.
+# add management regimes names (indicated in .csv file)
 
 
 rm(list = ls())
@@ -40,16 +35,7 @@ my.df.list = lapply(df.names, function(x) {
   )
 
 
-# What regimes are in each .db?
-#lapply(my.df.list, function(df) unique(df$regime))  # they differ in # of manageement regimes
-
-# Every selection cut has 1 to 4 indication in 'branching_group'! (CCF_1 - CCF_4) 
-# need to combine with the regime! 
-# Why 
-#lapply(my.df.list, function(df) unique(df$branching_group))
-
-
-# Merge tables into one
+# Merge simulated data into one df
 df = do.call("rbind", my.df.list)
 
 
@@ -59,17 +45,20 @@ df = do.call("rbind", my.df.list)
 unique(df$gpkg)
 unique(df$branching_group)
 
+# simplify the .db names
 df<- df %>% 
   mutate(gpkg_new = str_replace(gpkg, "RCP45_NEW_", ""))
 
-# How to do it???
-ddd <- subset(df, gpkg_new == "CCF_4_15")
 
+# -----------------------------
+#     Rename branches by .db name
+#     last two strings
+# ---------------------------
 
-# Filter the data only to Selection cut
-# and having more characters at the end
-# split into two dataframes, and then merge into one
-
+# Split dataframe in two:
+# 
+# 1. only to Selection cut & having 18 characters - replace last two characters 
+# 2. any other rows - keep unchanged, just add new columns
 df.selection <- 
   df %>%
   filter(grepl("Selection cut", branching_group) & str_length(branching_group) == 18) %>% 
@@ -77,56 +66,30 @@ df.selection <-
                                   str_sub(branching_group, start = -2), 
                                   str_sub(gpkg_new, start = -2)))
 
+# Subset unmodified rows
 df.orig <- 
   df %>%
-  filter(!grepl("Selection cut", branching_group) | 
-           (grepl("Selection cut", branching_group) & str_length(branching_group) != 18)) %>% 
+  filter(!grepl("Selection cut", branching_group) |
+         (grepl("Selection cut", branching_group) & str_length(branching_group) != 18)) %>% 
   mutate(branching_new = branching_group) 
 
 
-
-# rbind both datasets
+# Put two dataframes back into one
 df<- rbind(df.selection, 
            df.orig)
 
 
+# ----------------------------
+# Filter NA regime in each .db
+# ---------------------------
+# keep only `_SA` indication in the gpkg name
 
-# ----------------------------------------------
-# Recreate the management regimes to corresponds avohaakut names
-# ----------------------------------------------
-
-# Clean up the regimes based on the 'branching group'
-# # Correct names are in regimes.csv table 
-# Remove the SA_DW_extract or NA management from the all .dbs,
-# keep only regime in _SA name specified in .db name ($gpkg)
-# Add correct management regimes to the _SA db name
-
-
-# Need to rename the regimes back to the Avohakkut pois codes
-# Read the regime file and use the new regimes names
-# how are the CCF scenarios coded?
-regim_names <- read.csv("C:/MyTemp/myGitLab/windDamage/regimes_BAU_avohak.csv", 
-                        sep = ";", 
-                        stringsAsFactors = FALSE)
-
-# Add the avohaakut names of the regimes
-df <- df %>%
-  left_join(regim_names, 
-            by = c("branching_new" = "branching_group"),
-            #by.x = "branching_new",
-            #by.y = "branching_group", 
-            all.x = TRUE)
-
-
-# DONE !@!!!!
-
-unique(df$avohaakut)
-unique(df$branching_group)
-
-
-# Filter data: remove all with 'df$branching_group', keep only ones that have _SA
+# remove all with 'df$branching_group' & keep only ones that have _SA
 # in the gpkg names 
-# split in two: SA, no SA, in SA replace brangich group name, drop other
+# split in two: 
+#     - SA    - keep
+#     - no.SA - filter
+
 # ------------------------------------------------------------
 # Drop all rows that do not 
 # have RCP45_NEW_SA and have branching_group = NA
@@ -138,17 +101,37 @@ df.sa <-
   df %>% 
   filter(gpkg == "RCP45_NEW_SA")
 
+
 # rbind data together
 df.av <- rbind(df.no.sa, 
                df.sa)
 
 
-# Export the final table with corrected branching names and avohaakut regimes names
-#write.csv(df.av, "C:/MyTemp/myGitLab/windDamage/output/simulated_AVK_regimes.csv")
+# ----------------------------------------------
+# Add correct names of regimes 
+#    following Avohaakut
+# ----------------------------------------------
 
-data.table::fwrite(df.av, "C:/MyTemp/myGitLab/windDamage/output/simulated_AVK_regimes.csv")
-# get the unique simulated stands
-#my.stands <- unique(df.av$id)
+# Manually corrected & completed scenarios
+regim_names <- read.csv("C:/MyTemp/myGitLab/windDamage/regimes_BAU_avohak.csv", 
+                        sep = ";", 
+                        stringsAsFactors = FALSE)
+
+# Add the avohaakut names of the regimes
+df.av <- df.av %>%
+  left_join(regim_names, 
+            by = c("branching_new" = "branching_group"),
+            all.x = TRUE)
+
+
+# One last check:
+unique(df.av$avohaakut)
+unique(df.av$branching_group)
+
+
+
+# Export the final table with corrected branching names and avohaakut regimes names
+data.table::fwrite(df.av, "C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regimes.csv")
 
 
 
