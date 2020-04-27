@@ -19,7 +19,7 @@ df<- data.table::fread("C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regimes.cs
 # Read stand geometry
 # -----------------------------
 df.geom <- read_sf("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
-
+df.geom <- subset(df.geom, select = c("KUVIO_ID"))
 
 
 # -----------------------------
@@ -76,17 +76,63 @@ setwd("C:/MyTemp/avohaakut_db/solutions")
 df.optim = list.files(pattern=".csv$",
                       full.names = TRUE) # ends with .csv$, \\. matches .
 
+df.names <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_0_0_1_1_", "", df.optim)
+df.names <- gsub(".csv", "", df.names)
+
 # Read all dataframes in a loop
 df.opt.ls = lapply(df.optim, readOptimal)
 
+# Add indication of the name:
+# deoes not work???
+# !!!!
+Map(cbind, df.opt.ls, bundle = df.names)
+#Map(cbind, df.opt.ls, SampleID = names(df.opt.ls))
+
+
+Map(cbind, df.opt.ls, SampleID = names(df.opt.ls))
+
+
+library(dplyr)
+library(purrr)
+
+purrr::map2(df.opt.ls, df.names, ~cbind(.x, SampleID = .y))
+
+
+# vector of values you wish to add
+years <- c("a", "b", "d")     # changed to plural to indicate vector of values rather than single value
+
+# make dummy list of dataframes
+data1 <- data.frame(var1 = c(1:100))
+data2 <- data.frame(var1 = c(1:10))
+data3 <- data.frame(var1 = c(1:25))
+my.ls <- list(data1 = data1, data2 = data2, data3 = data3)
+
+# Loop through list of dataframes and to each dataframe add a new column
+out<- Map(cbind, my.ls, year=years)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Check if tehy all have the 1475 stands???
-lapply(df.opt.ls, function(df) length(unique(df$id)))
+#lapply(df.opt.ls, function(df) length(unique(df$id)))
 
 # How does teh table looks like?
 # lapply(df.opt.ls, function(df) table(df$regime))
 
 # Subset the original table as one by one???
+# one file example
+
 opt_sol <- df.opt.ls[[16]]
 
 # Filter data by regime and by id using semi_join
@@ -96,7 +142,18 @@ df_opt16 <- df %>%
                    "avohaakut" = "regime")) 
 
 
-# Check if we can split it in individual lans\dscapes: each regime 
+# Filter the simulated data by the optimal scenarios:
+df.opt.filt <- lapply(df.opt.ls, function(df.filter) semi_join(df,
+                                                               df.filter,
+                                                               by = c("id" = "id", 
+                                                                      "avohaakut" = "regime")))
+
+# Check how many regimes I have in every table? 
+lapply(df.opt.filt)
+
+
+
+# Check if we can split it in individual landscapes: each regime 
 # is in every year
 table(df.geom$year)
 table(df_opt16$avohaakut)
