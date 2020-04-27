@@ -35,11 +35,12 @@ library(sf)
 
 # Try real data
 
-setwd("U:/Desktop/2019_selectWatersheds/raw/myDir")
+#setwd("U:/Desktop/2019_selectWatersheds/raw/myDir")
 
+setwd("//fileservices/Homes/mpotterf/projects/2019_selectWatersheds/raw/myDir")
 # Read input forest stand data
-forest_fc = readOGR(getwd(), 
-                    layer = "forest_fc")
+#forest_fc = readOGR(getwd(), 
+   #                 layer = "forest_fc")
 
 my.sf = read_sf("forest_fc.shp")
 
@@ -58,7 +59,7 @@ my.sf = read_sf("forest_fc.shp")
 
 # ==================================
 
-# Make a function using 'simplefeature' approach??
+# Make a function using 'simplefeature' approach
 
 
 library(spdep)    # neighbours
