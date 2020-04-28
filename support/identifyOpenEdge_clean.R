@@ -16,6 +16,12 @@
 # compare medium tree height with his neighbours:
 # if the difference betweeen tree height is more than 5 m, assign attribite table: open_edge as TRUE
 
+# Udp: 28.4. - try to split oepn_edge identification in two parts:
+# first find neighbors, find cells with constantly open edge
+# second: compare teh heights between uncertain
+# purpose: run tehbuffer, erase, intersect just once in year 2016, further just compare 
+# cell with its neighbors
+
 # --------------------------------
 
 # \\fileservices.ad.jyu.fi\homes\mpotterf\Desktop\2019_selectWatersheds\raw\out_MV_Kitee.gpkg\main.stand
@@ -29,7 +35,7 @@ library(sf)
 library(raster)
 library(dplyr)
 library(spData)
-library(sf)
+library(sp)
 #library(RColorBrewer)
 
 
@@ -94,9 +100,169 @@ forest_fc <- rasterToPolygons(r)
 #my.sf$treeHeight <-1:nrow(my.sf)
 
 my.sf$open_edge <- FALSE
+my.sf$H_dom <- rep(10, nrow(my.sf))
+my.sf$id <- paste("a", 1:nrow(my.sf), sep = "_")
 
 # Subset the data to create two independent shps
 #i = 46
+
+
+
+
+
+# First find couples central - neighbors 
+# exports list of dataframes
+# -------------------------------
+# define stands and leftover forest
+nbrs.df.ls <- list()
+
+# Get the geometry and neighbors of stands
+# export ad a list of dataframes
+
+find_neighbors_geom <- function(my.sf, ...) {
+  
+  for (i in 1:nrow(my.sf)) {
+    i = 11
+    
+    one  = my.sf[i, ]
+    left = my.sf[-i,]
+    
+    # Create buffer and intersectb buffer with neighbors: evalues if any are left?
+    buff = st_buffer(one, 10) # distance
+    
+    # Subset the polygons that overlaps with the buffer
+    nbrs.buff <- left[st_intersects(buff, left, sparse =  FALSE),]
+    
+    # Add `one` to `neighbors` and dissolve (union) inner boundaries  
+    u <- st_union(rbind(nbrs.buff, one))
+    
+    # Erase existing stands from the buffer
+    int.buff.one = st_difference(st_geometry(buff), st_geometry(u)) 
+    
+    # Calculate area of intersected data
+    int.buff.one.area = st_area(int.buff.one)
+    
+    # Create output dataframe
+    central   <- one$id
+    nbrs      <- if(nrow(nbrs.buff) == 0) (0) else (nbrs.buff$id) 
+    open_area <- round(as.numeric(int.buff.one.area),1)
+    
+    # Create dataframes
+    nbrs.df <- data.frame(central, nbrs, open_area)
+    
+    # add datyaframe to output dataframe list
+    nbrs.df.ls[[i]] <- nbrs.df
+    
+  }
+  return(nbrs.df.ls)
+}
+
+nbrs<- find_neighbors_geom(my.sf)
+
+
+
+
+# Use couple central-neighbors to compare tree heights or set open_edge = T
+#  ------------------------------
+define_open_edge <- function(my.nbrs.df, 
+                             df.sim,...) {
+  
+   # get ids of the central stand and neighbors
+  central_id <- unique(my.nbrs.df$central)
+  nbrs_id    <- unique(my.nbrs.df$nbrs)
+  
+  print(central_id)
+  
+  # Get the stand height from simulated data for central stand and 
+  # neighbors 
+  central_H = rep(subset(df.sim, id %in% central_id)$H_dom, 
+                  length(nbrs_id))
+  nbrs_H    = rep(subset(df.sim, id %in% nbrs_id)$H_dom, 
+                  length(nbrs_id))
+
+  # Evaluate if the stand has open gap near by
+  if (unique(my.nbrs.df$open_area) > 16*16) {
+    output<-list(central_id,"TRUE")
+    return(output)
+  } else {
+    # Get the differences between the neighbouring stands
+    difference = central_H - nbrs_H
+    
+    # if any difference is more then 5
+    if(any(difference > 5)) {
+    
+      output<-list(central_id,"TRUE")
+      return(output)
+      
+      # Check if there is a big gap in neighborhood    
+    } else {
+      
+      output<-list(central_id,"FALSE")
+      return(output)
+    }
+  }
+}
+
+
+# apply function for all cells (one time series)
+out.ls<- lapply(nbrs, function(i) define_open_edge(my.nbrs.df = i, 
+                                                         df.sim = my.sf.df))
+
+# works with separated functions for 
+# find_neighbprs
+# find open edge
+
+
+
+
+
+
+
+
+
+# Pull out H_dom for central cell and neighbors and compare them
+# if the open_area is > then something, open_edge is always true
+# Maybe merge the tables??
+
+# Keep only dataframe, not geometry
+my.sf.df <- my.sf
+st_geometry(my.sf.df) <- NULL
+
+
+# Get H_dom for central and for neighbors to compare the heights
+central_id <- unique(my.nbrs.df$central)
+nbrs_id    <- unique(my.nbrs.df$nbrs)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Fill 
+
+
+
+
+
+
+
+
+
+
+
+
 
 for (i in 1:nrow(my.sf)) {
   print(i)
