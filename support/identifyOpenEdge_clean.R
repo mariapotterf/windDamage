@@ -24,7 +24,6 @@
 
 # --------------------------------
 
-# \\fileservices.ad.jyu.fi\homes\mpotterf\Desktop\2019_selectWatersheds\raw\out_MV_Kitee.gpkg\main.stand
 rm(list = ls())
 
 library(ggplot2)  
@@ -36,7 +35,6 @@ library(raster)
 library(dplyr)
 library(spData)
 library(sp)
-#library(RColorBrewer)
 
 
 # Try real data
@@ -65,67 +63,35 @@ my.sf = read_sf("forest_fc.shp")
 
 # ==================================
 
-# Make a function using 'simplefeature' approach
+my.sf$id    <- paste("a", 1:nrow(my.sf), sep = "_")
 
 
-library(spdep)    # neighbours
-library(raster)
+# Get simulated data:
+df.sim <- my.sf
+df.sim$H_dom <- rep(10, nrow(df.sim))
 
-
-r <- raster(nrow=11, ncol=6, crs = crs(forest_fc)) #"+init=epsg:2957"
-values(r) <- matrix(data = c(20,  NA, NA, NA, NA,20,
-                             NA, NA, NA, 20, 20, 20, 
-                             NA, NA, 20, 20, 20, 20, 
-                             NA, NA, 20, 20, 20, 20,
-                             NA, NA, 20, 20, 20, 20,
-                             NA, NA, 20, 20, 20, 20,
-                             NA, 20, 20, 20, 20, 20,
-                             NA, 20, 20, 20, 20, 20,
-                             NA, 20, 20, 20, 20, 20,
-                             NA, 20, 20, 20, 20, 20,
-                             NA, 20, 20, 20, 20, 20),
-                    nrow = 11,
-                    ncol = 6, 
-                    byrow = TRUE)
-
-
-# Convert raster to polygon
-forest_fc <- rasterToPolygons(r)
-
-
-# run on my data
-# ----------------------------------
-# make fake stand tree height numbers
-
-#my.sf$treeHeight <-1:nrow(my.sf)
-
-my.sf$open_edge <- FALSE
-my.sf$H_dom <- rep(10, nrow(my.sf))
-my.sf$id <- paste("a", 1:nrow(my.sf), sep = "_")
-
-# Subset the data to create two independent shps
-#i = 46
-
-
-
-
+st_geometry(df.sim) <- NULL
 
 # First find couples central - neighbors 
 # exports list of dataframes
 # -------------------------------
 # define stands and leftover forest
-nbrs.df.ls <- list()
+
 
 # Get the geometry and neighbors of stands
 # export ad a list of dataframes
+# function loops throught stands
 
-find_neighbors_geom <- function(my.sf, ...) {
+find_nbrs_geom <- function(sf, ...) {
   
-  for (i in 1:nrow(my.sf)) {
-    i = 11
+  # create output to store the results
+  nbrs.df.ls <- list()
+  
+  for (i in 1:nrow(sf)) {
+   # i = 11
     
-    one  = my.sf[i, ]
-    left = my.sf[-i,]
+    one  = sf[i, ]
+    left = sf[-i,]
     
     # Create buffer and intersectb buffer with neighbors: evalues if any are left?
     buff = st_buffer(one, 10) # distance
@@ -157,19 +123,20 @@ find_neighbors_geom <- function(my.sf, ...) {
   return(nbrs.df.ls)
 }
 
-nbrs<- find_neighbors_geom(my.sf)
+nbrs<- find_nbrs_geom(sf = my.sf)
 
 
 
 
 # Use couple central-neighbors to compare tree heights or set open_edge = T
 #  ------------------------------
-define_open_edge <- function(my.nbrs.df, 
+# this should loop throuugh landscape
+open_edge_by_nbrs <- function(nbrs, 
                              df.sim,...) {
   
    # get ids of the central stand and neighbors
-  central_id <- unique(my.nbrs.df$central)
-  nbrs_id    <- unique(my.nbrs.df$nbrs)
+  central_id <- as.character(unique(nbrs$central))
+  nbrs_id    <- unique(nbrs$nbrs)
   
   print(central_id)
   
@@ -181,8 +148,9 @@ define_open_edge <- function(my.nbrs.df,
                   length(nbrs_id))
 
   # Evaluate if the stand has open gap near by
-  if (unique(my.nbrs.df$open_area) > 16*16) {
-    output<-list(central_id,"TRUE")
+  if (unique(nbrs$open_area) > 16*16) {
+    output<-c(central_id,"TRUE")
+    print(output)
     return(output)
   } else {
     # Get the differences between the neighbouring stands
@@ -191,13 +159,15 @@ define_open_edge <- function(my.nbrs.df,
     # if any difference is more then 5
     if(any(difference > 5)) {
     
-      output<-list(central_id,"TRUE")
+      output<-c(central_id,"TRUE")
+      print(output)
       return(output)
       
       # Check if there is a big gap in neighborhood    
     } else {
       
-      output<-list(central_id,"FALSE")
+      output<-c(central_id,"FALSE")
+      print(output)
       return(output)
     }
   }
@@ -205,33 +175,15 @@ define_open_edge <- function(my.nbrs.df,
 
 
 # apply function for all cells (one time series)
-out.ls<- lapply(nbrs, function(i) define_open_edge(my.nbrs.df = i, 
-                                                         df.sim = my.sf.df))
+out.ls<- lapply(nbrs, function(i) open_edge_by_nbrs(nbrs = i, 
+                                                   df.sim = df.sim))
 
-# works with separated functions for 
-# find_neighbprs
-# find open edge
-
+# for simulated data: yearly changes would woork 
+# once to find teh neighbors, then 20 times to define_eopn_edge among neighbors
 
 
 
 
-
-
-
-
-# Pull out H_dom for central cell and neighbors and compare them
-# if the open_area is > then something, open_edge is always true
-# Maybe merge the tables??
-
-# Keep only dataframe, not geometry
-my.sf.df <- my.sf
-st_geometry(my.sf.df) <- NULL
-
-
-# Get H_dom for central and for neighbors to compare the heights
-central_id <- unique(my.nbrs.df$central)
-nbrs_id    <- unique(my.nbrs.df$nbrs)
 
 
 
@@ -254,6 +206,33 @@ nbrs_id    <- unique(my.nbrs.df$nbrs)
 
 
 
+
+# Make a function using 'simplefeature' approach
+
+
+library(spdep)    # neighbours
+library(raster)
+
+
+r <- raster(nrow=11, ncol=6, crs = crs(forest_fc)) #"+init=epsg:2957"
+values(r) <- matrix(data = c(20,  NA, NA, NA, NA,20,
+                             NA, NA, NA, 20, 20, 20, 
+                             NA, NA, 20, 20, 20, 20, 
+                             NA, NA, 20, 20, 20, 20,
+                             NA, NA, 20, 20, 20, 20,
+                             NA, NA, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20,
+                             NA, 20, 20, 20, 20, 20),
+                    nrow = 11,
+                    ncol = 6, 
+                    byrow = TRUE)
+
+
+# Convert raster to polygon
+forest_fc <- rasterToPolygons(r)
 
 
 
