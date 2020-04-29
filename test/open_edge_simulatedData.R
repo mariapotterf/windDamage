@@ -35,8 +35,6 @@ df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate ch
 # 
 # # Read stand geometry
 df.geom = read_sf("MV_Korsnas.shp")
-# #df.geom = readOGR(dsn = getwd(),
-#  #                    layer = "MV_Korsnas")
 # 
 # 
 # 
@@ -46,37 +44,93 @@ df.geom = read_sf("MV_Korsnas.shp")
 # # to see if the function works
 # 
 # # clean up unnecessary columns
-# out<- subset(df.geom, select = c("standid"))
+out<- subset(df.geom, select = c("standid"))
+st_geometry(out) <- NULL
 # 
-# sf1<-out
-# sf2<-out
-# sf3<-out
+sf1<-out
+sf2<-out
+sf3<-out
 # 
 # # Create new landscapes with different tree heights 
-# sf1$H_dom <- rep(20, nrow(sf1))
+sf1$H_dom <- rep(20, nrow(sf1))
 # 
 # # CReate another landscape
-# sf2$H_dom <- rep(c(20, 30), each = nrow(df.geom)/2)
-# sf3$H_dom <- rep(c(20, 30), nrow(df.geom)/2)
-# 
-# 
-# 
-# 
-# 
-# # Calculate open edge
-# sf1.open =  findOpenEdge_sf(sf = sf1, H_dom = H_dom, distance = 10, pixel.width = 16)
-# sf2.open = findOpenEdge_sf(sf = sf2, H_dom = H_dom, distance = 10, pixel.width = 16)
-# sf3.open = findOpenEdge_sf(sf = sf3, H_dom = H_dom, distance = 10, pixel.width = 16)
-# 
-# plot(sf1.open["open_edge"])
-# plot(sf2.open["open_edge"])
-# plot(sf3.open["open_edge"])
-# 
-# 
+sf2$H_dom <- rep(c(20, 30), each = nrow(df.geom)/2)
+sf3$H_dom <- rep(c(20, 30), nrow(df.geom)/2)
+
+# list together time saries of landscape
+sf.ls <- list(sf1, sf2, sf3)
 
 
 
 
+# identify neighbors
+nbrs <-find_nbrs_geom(sf = df.geom,
+                      id = standid)
+
+
+# apply neighbors list of each stand to find if have open_edge or not
+nbrs_open <- open_edge_by_nbrs(nbrs, df.sim = sf1)
+
+
+# Apply over multiple landscape:
+open_edge_time<- lapply(sf.ls, function(df) open_edge_by_nbrs(nbrs, df))
+
+
+# convert back to geometry to see the oouptuts
+
+df.geom1 <- df.geom %>% 
+  left_join(open_edge_time[[1]])
+
+df.geom2 <- df.geom %>% 
+  left_join(open_edge_time[[2]])
+
+df.geom3 <- df.geom %>% 
+  left_join(open_edge_time[[3]])
+
+
+plot(df.geom1["open_edge"])
+plot(df.geom2["open_edge"])
+plot(df.geom3["open_edge"])
+
+
+
+
+# Seems working!! 
+
+
+# test on real simulated data: df
+
+# MAke a list by year & regime
+df.bau <- subset(df, regime == "BAU") %>% 
+  mutate(H_dom = replace_na(H_dom, 0.01))
+
+
+df.ls <- split(df.bau, df.bau$year)
+
+df.bau.geom <- subset(df.geom, standid %in% unique(df.bau$id))
+
+# Adjust geometry
+# column names
+
+# identify neighbors
+nbrs.bau <-find_nbrs_geom(sf = df.bau.geom,
+                          id = standid)
+
+
+lapply(nbrs.bau, nrow)
+
+nbrs = nbrs.bau
+df.sim = df.ls[[1]]
+
+
+
+open_edge_time<- lapply(df.ls, function(df) open_edge_by_nbrs(nbrs.bau, df))
+
+lapply(open_edge_time, function(df) table(df$open_edge))
+
+
+# seems that it is working on real simulated data and larger geometry
 
 
 
