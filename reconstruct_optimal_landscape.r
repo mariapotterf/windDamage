@@ -11,62 +11,42 @@
 # keep only stand that has higher proportion of the regime
 # Based on the scenarios, subset the individual simulated stands
 # ----------------------------------
+rm(list = ls())
 
+library(sf)
 
 # Read corrected simulated names:
-df<- data.table::fread("C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regimes.csv")
+df.sim<- data.table::fread("C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regimes.csv")
 
 # Read stand geometry
 # -----------------------------
-df.geom <- read_sf("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
+df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
 df.geom <- subset(df.geom, select = c("KUVIO_ID"))
+names(df.geom) <- c("standid", "geometry")
+df.geom$area <- st_area(df.geom)
 
+stands.remove <- c(13243875,
+                   13243879,
+                   13243881)
+
+# Check if those stands have 0 ha area??
+subset(df.geom, KUVIO_ID %in% stands.remove)$area
+
+# In my data they do not have NULL geometry, but I will remove the stands from 
+# simulated, optimal, and geometry data
+# ------------------------------------------
+
+# The geometry has more stands as simulated data!!
+length(unique(df.geom$standid)) # 1485 !!! I need to subset the simulated data
+
+# need to subset it
+df.geom <- subset(df.geom, standid %in% unique(df.sim$id))
 
 # -----------------------------
 # Read optimal solution:
 # -----------------------------
 
-# Test on one file:
-# ---------------------------
-
-# Replace teh characters to correctly read data into 3 columns
-#txt <-  readLines("C:/MyTemp/avohaakut_db/solutions/Bundles_2_nocow_NPV_MANAGE_price_three_0_0_1_1_ALL0.csv")
-#optim <-read.table(text = gsub("[()\",\t]", " ", txt))
-
-#names(optim) <- c("id", "regime", "proportion")
-
-# keep only the largest proportion by the stand
-#optim.max<-
-# optim %>%
-#dplyr::group_by(id) %>%
-#filter(proportion == max(proportion))
-
-
-# Make a function to read the optimal data correctly and 
-# to filter just the prevailing forest management by stand
-# function also keep just one stand with the gighest proportion of management
-readOptimal <- function(df.path, ...) {
-  
-  # read individual lines
-  txt <-  readLines(df.path)
-  
-  # Read table by replacing characters
-  optim <-read.table(text = gsub("[()\",\t]", " ", txt), stringsAsFactors = F)
-  
-  # Rename the columns of columns names
-  names(optim) <- c("id", "regime", "proportion")
-  
-  # keep only the largest proportion by the stand
-  optim.max<-
-    optim %>%
-    dplyr::group_by(id) %>%
-    filter(proportion == max(proportion))
-  
-  # Return the dataframe with correct columns and filtered 
-  # stands having one regime by stand
-  return(optim.max)
-  
-}
+source("C:/MyTemp/myGitLab/windDamage/myFunctions.r")
 
 
 # Read all optimal solutions to 
@@ -83,73 +63,209 @@ df.names <- gsub(".csv", "", df.names)
 df.opt.ls = lapply(df.optim, readOptimal)
 
 # Add indication of the name:
-# deoes not work???
-# !!!!
-Map(cbind, df.opt.ls, bundle = df.names)
-#Map(cbind, df.opt.ls, SampleID = names(df.opt.ls))
+df.opt.ls <- mapply(cbind, 
+                    df.opt.ls, 
+                    df.names, 
+                    SIMPLIFY = FALSE)
 
+opt.df.all <- do.call(rbind, df.opt.ls)
 
-Map(cbind, df.opt.ls, SampleID = names(df.opt.ls))
+# ----------------------------
+# Check if I have same data simulated and optimized
+# ----------------------------
+# seems that id are the same among the simulated and optimal data
+opt.ids <- unique(opt.df.all$id)
+sim.ids <- unique(df.sim$id)
 
-
-library(dplyr)
-library(purrr)
-
-purrr::map2(df.opt.ls, df.names, ~cbind(.x, SampleID = .y))
-
-
-# vector of values you wish to add
-years <- c("a", "b", "d")     # changed to plural to indicate vector of values rather than single value
-
-# make dummy list of dataframes
-data1 <- data.frame(var1 = c(1:100))
-data2 <- data.frame(var1 = c(1:10))
-data3 <- data.frame(var1 = c(1:25))
-my.ls <- list(data1 = data1, data2 = data2, data3 = data3)
-
-# Loop through list of dataframes and to each dataframe add a new column
-out<- Map(cbind, my.ls, year=years)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Compare teh stand id between optimal data and simulated data
+setdiff(opt.ids, sim.ids)
 
 # Check if tehy all have the 1475 stands???
-#lapply(df.opt.ls, function(df) length(unique(df$id)))
+lapply(df.opt.ls, function(df) length(unique(df$id)))
+# YES
 
 # How does teh table looks like?
 # lapply(df.opt.ls, function(df) table(df$regime))
 
 # Subset the original table as one by one???
-# one file example
+# Subset individual landscapes  = optimal from simulated df (all in one table)
 
-opt_sol <- df.opt.ls[[16]]
+df.sim.opt <- lapply(df.opt.ls, 
+                     # Semi join subset by the stand id and by specific regime 
+                     # simulated in single optimal scenario 
+                     function(df.optim)  {
+                       df.sim %>%
+                         semi_join(df.optim,
+                                   by = c("id" = "id",
+                                          "avohaakut" = "regime")) })
 
-# Filter data by regime and by id using semi_join
-df_opt16 <- df %>% 
-  semi_join(opt_sol, 
-            by = c("id" = "id", 
-                   "avohaakut" = "regime")) 
+
+# landscapes  43-63 have only 1474 stands??? 
+lapply(df.sim.opt, function(df) length(unique(df$id)))
+
+# SEmi join does not work as expected
+a.63 <-  df.sim %>%
+  semi_join(df.opt.ls[[63]],
+            by = c("id" = "id",
+                   "avohaakut" = "regime"))
 
 
-# Filter the simulated data by the optimal scenarios:
-df.opt.filt <- lapply(df.opt.ls, function(df.filter) semi_join(df,
-                                                               df.filter,
-                                                               by = c("id" = "id", 
-                                                                      "avohaakut" = "regime")))
+a.10 <-  df.sim %>%
+  semi_join(df.opt.ls[[10]],
+            by = c("id" = "id",
+                   "avohaakut" = "regime"))
+length(unique(a.10$id))
+
+# compare two vectors to find missing stand: 
+setdiff(unique(a.10$id), unique(a.63$id)) 
+# missing stand is 13243875 - however, it is included in 
+# optmial scenarios
+
+df.names[43:63] # - all are RF
+
+#[1] "CCF_1_10" "CCF_2_10" "CCF_3_10" "CCF_4_10" "CCF_1_15" "CCF_2_15"
+#[7] "CCF_3_15" "CCF_4_15" "CCF_1_20" "CCF_2_20" "CCF_3_20" "CCF_4_20"
+#[13] "CCF_1_25" "CCF_2_25" "CCF_3_25" "CCF_4_25" "CCF_1_30" "CCF_2_30"
+#[19] "CCF_3_30" "CCF_4_30" "CCF_1_35" "CCF_2_35" "CCF_3_35" "CCF_4_35"
+#[25] "CCF_1_40" "CCF_2_40" "CCF_3_40" "CCF_4_40" "CCF_1_45" "CCF_2_45"
+#[31] "CCF_3_45" "CCF_4_45" "CCF_1"    "CCF_2"    "CCF_3"    "CCF_4"   
+#[37] "CCF_1_5"  "CCF_2_5"  "CCF_3_5"  "CCF_4_5"  "TT"       "TTN"     
+#[43] "SRT5"     "LRT5"     "LRT10"    "LRT15"    "LRT30"    "THwoTM20"
+#[49] "SR5"      "TH"       "THNS"     "THwoT"    "SA"  
+
+
+# Subset teh df.sim data for stand 13243875
+stand.sub <- subset(df.sim, id == 13243875)
+
+length(unique(stand.sub$year))
+length(unique(df.sim$id))
+
+
+length(unique(a$id))
+
+length(unique(df.opt.ls[[63]]$id))
+
+# How many stands are in filtered data? optimal scenarios 46-63
+lapply(df.sim.opt, function(df) length(unique(df$id)))
+# some scenarios have 1474?
+
+# How many stands in uniquely in simulated data??
+lapply(df.opt.ls, function(df) length(unique(df$id)))
+
+
+table()
+
+# Need to further split this tables by individual years to have 
+# one stand over one time
+require(dplyr)
+
+df5 <-df.sim.opt[[5]] %>% 
+  group_split(year) 
 
 # Check how many regimes I have in every table? 
-lapply(df.opt.filt)
+lapply(df.sim.opt, function(df) length(unique(df$avohaakut)))
+
+
+head(df.sim.opt[[2]])
+
+
+# ---------------------------------------------------
+# Calculate the pairs of neighbors:
+# calculate open_edge
+# how to interpret thin year??? 
+# ---------------------------------------------------
+
+nbrs <- find_nbrs_geom(df.geom)
+
+df.sim<- df5[[1]]
+
+oo <- open_edge_by_nbrs(nbrs, df5[[1]])
+
+#lapply(   function(df, )open_edge_by_nbrs()
+
+i = 11
+# get ids of the central stand and neighbors
+central_id <- as.character(unique(nbrs[[i]]$central))
+nbrs_id    <- unique(nbrs[[i]]$nbrs)
+
+# Get the stand height from simulated data for central stand and 
+# neighbors 
+central_H = rep(subset(df.sim, id %in% central_id)$H_dom, 
+                length(nbrs_id))
+nbrs_H    = subset(df.sim, id %in% nbrs_id, select = c("H_dom"))$H_dom
+
+# Why I have subsettted only 8 values from 9?
+subset(df.sim, id %in% nbrs_id)
+
+sort(subset(df.sim, id %in% nbrs_id, select = c("id", "H_dom"))$id)
+
+
+subset(df.geom, standid %in% nbrs_id)
+
+
+
+# Evaluate if the stand has open gap near by
+if (unique(nbrs[[i]]$open_area) > 16*16) {
+  nbrs_edge[[i]] <- c(central_id,"TRUE")
+  
+} else {
+  # Get the differences between the neighbouring stands
+  difference = central_H - nbrs_H
+  
+  # if any difference is more then 5
+  if(any(difference > 5, na.rm = T)) {
+    
+    nbrs_edge[[i]] <- c(central_id,"TRUE")
+    
+    
+    # No forest edge    
+  } else {
+    nbrs_edge[[i]] <- c(central_id,"FALSE")
+    
+  }
+}
+
+
+
+
+# Check how to interpret thinning????
+unique(df.sim$THIN) # For example LRT5" or SRT5 = Short rotation thinning 5
+
+# subset one stand to see how does the thinninh year and similated
+# year work together
+# and how to reclassify to suvanto's values
+
+tb.thin <- subset(df.sim, avohaakut == "LRT5" & id == 13243875,
+                  select = c("year", "THIN"))
+
+
+# How to reaclassify when the thinning has happened? 
+#tb.thin <- 
+ # mutate(time_since = case_when( )
+
+
+year = seq(5,45, 5)
+event = c(NA, 14,NA, NA, 29, NA, NA, NA, NA)
+event.short<- event[!is.na(event)]
+
+my.df <- data.frame(year,
+                    event)
+
+my.df
+
+my.df$difference <- c(0,0,1,6,11,1,6,11,16)
+
+
+
+
+         
+         
+
+
+
+
+
+
 
 
 
