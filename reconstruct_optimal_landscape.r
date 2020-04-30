@@ -15,22 +15,23 @@ rm(list = ls())
 
 library(sf)
 
+stands.remove <- c(13243875,
+                   13243879,
+                   13243881)
+
 # Read corrected simulated names:
 df.sim<- data.table::fread("C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regimes.csv")
 
-# Read stand geometry
+df.sim <- subset(df.sim, !id %in% stands.remove)
+
+# Read stand geometry - subset twice
 # -----------------------------
 df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
 df.geom <- subset(df.geom, select = c("KUVIO_ID"))
 names(df.geom) <- c("standid", "geometry")
 df.geom$area <- st_area(df.geom)
 
-stands.remove <- c(13243875,
-                   13243879,
-                   13243881)
-
-# Check if those stands have 0 ha area??
-subset(df.geom, KUVIO_ID %in% stands.remove)$area
+df.geom <- subset(df.geom, !standid %in% stands.remove)
 
 # In my data they do not have NULL geometry, but I will remove the stands from 
 # simulated, optimal, and geometry data
@@ -62,32 +63,14 @@ df.names <- gsub(".csv", "", df.names)
 # Read all dataframes in a loop
 df.opt.ls = lapply(df.optim, readOptimal)
 
-# Add indication of the name:
-df.opt.ls <- mapply(cbind, 
-                    df.opt.ls, 
-                    df.names, 
-                    SIMPLIFY = FALSE)
+# Filter the stands from optimal scenario to exlude corrupted dstands
+df.opt.ls <- lapply(df.opt.ls, function(df) subset(df, !id %in% stands.remove ))
 
+# Merge optimal data in one files, filter for incorrect stands
 opt.df.all <- do.call(rbind, df.opt.ls)
 
-# ----------------------------
-# Check if I have same data simulated and optimized
-# ----------------------------
-# seems that id are the same among the simulated and optimal data
-opt.ids <- unique(opt.df.all$id)
-sim.ids <- unique(df.sim$id)
 
-# Compare teh stand id between optimal data and simulated data
-setdiff(opt.ids, sim.ids)
-
-# Check if tehy all have the 1475 stands???
-lapply(df.opt.ls, function(df) length(unique(df$id)))
-# YES
-
-# How does teh table looks like?
-# lapply(df.opt.ls, function(df) table(df$regime))
-
-# Subset the original table as one by one???
+# Filter the simulated data by optimal scenario:
 # Subset individual landscapes  = optimal from simulated df (all in one table)
 
 df.sim.opt <- lapply(df.opt.ls, 
@@ -103,70 +86,6 @@ df.sim.opt <- lapply(df.opt.ls,
 # landscapes  43-63 have only 1474 stands??? 
 lapply(df.sim.opt, function(df) length(unique(df$id)))
 
-# SEmi join does not work as expected
-a.63 <-  df.sim %>%
-  semi_join(df.opt.ls[[63]],
-            by = c("id" = "id",
-                   "avohaakut" = "regime"))
-
-
-a.10 <-  df.sim %>%
-  semi_join(df.opt.ls[[10]],
-            by = c("id" = "id",
-                   "avohaakut" = "regime"))
-length(unique(a.10$id))
-
-# compare two vectors to find missing stand: 
-setdiff(unique(a.10$id), unique(a.63$id)) 
-# missing stand is 13243875 - however, it is included in 
-# optmial scenarios
-
-df.names[43:63] # - all are RF
-
-#[1] "CCF_1_10" "CCF_2_10" "CCF_3_10" "CCF_4_10" "CCF_1_15" "CCF_2_15"
-#[7] "CCF_3_15" "CCF_4_15" "CCF_1_20" "CCF_2_20" "CCF_3_20" "CCF_4_20"
-#[13] "CCF_1_25" "CCF_2_25" "CCF_3_25" "CCF_4_25" "CCF_1_30" "CCF_2_30"
-#[19] "CCF_3_30" "CCF_4_30" "CCF_1_35" "CCF_2_35" "CCF_3_35" "CCF_4_35"
-#[25] "CCF_1_40" "CCF_2_40" "CCF_3_40" "CCF_4_40" "CCF_1_45" "CCF_2_45"
-#[31] "CCF_3_45" "CCF_4_45" "CCF_1"    "CCF_2"    "CCF_3"    "CCF_4"   
-#[37] "CCF_1_5"  "CCF_2_5"  "CCF_3_5"  "CCF_4_5"  "TT"       "TTN"     
-#[43] "SRT5"     "LRT5"     "LRT10"    "LRT15"    "LRT30"    "THwoTM20"
-#[49] "SR5"      "TH"       "THNS"     "THwoT"    "SA"  
-
-
-# Subset teh df.sim data for stand 13243875
-stand.sub <- subset(df.sim, id == 13243875)
-
-length(unique(stand.sub$year))
-length(unique(df.sim$id))
-
-
-length(unique(a$id))
-
-length(unique(df.opt.ls[[63]]$id))
-
-# How many stands are in filtered data? optimal scenarios 46-63
-lapply(df.sim.opt, function(df) length(unique(df$id)))
-# some scenarios have 1474?
-
-# How many stands in uniquely in simulated data??
-lapply(df.opt.ls, function(df) length(unique(df$id)))
-
-
-table()
-
-# Need to further split this tables by individual years to have 
-# one stand over one time
-require(dplyr)
-
-df5 <-df.sim.opt[[5]] %>% 
-  group_split(year) 
-
-# Check how many regimes I have in every table? 
-lapply(df.sim.opt, function(df) length(unique(df$avohaakut)))
-
-
-head(df.sim.opt[[2]])
 
 
 # ---------------------------------------------------
@@ -174,56 +93,33 @@ head(df.sim.opt[[2]])
 # calculate open_edge
 # how to interpret thin year??? 
 # ---------------------------------------------------
-
 nbrs <- find_nbrs_geom(df.geom)
 
-df.sim<- df5[[1]]
 
-oo <- open_edge_by_nbrs(nbrs, df5[[1]])
+# Add indication of the scenarios as new column
+df.sim.opt <- Map(cbind, 
+                  df.sim.opt, 
+                  scenario = df.names)
 
-#lapply(   function(df, )open_edge_by_nbrs()
+# Convert to single dataframe, 
+# will be further split in multiple lists
+df.sim.all <- do.call(rbind, df.sim.opt)
 
-i = 11
-# get ids of the central stand and neighbors
-central_id <- as.character(unique(nbrs[[i]]$central))
-nbrs_id    <- unique(nbrs[[i]]$nbrs)
-
-# Get the stand height from simulated data for central stand and 
-# neighbors 
-central_H = rep(subset(df.sim, id %in% central_id)$H_dom, 
-                length(nbrs_id))
-nbrs_H    = subset(df.sim, id %in% nbrs_id, select = c("H_dom"))$H_dom
-
-# Why I have subsettted only 8 values from 9?
-subset(df.sim, id %in% nbrs_id)
-
-sort(subset(df.sim, id %in% nbrs_id, select = c("id", "H_dom"))$id)
+# Create new category to group teh data into landscapes:
+df.sim.all$landscape <- paste(df.sim.all$year, df.sim.all$scenario, sep = "_")
 
 
-subset(df.geom, standid %in% nbrs_id)
+# Split dataframe into dataframe list
+land.ls <- df.sim.all %>% 
+  group_by(landscape) %>% 
+  group_split()
+
+# calculate on one landscape
+open_edge.ls <- lapply(land.ls, function(df) open_edge_by_nbrs(nbrs, df))
 
 
 
-# Evaluate if the stand has open gap near by
-if (unique(nbrs[[i]]$open_area) > 16*16) {
-  nbrs_edge[[i]] <- c(central_id,"TRUE")
-  
-} else {
-  # Get the differences between the neighbouring stands
-  difference = central_H - nbrs_H
-  
-  # if any difference is more then 5
-  if(any(difference > 5, na.rm = T)) {
-    
-    nbrs_edge[[i]] <- c(central_id,"TRUE")
-    
-    
-    # No forest edge    
-  } else {
-    nbrs_edge[[i]] <- c(central_id,"FALSE")
-    
-  }
-}
+
 
 
 
