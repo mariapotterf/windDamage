@@ -118,6 +118,41 @@ open_edge_by_nbrs <- function(nbrs,
 
 
 
+# -------------------------
+# Correct read optimal scenarios
+# -------------------------
+# Make a function to read the optimal data correctly and 
+# to filter just the prevailing forest management by stand
+# function also keep just one stand with the gighest proportion of management
+readOptimal <- function(df.path, ...) {
+  
+  require(dplyr)
+  # read individual lines
+  txt <-  readLines(df.path)
+  
+  # Read table by replacing characters
+  optim <-read.table(text = gsub("[()\",\t]", " ", txt), 
+                     stringsAsFactors = F)
+  # Rename the columns of columns names
+  names(optim) <- c("id", "regime", "proportion")
+  
+  # keep only the largest proportion by the stand
+  optim.max<-
+    optim %>%
+    dplyr::group_by(id) %>%
+    filter(proportion == max(proportion))
+  
+  # return only data.frame
+  opt.df<- data.frame(optim.max)
+  # Return the dataframe with correct columns and filtered 
+  # stands having one regime by stand
+  return(opt.df)
+  
+}
+
+
+
+
 
 
 
