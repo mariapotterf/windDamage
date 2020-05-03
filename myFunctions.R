@@ -135,6 +135,7 @@ readOptimal <- function(df.path, ...) {
                      stringsAsFactors = F)
   # Rename the columns of columns names
   names(optim) <- c("id", "regime", "proportion")
+  print(length(unique(optim$id)))
   
   # keep only the largest proportion by the stand
   optim.max<-
@@ -142,8 +143,10 @@ readOptimal <- function(df.path, ...) {
     dplyr::group_by(id) %>%
     filter(proportion == max(proportion))
   
+  print(length(unique(optim.max$id)))
   # return only data.frame
-  opt.df<- data.frame(optim.max)
+  opt.df<- data.frame(optim.max, 
+                      stringsAsFactors = FALSE)
   # Return the dataframe with correct columns and filtered 
   # stands having one regime by stand
   return(opt.df)
