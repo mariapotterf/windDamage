@@ -83,8 +83,6 @@ df.sim.opt <- lapply(df.opt.ls,
                                           "avohaakut" = "regime")) })
 
 
-# landscapes  43-63 have only 1474 stands??? 
-lapply(df.sim.opt, function(df) length(unique(df$id)))
 
 
 
@@ -122,6 +120,10 @@ open_edge.ls <- lapply(land.ls, function(df) open_edge_by_nbrs(nbrs, df))
 
 
 
+#---------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+
 
 
 # Check how to interpret thinning????
@@ -130,9 +132,36 @@ unique(df.sim$THIN) # For example LRT5" or SRT5 = Short rotation thinning 5
 # subset one stand to see how does the thinninh year and similated
 # year work together
 # and how to reclassify to suvanto's values
+# Thinning 0 in RF means that no thinning happened, 0 in CCF means that thinning happened in that year 
 
-tb.thin <- subset(df.sim, avohaakut == "LRT5" & id == 13243875,
+tb.thin.rf <- subset(df.sim, avohaakut == "LRT5" & id == 13243875,
                   select = c("year", "THIN"))
+
+tb.thin.rf <- as.data.frame(tb.thin.rf)
+tb.thin.rf$THIN <- as.numeric(tb.thin.rf$THIN)
+
+
+tb.thin.rf2<- 
+  tb.thin.rf %>%
+  mutate(THIN = na_if(0, NA)) %>%     # if the value is 0, replace by NA as in RF no thinning occured
+  mutate(THIN_filled_lagged = lag(THIN)) %>%    # move values down by one row 
+  fill(THIN_filled_lagged)  %>%                 # fill rows with values  
+  mutate(difference = if_else(year > THIN_filled_lagged,   # calculate the difference
+                              year - THIN_filled_lagged, 
+                              NA_real_, 
+                              missing = 0))  %>% 
+  mutate(since_thin = case_when(difference %in% c(1:5) ~ "less 5",
+                                difference %in% c(6:10) ~ "6-10",
+                                difference > 10 ~ ">11"))  #  if none of cases match: NA is used
+
+
+
+# Check how THIN values looks like to CCF and RF???
+
+
+
+
+
 
 
 # How to reaclassify when the thinning has happened? 
@@ -150,6 +179,18 @@ my.df <- data.frame(year,
 my.df
 
 my.df$difference <- c(0,0,1,6,11,1,6,11,16)
+
+
+library(dplyr)
+library(tidyr)
+
+my.df %>% 
+  mutate(event_filled_lagged = lag(event)) %>% # move by one row 
+  fill(event_filled_lagged)  %>% # repeat the values
+  mutate(difference = if_else(year > event_filled_lagged, 
+                              year - event_filled_lagged, 
+                              NA_real_, 
+                              missing = 0)) 
 
 
 
