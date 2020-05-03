@@ -158,9 +158,16 @@ tb.thin.rf2<-
 
 # Check how THIN values looks like to CCF and RF???
 
+unique(df.sim$THIN)
 
+all.thin <- df.sim %>% 
+  group_by(avohaakut) %>% 
+  distinct(THIN)
 
-
+# 0 in CCF regimes is the year of the thinning, 
+# 0 in RF & SA is that thinning did not occured - here, thinning is indicated by year
+# get regimes that have thinning?? 
+# 
 
 
 
