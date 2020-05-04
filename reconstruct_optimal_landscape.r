@@ -14,6 +14,7 @@
 rm(list = ls())
 
 library(sf)
+library(dplyr)
 
 stands.remove <- c(13243875,
                    13243879,
@@ -115,10 +116,14 @@ land.ls <- df.sim.all %>%
 # calculate on one landscape
 open_edge.ls <- lapply(land.ls, function(df) open_edge_by_nbrs(nbrs, df))
 
+open_edge.df.all <- do.call(rbind, open_edge.ls)
 
 
+# Merge the open_edge data to simulated data
+df.sim.all.open_edge <- cbind(df.sim.all, open_edge.df.all)
 
-
+require(data.table)
+#fwrite(df.sim.all.open_edge, "df.sim_open_edge.csv")
 
 #---------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
