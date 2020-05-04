@@ -42,12 +42,12 @@ df = do.call("rbind", my.df.list)
 # The branching description is incorrect- the names are shifted 
 # needs to be corected by database names first    
 # rename CCF_X_40 -> CCF_X_45
-unique(df$gpkg)
+unique(df$name)
 unique(df$branching_group)
 
 # simplify the .db names
 df<- df %>% 
-  mutate(gpkg_new = str_replace(gpkg, "RCP45_NEW_", ""))
+  mutate(name_new = str_replace(name, "RCP45_NEW_", ""))
 
 
 # -----------------------------
@@ -64,7 +64,7 @@ df.selection <-
   filter(grepl("Selection cut", branching_group) & str_length(branching_group) == 18) %>% 
   mutate(branching_new = str_replace(branching_group,
                                   str_sub(branching_group, start = -2), 
-                                  str_sub(gpkg_new, start = -2)))
+                                  str_sub(name_new, start = -2)))
 
 # Subset unmodified rows
 df.orig <- 
@@ -82,10 +82,10 @@ df<- rbind(df.selection,
 # ----------------------------
 # Filter NA regime in each .db
 # ---------------------------
-# keep only `_SA` indication in the gpkg name
+# keep only `_SA` indication in the name name
 
 # remove all with 'df$branching_group' & keep only ones that have _SA
-# in the gpkg names 
+# in the name names 
 # split in two: 
 #     - SA    - keep
 #     - no.SA - filter
@@ -95,11 +95,11 @@ df<- rbind(df.selection,
 # have RCP45_NEW_SA and have branching_group = NA
 # keep only RCP45_SA as SA scenarios
 df.no.sa <- df %>% 
-  filter(gpkg != "RCP45_NEW_SA" & !is.na(branching_group)) 
+  filter(name != "RCP45_NEW_SA" & !is.na(branching_group)) 
 
 df.sa <-
   df %>% 
-  filter(gpkg == "RCP45_NEW_SA")
+  filter(name == "RCP45_NEW_SA")
 
 
 # rbind data together
@@ -114,7 +114,7 @@ df.av <- rbind(df.no.sa,
 
 # Manually corrected & completed scenarios
 regim_names <- read.csv("C:/MyTemp/myGitLab/windDamage/regimes_BAU_avohak.csv", 
-                        sep = ";", 
+                        sep = ",", 
                         stringsAsFactors = FALSE)
 
 # Add the avohaakut names of the regimes
