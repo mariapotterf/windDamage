@@ -104,80 +104,7 @@ df.geom <- subset(df.geom, !standid %in% stands.remove)
 
 
 
-# -------------------------------
-#
-# SC - identify fetility class
-# SOIL_CLASS - identify coarsiness of teh soil ^ soil_depth <30 TRUE/FALSE
-# 
-# -----------------------------------
 
-df$time_thinning <- factor(sample(c("0-5", "6-10", ">10"),
-                                  nrow(df), replace = TRUE), 
-                                  levels = c("0-5", "6-10", ">10"))
-
-df$soiltyp <- factor(sample(c("mineral coarse", 
-                              "mineral fine",
-                              "organic"), nrow(df), replace = TRUE),
-                               levels = c("mineral coarse", 
-                                          "mineral fine",
-                                          "organic")) 
-
-# replace NA values - due to centroids not overlapping with raster
-df$slFrtlC <- replace_na(df$slFrtlC, "poor")
-
-# Soil depth: TRUE & FALSE
-# soil depth < 30: 1 = TRUE, 0 = FALSE
-df$solDpth <- factor(ifelse(rbinom(nrow(df), 1, 0.5),
-                                      "FALSE","TRUE"))
-
-
-# Subset columns crucial for glm()
-#my.cols.glm <- c("standid",
- #                "area",
- #                "year",
- #                "species",
- #                "H_dom", 
- #                "time_thinning",
- #                "windSpd",
- #                "soiltyp",         
- #                "solDpth",
- #                "slFrtlC", 
- #                "avgTemp")
-
-# Replace the species values
-# seems that these data have only pine???
-# mainGRp is land type == forest = 1
-# need to use MAIN_SP from simulated data !! 
-# or mntrspc
-
-df<-
-  df %>% 
-  mutate(species = case_when(mntrspc == 1 ~ "pine",
-                             mntrspc == 2 ~ "spruce",
-                             TRUE ~ "other")) %>% 
-  mutate(H_dom = replace_na(H_dom, 0.01)) %>%  # no possible to get log(0)  
-  mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
- # dplyr::select(my.cols.glm)  %>%      # select columns 
-  mutate_if(is.character, as.factor)   # convert all characters to factor
-
-
-
-
-# Change column names to correspond glm() 
-colnames(df)[colnames(df) == 'windSpd'] <- 'windSpeed'
-colnames(df)[colnames(df) == 'soiltyp'] <- 'soilType'
-colnames(df)[colnames(df) == 'solDpth'] <- 'soilDepthLess30'
-colnames(df)[colnames(df) == 'slFrtlC'] <- 'siteFertility'
-colnames(df)[colnames(df) == 'avgTemp'] <- 'tempSum'
-
-
-
-# subset just one year
-df.2016 <- 
-  df %>% 
-  filter(year == 2016) 
-
-df1 <- df
 
 # -----------------------------------
 #
@@ -195,20 +122,36 @@ source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 # keep only columns necessary for glm
 keep <- c("species", 
           "H_dom", 
+          "since_thin", 
+          "windSpeed", 
+          "open_edge",
+          "soilType",
+          "soil_depth_less30", 
+          "SC.v",   # siteFertility
+          "avgTemp")
+
+str(df.all)
+
+
+# subset only needed columns:
+df.sub<-df.all[, keep]
+
+# Rename
+
+glm.colnames <- c("species", 
+          "H_dom", 
           "time_thinning", 
           "windSpeed", 
           "open_edge",
           "soilType",
           "soilDepthLess30", 
-          "siteFertility",
+          "siteFertility",   # siteFertility
           "tempSum")
 
-str(df)
 
 
-# subset only needed columns:
-df.sub<-df[, keep]
-
+str(df.sub)
+names(df.sub) <- glm.colnames
 
 # -----------------------------------------
 # Correct the factor levels 
@@ -258,10 +201,12 @@ df.sub$windDamagePred <- predict.glm(windRisk.m,
 range(df.sub$windDamagePred, na.rm = T)
 # 1.007350e-13 3.602978e-01
 
+# Avohaakut: [1] 1.379309e-13 2.178822e-01
+
 # Get Suvanto's predicted values???
 
 # add wind risk values to original data to obtain year!!!
-df$windRisk <- df.sub$windDamagePred 
+# df$windRisk <- df.sub$windDamagePred 
 
 
 
