@@ -13,15 +13,23 @@
 # ----------------------------------
 rm(list = ls())
 
+load("C:/MyTemp/myGitLab/windDamage/.RData")
+
 library(sf)
 library(dplyr)
+require(data.table)
+library(tidyr)
+
+
 
 stands.remove <- c(13243875,
                    13243879,
                    13243881)
 
 # Read corrected simulated names:
-df.sim<- data.table::fread("C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regimes.csv")
+df.sim<- data.table::fread("C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regimes.csv", 
+                           data.table=FALSE, 
+                           stringsAsFactors = FALSE)
 
 df.sim <- subset(df.sim, !id %in% stands.remove)
 
@@ -85,16 +93,6 @@ df.sim.opt <- lapply(df.opt.ls,
 
 
 
-
-
-# ---------------------------------------------------
-# Calculate the pairs of neighbors:
-# calculate open_edge
-# how to interpret thin year??? 
-# ---------------------------------------------------
-nbrs <- find_nbrs_geom(df.geom)
-
-
 # Add indication of the scenarios as new column
 df.sim.opt <- Map(cbind, 
                   df.sim.opt, 
@@ -113,135 +111,85 @@ land.ls <- df.sim.all %>%
   group_by(landscape) %>% 
   group_split()
 
+# Convert to dataframe to have teh same odred of data as open_edge
+#land.df.all <- do.call(rbind, land.ls)
+
+# ---------------------------------------------------
+# Calculate the pairs of neighbors:
+# calculate open_edge
+# how to interpret thin year??? 
+# ---------------------------------------------------
+nbrs <- find_nbrs_geom(df.geom)
+
+
 # calculate on one landscape
 open_edge.ls <- lapply(land.ls, function(df) open_edge_by_nbrs(nbrs, df))
 
-open_edge.df.all <- do.call(rbind, open_edge.ls)
+#open_edge.df.all <- do.call(rbind, open_edge.ls)
+
+# change teh standid to id:
+for (i in seq_along(open_edge.ls)){
+  colnames(open_edge.ls[[i]]) <- c("id", "open_edge")
+}
 
 
-# Merge the open_edge data to simulated data
-df.sim.all.open_edge <- cbind(df.sim.all, open_edge.df.all)
+# here is a problem how to merge all data togetehr!!
+merged.ls <- Map(merge, land.ls, open_edge.ls, by="id")
 
-require(data.table)
-#fwrite(df.sim.all.open_edge, "df.sim_open_edge.csv")
+merged.df <- do.call(rbind, merged.ls)
+
+
+#fwrite(merged.df, "C:/MyTemp/myGitLab/windDamage/output/df.sim_open_edge.csv")
 
 #---------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
 
+# Interpretation of THIN years:
+# convert 0 to NA
+# calculate difference from other years
 
 
-# Check how to interpret thinning????
-unique(df.sim$THIN) # For example LRT5" or SRT5 = Short rotation thinning 5
-
-# subset one stand to see how does the thinninh year and similated
-# year work together
-# and how to reclassify to suvanto's values
-# Thinning 0 in RF means that no thinning happened, 0 in CCF means that thinning happened in that year 
-
-tb.thin.rf <- subset(df.sim, avohaakut == "LRT5" & id == 13243875,
-                  select = c("year", "THIN"))
-
-tb.thin.rf <- as.data.frame(tb.thin.rf)
-tb.thin.rf$THIN <- as.numeric(tb.thin.rf$THIN)
+# Actually, not each stand has to have all regimes, as we have optimal data
+#  
+# ----------------------------------------------
 
 
-tb.thin.rf2<- 
-  tb.thin.rf %>%
-  mutate(THIN = na_if(0, NA)) %>%     # if the value is 0, replace by NA as in RF no thinning occured
-  mutate(THIN_filled_lagged = lag(THIN)) %>%    # move values down by one row 
-  fill(THIN_filled_lagged)  %>%                 # fill rows with values  
+# Thinning calculation takes forever: calculate time since thinning only for scenarios & stands 
+# with THIN included
+# convert all 0 to NA
+
+merged.df2 <- merged.df %>% 
+  group_by(id, scenario) %>% 
+  mutate(THIN = na_if(THIN, 0)) %>% 
+  mutate(THIN_filled_lagged = lag(THIN)) %>% # make sure that it is not calculated from previous value??
+  mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
+  tidyr::fill(THIN_filled_lagged)  %>%      # fill rows with values  
   mutate(difference = if_else(year > THIN_filled_lagged,   # calculate the difference
-                              year - THIN_filled_lagged, 
-                              NA_real_, 
-                              missing = 0))  %>% 
-  mutate(since_thin = case_when(difference %in% c(1:5) ~ "less 5",
+                              year - THIN_filled_lagged,
+                              NA_real_,
+                              missing = 0))  %>%
+  mutate(since_thin = case_when(difference < 0 ~ "NA",
+                                difference %in% c(0:5) ~ "0-5",
                                 difference %in% c(6:10) ~ "6-10",
-                                difference > 10 ~ ">11"))  #  if none of cases match: NA is used
+                                difference > 10 ~ ">11"))
 
 
+unique(merged.df2$difference)
+unique(merged.df2$since_thin)
 
-# Check how THIN values looks like to CCF and RF???
+         
 
-unique(df.sim$THIN)
-
-all.thin <- df.sim %>% 
-  group_by(avohaakut) %>% 
-  distinct(THIN)
-
-# 0 in CCF regimes is the year of the thinning, 
-# 0 in RF & SA is that thinning did not occured - here, thinning is indicated by year
-# get regimes that have thinning?? 
-# 
-
-
-
-# How to reaclassify when the thinning has happened? 
-#tb.thin <- 
- # mutate(time_since = case_when( )
-
-
-year = seq(5,45, 5)
-event = c(NA, 14,NA, NA, 29, NA, NA, NA, NA)
-event.short<- event[!is.na(event)]
-
-my.df <- data.frame(year,
-                    event)
-
-my.df
-
-my.df$difference <- c(0,0,1,6,11,1,6,11,16)
-
-
-library(dplyr)
-library(tidyr)
-
-my.df %>% 
-  mutate(event_filled_lagged = lag(event)) %>% # move by one row 
-  fill(event_filled_lagged)  %>% # repeat the values
-  mutate(difference = if_else(year > event_filled_lagged, 
-                              year - event_filled_lagged, 
-                              NA_real_, 
-                              missing = 0)) 
-
-
+# inscepct the data if the the difference is not calculated between 
+# different stands or scenarios
+unique(df.sim.all.open_edge2$since_thin)
+# unsure how can I check for this???
 
 
          
-         
+# write the table
+fwrite(df.sim.all.open_edge2, "C:/MyTemp/myGitLab/windDamage/output/df_glm.csv")
 
-
-
-
-
-
-
-
-
-# Check if we can split it in individual landscapes: each regime 
-# is in every year
-table(df.geom$year)
-table(df_opt16$avohaakut)
-table(df_opt16$year, df_opt16$avohaakut)
-
-# Seems that is well 
-# next need to look throuught optimal scenarios to subset df to recreate 
-# 63 different development trajectories
-
-# Now just try to recreate single landscape in 2016
-df_2016 <- subset(df_opt16, year == 2016)
-
-head(df_opt16)
-
-# Merge the stand geometry with simulated data for one optimal scenario
-df_opt16 <-  
-  df.geom %>% 
-  left_join(df_opt16, by = c("KUVIO_ID" = "id"))
-
-
-
-plot(subset(df_opt16, year == 2016)["H_dom"])
-plot(subset(df_opt16, year == 2016)["avohaakut"])
 
 
 
