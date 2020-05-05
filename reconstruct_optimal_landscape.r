@@ -182,13 +182,12 @@ unique(merged.df2$since_thin)
 
 # inscepct the data if the the difference is not calculated between 
 # different stands or scenarios
-unique(df.sim.all.open_edge2$since_thin)
 # unsure how can I check for this???
 
 
          
 # write the table
-fwrite(df.sim.all.open_edge2, "C:/MyTemp/myGitLab/windDamage/output/df_glm.csv")
+fwrite(merged.df2, "C:/MyTemp/myGitLab/windDamage/output/df_glm.csv")
 
 
 
