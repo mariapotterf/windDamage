@@ -1,27 +1,12 @@
 
 
-# Collect attributes for Suvanto's model
+# Collect raster attributes for Suvanto's model
 # ------------------------
 
-# get glm for the sample simulated stand
-# Need to all parameters: 
-#  
-# - from simulated data
-#           tree species
-#           tree height
-#           time since thinning
-
-# - from stand geometry:
-#           open_edge
-
-# - extracted rasters: 
 #           wind return
-#           soil type
-#           mineral soil depth
-#           site fertility
 #           temperature sum
 
-# Output: export geometry with new attributes
+# Output: export df with new attributes
 
 
 
@@ -29,20 +14,19 @@
 rm(list = ls())
 
 
-setwd("C:/MyTemp/myGitLab/windDamage")
+#setwd("C:/MyTemp/myGitLab/windDamage")
 
-source("myFunctions.R")
+#source("myFunctions.R")
 
 
 # ----------------------------------
 # start the script: using rgdal library
 # ----------------------------------
 
-library(ggplot2)
+#library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(rgdal)
-library(ggpubr)
 library(sf)
 library(rgdal)
 library(ggspatial)
@@ -52,20 +36,35 @@ library(raster)
 library(dplyr)
 library(spData)
 library(sf)
-library(RColorBrewer)
+#library(RColorBrewer)
 
 
+stands.remove <- c(13243875,
+                   13243879,
+                   13243881)
 
+
+# Read stand geometry - subset twice
+# -----------------------------
+df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
+df.geom <- subset(df.geom, select = c("KUVIO_ID"))
+names(df.geom) <- c("standid", "geometry")
+df.geom$area <- st_area(df.geom)
+
+df.geom <- subset(df.geom, !standid %in% stands.remove)
+
+source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
 # Set working directory
-inDataPath = "U:/projects/2019_windthrowModel/Janita/outSimulated"
-setwd(inDataPath)
+#inDataPath = "U:/projects/2019_windthrowModel/Janita/outSimulated"
+#setwd(inDataPath)
+# c:\MyTemp\myGitLab\windDamage\output\
  
 # # read simulated data
-df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate change is not included
+#df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate change is not included
 # 
 # # Read stand geometry
-df.geom = read_sf("MV_Korsnas.shp")
+#df.geom = read_sf("MV_Korsnas.shp")
 
 
 # 
@@ -75,7 +74,7 @@ df.geom = read_sf("MV_Korsnas.shp")
 
 # Get input path
 # get yearly temperatures (raster stack) day by day (bands)
-tempSumPath <- "U:/rawData/Finland/DailyMeanTemperat_1961-2018/daily_mean_temperature_1961_2018_geotiff"
+tempSumPath <- "C:/MyTemp/myGitLab/windDamage/data/daily_mean_temperature_1961_2018_geotiff"
 setwd(tempSumPath)
 
 # list file names - get last 30 rasters
@@ -99,71 +98,30 @@ rm(r.grds)
 stand.centr <- st_centroid(df.geom)
 
 # wind path
-windpath <- "U:/rawData/Finland/windSpeedReturn10/wind_speed"
+#windpath <- "C:/MyTemp/myGitLab/windDamage/data"
 
-wind.r <- raster(paste(windpath, "Wind_10y_return_level.tif", sep = "/"))
+#wind.r <- raster(paste(windpath, "Wind_10y_return_level.tif", sep = "/"))
+
+wind.r <- raster("C:/MyTemp/myGitLab/windDamage/data/Wind_10y_return_level.tif")
 
 # Extract wind speed
 df.geom$windSpeed <- raster::extract(wind.r, stand.centr)
 
 rm(wind.r)
 
-# Mineral soil depth
-# ----------------------
-# soild depth data are binary:
-# mineral soil alle30cm
-# 0 = FALSE
-# 1 = TRUE
 
-soilDepthPath = "U:/rawData/Finland/mineralSoilAlle30/Research Data"
-soil.depth.r = raster(paste(soilDepthPath, "mineral_alle30cm_P3.tif", sep = "/"))
-# wrom which LUKE tile to take the data? korsnas is in P3
-stand.centr <- st_centroid(df.geom)
-df.geom$soilDepth <- raster::extract(soil.depth.r, stand.centr)
-rm(soil.depth.r)  
 
-# Site fertility
-# ---------------------
-# values: poor/fertile
-# fertile = from herb-rich to mesic on mineral soils & eutrophic to meso-ologitrophic peatlands
-# 
-# 
-soilFertilityPath = "U:/rawData/Finland/siteFertility/siteFertilitySouth/2017/kasvupaikka_vmi1x_1317_P3.tif"
-fertility.r = raster(paste(soilFertilityPath, "kasvupaikka_vmi1x_1317_P3.tif", sep = "/"))
+# Safe dataframe
+df.raster <- df.geom
 
-df.geom$soilFertility <- raster::extract(fertility.r, stand.centr)
+# get rid of geometry, keep only the data
+st_geometry(df.raster) <-NULL
 
-# Reclassify: 1-3 =  fertile, 4-8 = poor
-# POZOR !!! centroids generated NA values!! maybe differenc approach? zonal stats?
-df.geom$soilFertCl <- ifelse(df.geom$soilFertility <= 3, "fertile", "poor")
+
+fwrite(df.raster, "C:/MyTemp/myGitLab/windDamage/output/df_glm_raster.csv")
 
 
 
-# Soil type - vector data
-# --------------------
-# values: mineral-coarse, mineral-fine,organic 
-# organic = peatlands polygons
-# mineral-fine = clay and fine sands
-# mineral-coarse = sands and coarser soils
-# Data stored as gdb
-#U:\rawData\Finland\maapera_200k_etrs_tm35fin_gdb\maapera_200k.gdb
-# U:\rawData\Finland\maapera_200k_etrs_tm35fin_gdb\maapera_200k.gdb\maapera_200k\mp200k_maalajit
-require(rgdal)
-require(sf)
-soilTypeGDB = "U:/rawData/Finland/maapera_200k_etrs_tm35fin_gdb/maapera_200k.gdb"
-soil.poly <- st_read(dsn = soilTypeGDB,
-                      layer = "maapera_200k/mp200k_maalajit")  # ,driver = "FileGDB"
-
-
-# List all feature classes in a file geodatabase
-subset(ogrDrivers(), grepl("GDB", name))
-fc_list <- ogrListLayers(soilTypeGDB)
-print(fc_list)
-
-
-
-fc <- readOGR(dsn=paste(soilTypeGDB, "maapera_200k", sep = "/"),
-              layer="mp200k_maalajit") # maapera_200k/mp200k_maalajit
 
 # ---------------------
 # Save sf object
