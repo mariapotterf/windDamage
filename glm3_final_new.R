@@ -18,7 +18,6 @@ setwd("C:/MyTemp/myGitLab/windDamage")
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-library()
 library(rgdal)
 library(ggpubr)
 library(sf)
@@ -34,17 +33,18 @@ library(RColorBrewer)
 
 
 # Set working directory
-inDataPath = "U:/projects/2019_windthrowModel/Janita/outSimulated"
-setwd(inDataPath)
+#inDataPath = "U:/projects/2019_windthrowModel/Janita/outSimulated"
+#setwd(inDataPath)
 
 
 # read data with calculated open_edge
-df <- data.table::fread("open_edge_calc_fast.csv") 
+#df <- data.table::fread("open_edge_calc_fast.csv") 
+df <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm.csv", data.table=FALSE)
+df.rst <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm_raster.csv", data.table=FALSE)
 
 # Read new data contaioning PEAT and mineral soild, and THIN variables
 # now the data are stored by 15 stands, need to read them all
 #--------------------------------------------------------
-
 
 
 # To speed up: use the soil, peat, tHIN chanracteristics by the regime
@@ -54,90 +54,63 @@ df <- data.table::fread("open_edge_calc_fast.csv")
 
 
 head(df)
-
+head(df.rst)
 
 
 # Reclassify values:
-# NEED TO GET SOIL_CLASS, now missing!!! use raster data instead
-# SOIL_CLASS_SIMPLE contains all: peatland, coarse & fine 
-#df.new<-
- # df.new %>% 
-#  mutate(PEAT.v = case_when(PEAT == 0 ~ "mineral soil",
-#                            PEAT == 1 ~ "peat")) %>%
-#  mutate(SC.v = case_when(SC %in% 1:4 ~ "fertile",              ### !!!! Check this again!!!
-#                          SC %in% 5:6 ~ "poor"))                # COMPLETE SOIL CALSS to get mineral coarse/fine??
+df.new<-
+  df %>% 
+  mutate(PEAT.v = case_when(PEAT == 0 ~ "mineral soil",
+                            PEAT == 1 ~ "peat"))  %>%
+  mutate(SC.v = case_when(SC %in% 1:3 ~ "fertile",
+                          SC %in% 4:6 ~ "poor")) %>%                 # COMPLETE SOIL CALSS to get mineral coarse/fine??
+  mutate(soil_depth_less30 = ifelse(SOIL_CLASS == 1, TRUE,FALSE)) %>%
+  mutate(soilType = case_when(SOIL_CLASS == 0 ~ "organic",
+                              SOIL_CLASS %in% 1:4 ~ "mineral_coarse",
+                              SOIL_CLASS %in% 5:7 ~ "mineral_fine")) %>% 
+  mutate(species = case_when(MAIN_SP == 1 ~ "pine",
+                             MAIN_SP == 2 ~ "spruce",
+                             TRUE ~ "other")) %>% 
+  mutate(H_dom = replace_na(H_dom, 0.01)) %>%  # no possible to get log(0)  
+  mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
+  # dplyr::select(my.cols.glm)  %>%      # select columns 
+  mutate_if(is.character, as.factor)   # convert all characters to factor
+  
 
 
+# JOin df data with data derived from raster geometry
+# make sure they have the same stands
+my.stands<- unique(df.new$id)
+df.rst <- subset(df.rst, standid %in% my.stands)
+names(df.rst) <- c("id",   "area",      "avgTemp",   "windSpeed")
+
+
+# Merge the datasets
+df.all<- df.new %>% 
+  left_join(df.rst) # %>% 
+#full_join(df.rst, by = c("id" = "standid"))
 
 
 # -----------------------------------------
+# read stand geometry data
+# ------------------------------------------
 
+df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
+df.geom <- subset(df.geom, select = c("KUVIO_ID"))
+names(df.geom) <- c("standid", "geometry")
+df.geom$area <- st_area(df.geom)
 
-# st_read do not return tibble just spatial dataframe
-df.geom = st_read("U:/projects/2019_windthrowModel/Janita/outSimulated/outKorsnas_att.shp")
-
-
-# Find same stands id between geometry and simulated data 
-# and keep those
-stands.complete = Reduce(intersect, list(df$standid, df.geom$standid))
-
-# Reduce df and df.geom to the same stands
-# df.geom = just in case for visualisation, no need 
-# for wind disk calculation!!!!
-df          <- subset(df,      standid %in% stands.complete)
-df.geom     <- subset(df.geom, standid %in% stands.complete)
-
-
-# Check the length
-length(unique(df$standid))
-length(unique(df.geom$standid))
-
-
-# add individual variables from new df: PEAT, FERTILITTY, THIN to keep 
-#keep.new.c <- c("id","year",  "regime", "SC", "PEAT", "MAIN_SP", "THIN")
-
-# Keep only necessary columns
-#df.new.sub <- subset(df.new, select = keep.new.c, regime != "SA")
-
-# rename the id fields
-#names(df.new.sub)[names(df.new.sub) == "id"] <- "standid"
-
-#df.new.sub$regime <- as.character(df.new.sub$regime)
-
-
-# CHeck how merging works on data subset
-#d.thin <- subset(df.m, regime == "BAUwT_m5")
-
-
-
-
-# Merge df and df.new together
-#df.m <-
- # df %>% 
-  #left_join(df.new.sub)
-
-
-# Subset one thinning regime: how can I calculate years from last thinning??
-#unique(df.m$regime)
-
+df.geom <- subset(df.geom, !standid %in% stands.remove)
 
 
 
 # -------------------------------
-# !!! Add missing columns: - create fake data!!!!
-# variables used fromSIMO instead from rasters:
-# will be later replaced directly from SIMO
 #
 # SC - identify fetility class
 # SOIL_CLASS - identify coarsiness of teh soil ^ soil_depth <30 TRUE/FALSE
-# PEAT - identify where is peat
 # 
 # -----------------------------------
 
-#df<- df
- # mutate(soilType = case_when(PEAT == 0 ~ "mineral soil",
-            #                  PEAT == 1 ~ "peat")) %>%
-  
 df$time_thinning <- factor(sample(c("0-5", "6-10", ">10"),
                                   nrow(df), replace = TRUE), 
                                   levels = c("0-5", "6-10", ">10"))
