@@ -39,7 +39,8 @@ library(RColorBrewer)
 
 # read data with calculated open_edge
 #df <- data.table::fread("open_edge_calc_fast.csv") 
-df <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm.csv", data.table=FALSE)
+df <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm.csv", 
+                        data.table=FALSE)
 df.rst <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm_raster.csv", data.table=FALSE)
 
 # Read new data contaioning PEAT and mineral soild, and THIN variables
@@ -56,6 +57,9 @@ df.rst <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm_raster.
 head(df)
 head(df.rst)
 
+# Replace since_thin value >11 to >10
+df$since_thin[df$since_thin == ">11"] <- ">10" 
+
 
 # Reclassify values:
 df.new<-
@@ -66,12 +70,12 @@ df.new<-
                           SC %in% 4:6 ~ "poor")) %>%                 # COMPLETE SOIL CALSS to get mineral coarse/fine??
   mutate(soil_depth_less30 = ifelse(SOIL_CLASS == 1, TRUE,FALSE)) %>%
   mutate(soilType = case_when(SOIL_CLASS == 0 ~ "organic",
-                              SOIL_CLASS %in% 1:4 ~ "mineral_coarse",
-                              SOIL_CLASS %in% 5:7 ~ "mineral_fine")) %>% 
+                              SOIL_CLASS %in% 1:4 ~ "mineral coarse",
+                              SOIL_CLASS %in% 5:7 ~ "mineral fine")) %>% 
   mutate(species = case_when(MAIN_SP == 1 ~ "pine",
                              MAIN_SP == 2 ~ "spruce",
                              TRUE ~ "other")) %>% 
-  mutate(H_dom = replace_na(H_dom, 0.01)) %>%  # no possible to get log(0)  
+  mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0)  
   mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
   # dplyr::select(my.cols.glm)  %>%      # select columns 
   mutate_if(is.character, as.factor)   # convert all characters to factor
@@ -89,6 +93,8 @@ names(df.rst) <- c("id",   "area",      "avgTemp",   "windSpeed")
 df.all<- df.new %>% 
   left_join(df.rst) # %>% 
 #full_join(df.rst, by = c("id" = "standid"))
+
+# Replace thi
 
 
 # -----------------------------------------
@@ -139,14 +145,14 @@ df.sub<-df.all[, keep]
 # Rename
 
 glm.colnames <- c("species", 
-          "H_dom", 
-          "time_thinning", 
-          "windSpeed", 
-          "open_edge",
-          "soilType",
-          "soilDepthLess30", 
-          "siteFertility",   # siteFertility
-          "tempSum")
+                  "H_dom", 
+                  "time_thinning", 
+                  "windSpeed", 
+                  "open_edge",
+                  "soilType",
+                  "soilDepthLess30", 
+                  "siteFertility",   # siteFertility
+                  "tempSum")
 
 
 
@@ -198,17 +204,30 @@ df.sub$windDamagePred <- predict.glm(windRisk.m,
                                      df.sub,
                                      type="response")
 
-range(df.sub$windDamagePred, na.rm = T)
-# 1.007350e-13 3.602978e-01
+range(df.sub$windDamagePred, na.rm = T) # 
+# 2.220446e-16 9.591686e-01
+
+# ? check why some values have NA values??
+df.na <- subset(df.sub, is.na(windDamagePred))
+
+head(df.na)
 
 # Avohaakut: [1] 1.379309e-13 2.178822e-01
+require(raster)
+r.windRisk <- raster("C:/MyTemp/myGitLab/windDamage/data/pred_prob_N4.tif")
 
-# Get Suvanto's predicted values???
+
+
+# Check teh raster values for Jyvakyla: tile N4
+# http://www.nic.funet.fi/index/geodata/luke/forest_wind_damage_sensitivity/
+
 
 # add wind risk values to original data to obtain year!!!
 df.all$windRisk <- df.sub$windDamagePred 
 
-# ??? why some values are NA of wind risk??? look into??? !!!!
+# Export data
+data.table::fwrite(df.all, "C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
+
 
 # -------------------------
 #    Visualise results
