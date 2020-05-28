@@ -208,9 +208,9 @@ range(df.sub$windDamagePred, na.rm = T) #
 # 2.220446e-16 9.591686e-01
 
 # ? check why some values have NA values??
-df.na <- subset(df.sub, is.na(windDamagePred))
+df.1 <- subset(df.sub, windDamagePred>0.75)
 
-head(df.na)
+# head(df.na)
 
 # Avohaakut: [1] 1.379309e-13 2.178822e-01
 require(raster)
