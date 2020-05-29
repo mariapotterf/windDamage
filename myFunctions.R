@@ -5,7 +5,7 @@
 # Find neighbors by geometry (): find_nbrs_geom
 # define open edge by neighbors: open_edge_by_nbrs
 
-# combine neighbors search and open_edge in pne fucntion: on of
+# combine neighbors search and open_edge in one fucntion: on of
 # findOpenEdge_sf
 
 
@@ -30,7 +30,7 @@ find_nbrs_geom <- function(sf, ...) {
     left = sf[-i,]
     
     # Create buffer and intersectb buffer with neighbors: evalues if any are left?
-    buff = st_buffer(one, 40) # distance
+    buff = st_buffer(one, 40) # distance, 5*16 = 80, 40 is radius
     
     # Subset the polygons that overlaps with the buffer
     nbrs.buff <- left[st_intersects(buff, left, sparse =  FALSE),]
