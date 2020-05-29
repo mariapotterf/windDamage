@@ -121,26 +121,19 @@ df.geom <- subset(df.geom, !standid %in% stands.remove)
 source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
 
-# Check the factors and levels in the dataset:
-# keep only columns necessary for glm
-keep <- c("species", 
-          "H_dom", 
-          "since_thin", 
-          "windSpeed", 
-          "open_edge",
-          "soilType",
-          "soil_depth_less30", 
-          "SC.v",   # siteFertility
-          "avgTemp")
-
-str(df.all)
+# try if I can calculate the preidtcion based on subset data
+# to make sure that data did not get randomly reorganized
+df.all <-
+  df.all %>% 
+  dplyr::rename(time_thinning   = since_thin,             # new.name = old.name
+                soilDepthLess30 = soil_depth_less30,
+                siteFertility   = SC.v,
+                tempSum         = avgTemp)# %>% 
+  #rename_at
 
 
-# subset only needed columns:
-df.sub<-df.all[, keep]
 
-# Rename
-
+# Get vector of columns names to keep for statistics
 glm.colnames <- c("species", 
                   "H_dom", 
                   "time_thinning", 
@@ -153,59 +146,54 @@ glm.colnames <- c("species",
 
 
 
-str(df.sub)
-names(df.sub) <- glm.colnames
 
 # -----------------------------------------
 # Correct the factor levels 
 #   for categoric variables
 # ------------------------------------
-df.sub$species          <- factor(df.sub$species, 
+df.all$species          <- factor(df.all$species, 
                                   levels = c("pine", 
                                              "spruce", 
                                              "other"))
 
-df.sub$time_thinning    <- factor(df.sub$time_thinning, 
+df.all$time_thinning    <- factor(df.all$time_thinning, 
                                   levels = c("0-5", 
                                              "6-10", 
                                              ">10"))
-df.sub$open_edge        <- factor(df.sub$open_edge,
+df.all$open_edge        <- factor(df.all$open_edge,
                                   levels = c("FALSE", 
                                              "TRUE"))
-df.sub$soilType         <- factor(df.sub$soilType,
+df.all$soilType         <- factor(df.all$soilType,
                                   levels = c("mineral coarse", 
                                              "mineral fine",
                                              "organic"))
-df.sub$soilDepthLess30  <- factor(df.sub$soilDepthLess30, 
+df.all$soilDepthLess30  <- factor(df.all$soilDepthLess30, 
                                   levels = c("FALSE", 
                                              "TRUE"))
-df.sub$siteFertility    <- factor(df.sub$siteFertility,
+df.all$siteFertility    <- factor(df.all$siteFertility,
                                   levels = c("poor", 
                                              "fertile"))
-df.sub$tempSum          <- df.sub$tempSum/100   # according to Susane 
+df.all$tempSum          <- df.all$tempSum/100   # according to Susane 
 
 
 # ------------------------------------------
 # Calculate predicted values for wind risk 
 # ------------------------------------------
 # For temperature sum, I have single value: not variabilit over the landscape: 1299.273
-df.sub$windDamagePred <- predict.glm(windRisk.m,
-                                     df.sub,
+df.all$windDamagePred <- predict.glm(windRisk.m,
+                                     subset(df.all, select = glm.colnames),
                                      type="response")
 
-range(df.sub$windDamagePred, na.rm = T) # 
+range(df.all$windDamagePred, na.rm = T) # 
 # 2.220446e-16 9.591686e-01
 
-range(df.sub$windDamagePred)  # na.rm = T
+range(df.all$windDamagePred)  # na.rm = T
 
 
 
 # Check teh raster values for Jyvakyla: tile N4
 # http://www.nic.funet.fi/index/geodata/luke/forest_wind_damage_sensitivity/
 
-
-# add wind risk values to original data to obtain year!!!
-df.all$windRisk <- df.sub$windDamagePred 
 
 # Export data
 data.table::fwrite(df.all, "C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
