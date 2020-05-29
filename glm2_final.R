@@ -41,21 +41,15 @@ library(RColorBrewer)
 #df <- data.table::fread("open_edge_calc_fast.csv") 
 df <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm.csv", 
                         data.table=FALSE)
+
+# Read raster derived input variables: average wind, temperature, ...
 df.rst <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm_raster.csv", data.table=FALSE)
 
-# Read new data contaioning PEAT and mineral soild, and THIN variables
-# now the data are stored by 15 stands, need to read them all
-#--------------------------------------------------------
-
-
-# To speed up: use the soil, peat, tHIN chanracteristics by the regime
-# and replace those values in my original stand data with open)edges calculated
-# (make sure that open_edge calculation fit???) I might have a different 
-# SA & SA_DWexstract regimes???
 
 
 head(df)
 head(df.rst)
+
 
 # Replace since_thin value >11 to >10
 df$since_thin[df$since_thin == ">11"] <- ">10" 
@@ -94,8 +88,6 @@ df.all<- df.new %>%
   left_join(df.rst) # %>% 
 #full_join(df.rst, by = c("id" = "standid"))
 
-# Replace thi
-
 
 # -----------------------------------------
 # read stand geometry data
@@ -106,10 +98,15 @@ df.geom <- subset(df.geom, select = c("KUVIO_ID"))
 names(df.geom) <- c("standid", "geometry")
 df.geom$area <- st_area(df.geom)
 
+# stands that are not simulated
+stands.remove <-c(13243875, 
+                  13243879, 
+                  13243881,
+                  6685176)    # H_dom is >150 m
+
+
+
 df.geom <- subset(df.geom, !standid %in% stands.remove)
-
-
-
 
 
 # -----------------------------------
@@ -192,14 +189,6 @@ df.sub$tempSum          <- df.sub$tempSum/100   # according to Susane
 # Calculate predicted values for wind risk 
 # ------------------------------------------
 # For temperature sum, I have single value: not variabilit over the landscape: 1299.273
-# try to inclrease the variability??
-
-# if teh
-#df.sub$tempSum <- runif(nrow(df.sub), 
-#                        min = 12, 
-#                        max = 12)#*100
-
-
 df.sub$windDamagePred <- predict.glm(windRisk.m,
                                      df.sub,
                                      type="response")
@@ -207,14 +196,7 @@ df.sub$windDamagePred <- predict.glm(windRisk.m,
 range(df.sub$windDamagePred, na.rm = T) # 
 # 2.220446e-16 9.591686e-01
 
-# ? check why some values have NA values??
-df.1 <- subset(df.sub, windDamagePred>0.75)
-
-# head(df.na)
-
-# Avohaakut: [1] 1.379309e-13 2.178822e-01
-require(raster)
-r.windRisk <- raster("C:/MyTemp/myGitLab/windDamage/data/pred_prob_N4.tif")
+range(df.sub$windDamagePred)  # na.rm = T
 
 
 
