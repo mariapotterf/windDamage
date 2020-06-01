@@ -86,27 +86,7 @@ names(df.rst) <- c("id",   "area",      "avgTemp",   "windSpeed")
 # Merge the datasets
 df.all<- df.new %>% 
   left_join(df.rst) # %>% 
-#full_join(df.rst, by = c("id" = "standid"))
 
-
-# -----------------------------------------
-# read stand geometry data
-# ------------------------------------------
-
-df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
-df.geom <- subset(df.geom, select = c("KUVIO_ID"))
-names(df.geom) <- c("standid", "geometry")
-df.geom$area <- st_area(df.geom)
-
-# stands that are not simulated
-stands.remove <-c(13243875, 
-                  13243879, 
-                  13243881,
-                  6685176)    # H_dom is >150 m
-
-
-
-df.geom <- subset(df.geom, !standid %in% stands.remove)
 
 
 # -----------------------------------
@@ -180,14 +160,14 @@ df.all$tempSum          <- df.all$tempSum/100   # according to Susane
 # Calculate predicted values for wind risk 
 # ------------------------------------------
 # For temperature sum, I have single value: not variabilit over the landscape: 1299.273
-df.all$windDamagePred <- predict.glm(windRisk.m,
+df.all$windRisk <- predict.glm(windRisk.m,
                                      subset(df.all, select = glm.colnames),
                                      type="response")
 
-range(df.all$windDamagePred, na.rm = T) # 
+range(df.all$windRisk, na.rm = T) # 
 # 2.220446e-16 9.591686e-01
 
-range(df.all$windDamagePred)  # na.rm = T
+range(df.all$windRisk)  # na.rm = T
 
 
 
