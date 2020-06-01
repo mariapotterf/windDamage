@@ -12,13 +12,12 @@ library(sf)
 library(stringr)
 
 
-theme_set(theme_bw())
+theme_set(theme_classic())
 
 
 # Read datasets:
 df.all <- fread("C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
 
-# 
 
 # get the NPVI&NPI values over scenarios 
 df.npi <- fread("C:/MyTemp/avohaakut_db/analyzed/scenario_NPI.csv")
@@ -30,7 +29,8 @@ df.npi <- fread("C:/MyTemp/avohaakut_db/analyzed/scenario_NPI.csv")
 stands.remove <-c(13243875, 
                   13243879, 
                   13243881,
-                  6685176)    # H_dom is >150 m
+                  6685176,     # # H_dom is >150 m 
+                  13243960)    #  H_dom is 430
 
 
 
@@ -46,12 +46,6 @@ df.geom$area <- st_area(df.geom)
 #df.geom <- subset(df.geom, !standid %in% stands.remove)
 df.geom <- subset(df.geom, standid %in% unique(df.all$id))
 
-# Read Suvanto's raster
-# Avohaakut: [1] 1.379309e-13 2.178822e-01
-#r.windRisk <- raster("C:/MyTemp/myGitLab/windDamage/data/pred_prob_N4.tif")
-
-# Transform tge stand geometry to fit over arster
-#df.geom.t<-st_transform(df.geom, crs = st_crs(r.windRisk))
 
 
 # -------------------------
@@ -65,14 +59,12 @@ df.geom <- subset(df.geom, standid %in% unique(df.all$id))
 # Analyse the data & 
 #     Make boxplots:
 # --------------------------
-library(ggplot2)
 
-
-# set theme for ggplot2
-theme_set(theme_classic())
 
 # How does scenarios (63) differ in term of wind risk???
 # df.all
+
+# Over the years:
 
 ggplot(df.all, 
        aes(x = as.factor(year),
@@ -82,6 +74,7 @@ ggplot(df.all,
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
+# By three main scenarios:
 ggplot(df.all, 
        aes(x = as.factor(simpleScen),
            y = windRisk)) +
@@ -90,7 +83,7 @@ ggplot(df.all,
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
-
+# BY 63 scenarios:
 ggplot(df.all, 
        aes(x = as.factor(scenario),
            y = windRisk)) +
@@ -99,11 +92,11 @@ ggplot(df.all,
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
-
+# -----------------------------------------
 # How does the % of SA per scenario affect windrisk??
 # !!! ??? how to get teh % of SA by scenario???
 # Count the number of stands with SA regime
-
+# --------------------------------------------
 prop.regimes<-
   df.all %>% 
   group_by(scenario, avohaakut) %>% 
@@ -114,11 +107,11 @@ prop.regimes<-
 
 
 
-# Calculate how many differe regimes are by each scenario:
+# Calculate how many different regimes are by each scenario:
 regime.n <-
   df.all %>% 
   group_by(scenario) %>% 
-  distinct(avohaakut.x) %>% 
+  distinct(avohaakut) %>% 
   summarise(regimes_n = n()) %>%
   #mutate(freq = 100* (stands_n / sum(stands_n))) %>% 
   arrange(scenario) 
@@ -151,14 +144,16 @@ unique(subset(df.all, scenario == "ALL11")$avohaakut)
 
 # How does the % of SA affect windRisk???
 # Calculate teh wind risk by scenario oevr time and plot with the freq data
-risk.mean <- aggregate(windRisk ~ scenario, df.all, mean)
+risk.mean <- aggregate(windRisk ~ scenario + year, df.all, mean)
 
 
 # join the SA% data:
 
 # Add the % of SA to each scenario
-risk.mean <- risk.mean %>% 
-  left_join(SA.perc, by= "scenario") %>% 
+risk.mean <- 
+  risk.mean %>% 
+  left_join(SA.perc, by= "scenario") %>%
+    
   left_join(regime.n, by = "scenario")
 
 # clasify in 3 groups:
@@ -178,21 +173,218 @@ ggplot(risk.mean,
   xlab("SA by landscape (%)") +
   ylab("mean wind damage risk (%)") +
   labs(color = "scenario") +
-  # facet_grid(. ~ ) +
+  facet_grid(. ~ year) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+# Something is ahappening over las three study years:
+# what is my tree height and tree age?
+
+# How does the H_dom changes over year???
+# Increases, less variability in RF and with the lower % of the SA
+ggplot(df.all, 
+       aes(x = year,  # % of stands with SA
+           y = H_dom,
+           group = year)) +
+  geom_boxplot() +
+  facet_wrap(. ~ scenario) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+# What about BA?
+# also increases over years
+ggplot(df.all, 
+       aes(x = year,  # % of stands with SA
+           y = BA,
+           group = year)) +
+  geom_boxplot() +
+  facet_wrap(. ~ scenario) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+# ----------------------------------------------
+# Specific questions:
+# -----------------------------------------------
+
+# Does particular management regime increase wind risk?
+
+ggplot(df.all, 
+       aes(x = avohaakut ,  # % of stands with SA
+           y = windRisk,
+           group = avohaakut,
+           fill = simpleScen)) +
+  geom_boxplot() +
+  facet_wrap(. ~ year) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+# High variability in RF forestry, chack which one it is?
+
+ggplot(subset(df.all, simpleScen == "RF" & avohaakut != "SA" ), 
+       aes(x = avohaakut ,  # % of stands with SA
+           y = windRisk,
+           group = avohaakut)) +
+  geom_boxplot() +
+ facet_wrap(. ~ year) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+ggplot(subset(df.all, simpleScen == "RF" & avohaakut != "SA" ), 
+       aes(x = avohaakut ,  # % of stands with SA
+           y = windRisk,
+           group = avohaakut)) +
+  geom_boxplot() +
+  #facet_wrap(. ~ year) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+
+
+
+# Very variable, bude definitely trends between CCF and RF
+# What is the situation of teh SA
+ggplot(subset(df.all, avohaakut == "SA"), 
+       aes(x = year ,  # % of stands with SA
+           y = windRisk,
+           group = year)) +
+  geom_boxplot() +
+  facet_wrap(. ~ scenario) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+# Does combination of management and scenario increases wind risk?
+
+# What terrain confirugation of SA increases wind risk???
+  
+
+
+
+
+
+
+
+
+
+# -------------------------
+# stand 'fidelity' to individual regimes??
+# --------------------------
+# how many different regimes each stand has?
+stand.fidelity <-
+  df.all %>% 
+  group_by(id) %>% 
+  distinct(avohaakut)  %>% 
+  summarise(regimes_n = n()) #%>%
+  #mutate(freq = 100* (stands_n / sum(stands_n))) %>% 
+  #arrange(scenario) 
+
+hist(stand.fidelity$regimes_n)
+
+# how many regimes each stand has under different regimes?
+stand.fid.scen <-
+  df.all %>% 
+  group_by(id, simpleScen) %>% 
+  distinct(avohaakut)  %>% 
+  summarise(regimes_n = n()) #%>%
+
+ggplot(stand.fid.scen, aes(regimes_n)) +
+  geom_histogram() + 
+  facet_grid(.~ simpleScen)
+
+
+
+# Which are those regimes???
+# are all the regimes used overall, or not?
+df.regimes <- 
+  df.all %>% 
+    group_by(id, simpleScen) %>% 
+    distinct(avohaakut)  #%>% 
+  
+
+# How many unique regimes?
+length(unique(df.regimes$avohaakut))
+
+
+# How many of each?
+# how oftern individual regimes occurs over scenarios???
+# Dominance of SA, in ALL& RF THwoTH20 seems to prevail
+# in CCF it is CCF 1, CCF2, CCF3, CCF4even not the extensions
+
+ggplot(df.regimes, aes(x = avohaakut)) +
+  geom_bar() +
+  facet_grid(.~ simpleScen) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+
+
+
+# ---------------------------------------------------
+# What is the sume of win risk and total NFI value for scenario?
+# --------------------------------------------------
+# get the NPVI&NPI values over scenarios 
+df.npi <- fread("C:/MyTemp/avohaakut_db/analyzed/scenario_NPI.csv")
+
+range(df.npi$INCOME)
+range(df.npi$NPV)
+
+
+wind.sum <- aggregate(windRisk ~ scenario, df.all, sum)
+wind.mean <- aggregate(windRisk ~ scenario, df.all, mean)
+
+wind.sum <-
+  wind.sum %>% 
+  left_join(df.npi, by = c("scenario" = "Type")) %>% 
+  mutate(simpleScen = case_when(
+    str_detect(scenario, "not_CCF") ~ "RF",
+    str_detect(scenario, "ALL") ~ "ALL",
+    str_detect(scenario, "CCF") ~ "CCF"))
+  
+
+wind.mean <-
+  wind.mean %>% 
+  left_join(df.npi, by = c("scenario" = "Type")) %>% 
+  mutate(simpleScen = case_when(
+    str_detect(scenario, "not_CCF") ~ "RF",
+    str_detect(scenario, "ALL") ~ "ALL",
+    str_detect(scenario, "CCF") ~ "CCF"))
+
+
+
+
+
+
+
+ggplot(wind.sum, aes(x = INCOME,
+                     y = windRisk,
+                     group = simpleScen,
+                     color = simpleScen)) + 
+  geom_line() +
+  ylab("total sum wind risk") +
+  xlab("NPI")
+
+  
+ggplot(wind.mean, aes(x = INCOME/10^5,
+                     y = windRisk,
+                     group = simpleScen,
+                     color = simpleScen)) + 
+  geom_line() +
+  ylab("mean wind risk") +
+  xlab("NPI k € by ha")
+
+
 
 
 # Plot data : wind risk by % of regime diversity
-ggplot(risk.mean, 
-       aes(x = regimes_n.y ,  # % of stands with SA
-           y = windRisk)) +
-  geom_point(aes(color = factor(simpleScen))) + 
-  geom_line(aes(color = factor(simpleScen))) + 
-  xlab("#regimes by landscape (%)") +
-  ylab("mean wind damage risk (%)") +
-  labs(color = "scenario") +
+#ggplot(risk.mean, 
+ #      aes(x = regimes_n.y ,  # % of stands with SA
+ #          y = windRisk)) +
+#  geom_point(aes(color = factor(simpleScen))) + 
+ # geom_line(aes(color = factor(simpleScen))) + 
+ # xlab("#regimes by landscape (%)") +
+ # ylab("mean wind damage risk (%)") +
+ # labs(color = "scenario") +
   # facet_grid(. ~ ) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+ # theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
 # Compare the wind risk between individual stands under different regimes???
@@ -206,8 +398,8 @@ stand.risk.mean <- aggregate(windRisk ~ scenario + id, df.all, mean)
 # join the SA% data:
 
 # Add the % of SA to each scenario
-#risk.mean <- risk.mean %>% 
-#  left_join(SA.perc, by= "scenario")
+stand.risk.mean <- stand.risk.mean %>% 
+ left_join(SA.perc, by= "scenario")
 
 # clasify in 3 groups:
 stand.risk.mean <- stand.risk.mean %>% 
