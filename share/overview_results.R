@@ -18,11 +18,7 @@ theme_set(theme_classic())
 # Read datasets:
 df.all <- fread("C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
 
-
-# get the NPVI&NPI values over scenarios 
-df.npi <- fread("C:/MyTemp/avohaakut_db/analyzed/scenario_NPI.csv")
-
-# -----------------------------------------
+#  -----------------------------------------
 # read stand geometry data
 # ------------------------------------------
 # stands that are not simulated
@@ -54,9 +50,6 @@ df.geom <- subset(df.geom, standid %in% unique(df.all$id))
 #
 
 
-
-# ------------------------
-# Analyse the data & 
 #     Make boxplots:
 # --------------------------
 
@@ -269,6 +262,8 @@ ggplot(subset(df.all, avohaakut == "SA"),
 # stand 'fidelity' to individual regimes??
 # --------------------------
 # how many different regimes each stand has?
+
+
 stand.fidelity <-
   df.all %>% 
   group_by(id) %>% 
@@ -319,13 +314,32 @@ ggplot(df.regimes, aes(x = avohaakut)) +
 
 
 # ---------------------------------------------------
-# What is the sume of win risk and total NFI value for scenario?
+# What is the sum of wind risk and total NFI value for scenario?
 # --------------------------------------------------
 # get the NPVI&NPI values over scenarios 
-df.npi <- fread("C:/MyTemp/avohaakut_db/analyzed/scenario_NPI.csv")
+df.npi <- fread("C:/MyTemp/avohaakut_db/NPI/MF_NPI.csv")
 
-range(df.npi$INCOME)
-range(df.npi$NPV)
+
+# Check Kyle;s script: https://gitlab.jyu.fi/kyjoeyvi/multifunctionality_costs/-/blob/master/figures_template.r
+# Wthat the value 2200000 stands for? 
+# does INCOME = NPV/2200000 ???
+
+
+# Is MF the aggregate of the NFa, MFb, MFc, MFd?
+head(df.npi)
+
+
+# Plot multifunctionnality
+ggplot(df.npi, aes(x = NPI,
+                   y = MF,
+                   group = TypeSimple,
+                   color = TypeSimple)) + 
+  geom_line() +
+  ylab("multifunctionnality") +
+  xlab("NPI") +
+  ylim(0,3)
+
+
 
 
 wind.sum <- aggregate(windRisk ~ scenario, df.all, sum)
@@ -349,26 +363,23 @@ wind.mean <-
     str_detect(scenario, "CCF") ~ "CCF"))
 
 
-
-
-
-
-
-ggplot(wind.sum, aes(x = INCOME,
+# Plot NPI values: smae patterns by sum over year and as mean
+# -------------------------
+ggplot(wind.sum, aes(x = NPI,
                      y = windRisk,
                      group = simpleScen,
                      color = simpleScen)) + 
   geom_line() +
   ylab("total sum wind risk") +
-  xlab("NPI")
+  xlab("NPI k € by ha")
 
   
-ggplot(wind.mean, aes(x = INCOME/10^5,
+ggplot(wind.mean, aes(x = NPI/1000000,
                      y = windRisk,
                      group = simpleScen,
                      color = simpleScen)) + 
   geom_line() +
-  ylab("mean wind risk") +
+  ylab("total sum wind risk") +
   xlab("NPI k € by ha")
 
 
@@ -524,14 +535,167 @@ subset(df.cc2, standid == 12469153,
 
 
 
-# Check for monetary values??
+
+# -------------------------------
+#
+# Check for differences in wind risk values 
+# for individual stand between SA and no SA overall wind risk values??
+#
+# -------------------------------
+head(df.all)
+
+stand.risk.rgm.df <- aggregate(windRisk ~ id + avohaakut, df.all, mean)
+
+
+ggplot(stand.risk.rgm.df, aes(x = avohaakut,
+                              y = windRisk)) +
+  geom_boxplot()
+
+
+
+# How many stands have actually SA option included?
+length(unique(subset(df.all, avohaakut == "SA")$id))
+#1470 
+
+length(unique(df.all$id))
+# 1470
+
+# are some stands consistently choosed as suitable for SA? seems that not 
+# as SA was simulated for each stand?
+
+# Compare teh min between SA and no-SA regime by scenario???
+
+# Create 4 basic groups depending on regime:
+# SA, RF with and without thinng and CCF (always thinning included)
+df.all <-
+  df.all %>% 
+  mutate(avoh_Simpl = case_when(
+    str_detect(avohaakut, "SA")   ~ "SA",
+    str_detect(avohaakut, "CCF_") ~ "CCF",
+    str_detect(avohaakut, "LRH")  ~ "RF_noTHIN",
+    str_detect(avohaakut, "LRT")  ~ "RF_THIN",
+    str_detect(avohaakut, "SR5")  ~ "RF_noTHIN",
+    str_detect(avohaakut, "SRT5") ~ "RF_THIN",
+    str_detect(avohaakut, "TH")   ~ "RF_noTHIN",
+    str_detect(avohaakut, "TT")   ~ "RF_THIN"))
+         
+# Check if correct
+subset(df.all, avohaakut == "TT")
+
+
+# ten join into single table
+stand.sa.min <- aggregate(windRisk ~ id + avoh_Simpl, 
+                       subset(df.all, avohaakut == "SA"), min) %>% 
+  mutate(regime = "SA")
+
+stand.no.sa.min <- aggregate(windRisk ~ id + avoh_Simpl, 
+                          subset(df.all, avohaakut != "SA"), min) %>% 
+  mutate(regime = "no SA")
+
+# BInd data into one long table
+merged.sa <- rbind(stand.sa.min,
+                   stand.no.sa.min)
+
+unique(merged.sa$regime)
+unique(merged.sa$avoh_Simpl)
+
+length(unique(subset(merged.sa, regime == "SA")$id))
+
+
+
+# Calculate the paired differences between regimes for stand??
+# does every stand has all 4 categories???
+table(merged.sa$avoh_Simpl)
+
+# NO, but all of them nhave SA 
+# CCF RF_noTHIN   RF_THIN        SA 
+# 1367      1239       461      1470 
+
+# Calculate the differences 
+merged.diff <- 
+  merged.sa %>%
+  group_by(id) %>%
+  mutate(windRisk.sa = windRisk[avoh_Simpl == 'SA']) %>% 
+  mutate(diff = windRisk.sa - windRisk) %>% 
+    arrange(id)
+
+
+# Plot differences by groups
+ggplot(subset(merged.diff, avoh_Simpl != "SA"), 
+       aes(diff)) +
+  geom_histogram() + 
+  facet_grid(.~avoh_Simpl)
 
 
 
 
 
 
+# working example:
 
+dat <- data.frame(id = c(1,1,2,2,2,2,3,3),
+                 regime = c("SA", "B", "SA", "B", "C", "F", "SA", "D"),
+                 value = c(3,5,1,2,5,6,7,8))
+
+
+# Calculate paired differences by groups:
+# copy the value in SA
+# calculate differences between columns, skip 0 (= difference SA and SA)
+
+
+ # filter(regime == "SA") %>% 
+  dat %>%
+  group_by(id) %>%
+  mutate(value.sa = value[regime == 'SA']) %>% 
+    mutate(diff = value - value.sa)
+  #summarize(diff = -diff(value))
+
+  
+dat %>% 
+#  group_by(id) %>% 
+  filter(regime == "SA") 
+  
+
+
+# Create paired ggplot
+ggplot(merged.sa, aes(x = avoh_Simpl,
+                      y = windRisk,
+                      group = id)) +
+  geom_point(aes(colour=avoh_Simpl),
+             size=2.5,
+             alpha=0.01, 
+             position=position_dodge(width=0.1)) +
+  geom_line(size=1, 
+            alpha=0.01, 
+            position=position_dodge(width=0.1))
+
+
+
+
+# how many sctand I have in all??
+length(unique(stand.sa.min$id))
+# 1470
+
+length(unique(stand.no.sa.min$id))
+# 1416
+
+# Let's check it for one stand:
+# 6667291
+
+aggregate(windRisk ~  avohaakut, 
+          subset(df.all, id == 6667291), min)
+
+
+
+d<-aggregate(windRisk ~  avohaakut, 
+          subset(df.all, id == 12538077), min)
+
+
+ggplot(d, aes(x = avohaakut,
+              y = windRisk)) +
+  geom_boxplot()
+
+# ----------------------------------------------
 
 # Merge df data with geometry
 # Join the geometry table with simulated data
