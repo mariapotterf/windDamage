@@ -49,6 +49,26 @@ df.geom <- subset(df.geom, standid %in% unique(df.all$id))
 # -------------------------
 #
 
+# Split 'scenario' into 2 factors: ALL, CCF, RF or 1-20 (SA%)L
+unique(df.all$scenario)
+
+
+# Split the string with numbers and characters into string and numbers:
+df.all <- 
+  df.all %>% 
+  tidyr::extract(scenario, 
+                 c('scenSimpl2', 'scenNumb'), 
+                 '(.*?)(\\d+)', 
+                 remove = FALSE) %>% 
+  mutate(scenNumb = as.numeric(scenNumb))
+  
+
+# Order the data by simple scenario, and within scenario by the 
+# scenNumb as indication of increasing SA %
+# order the 
+
+
+
 
 #     Make boxplots:
 # --------------------------
@@ -78,11 +98,29 @@ ggplot(df.all,
 
 # BY 63 scenarios:
 ggplot(df.all, 
-       aes(x = as.factor(scenario),
-           y = windRisk)) +
+       aes(x = year,
+           y = windRisk,
+           group = year)) +
   geom_boxplot(fill = "grey92") + 
-  # facet_grid(. ~ ) +
+  facet_grid(scenSimpl2 ~  scenNumb) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+# The scenNumb indicates the % of SA over the landscape: 
+# how does this affects wind risk?
+
+ggplot(df.all, 
+       aes(x = factor(scenNumb),
+           y = windRisk,
+           fill = factor(scenSimpl2))) + # ,
+  #group = factor(scenSimpl2)
+  geom_boxplot() +  # aes(fill = factor(scenSimpl2))
+  #facet_grid(scenSimpl2 ~  .) +
+  
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+
+
 
 
 # -----------------------------------------
@@ -122,7 +160,9 @@ SA.perc <-
 
 
 
-# Does the all have 100% SA????
+# Does the all have 100% SA???? 
+# YES
+
 #     ALL0      SA             1472 100   
 #  62 CCF0      SA             1472 100   
 #  63 not_CCF0  SA             1472 100     
@@ -170,18 +210,32 @@ ggplot(risk.mean,
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
-# Something is ahappening over las three study years:
+# Something is ahappening over last three study years:
 # what is my tree height and tree age?
 
+
+# Explotre indivudual predictors:
+# ---------------------------------------
 # How does the H_dom changes over year???
 # Increases, less variability in RF and with the lower % of the SA
 ggplot(df.all, 
-       aes(x = year,  # % of stands with SA
+       aes(x = factor(year),  # % of stands with SA
            y = H_dom,
-           group = year)) +
+           group = factor(year))) +
   geom_boxplot() +
-  facet_wrap(. ~ scenario) +
+  facet_grid(scenSimpl2 ~  scenNumb) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+ggplot(df.all, 
+       aes(x = factor(scenNumb),
+           y = H_dom,
+           fill = factor(scenSimpl2))) + # ,
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+
+
 
 
 # What about BA?
@@ -193,6 +247,39 @@ ggplot(df.all,
   geom_boxplot() +
   facet_wrap(. ~ scenario) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+# BA
+ggplot(df.all, 
+       aes(x = factor(scenNumb),
+           y = BA,
+           fill = factor(scenSimpl2))) + # ,
+  geom_boxplot() +  # aes(fill = factor(scenSimpl2))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+
+
+# Volume
+ggplot(df.all, 
+       aes(x = factor(scenNumb),
+           y = V,
+           fill = factor(scenSimpl2))) + # ,
+  geom_boxplot() +  # aes(fill = factor(scenSimpl2))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+
+
+
+# Diameter: D_gm
+ggplot(df.all, 
+       aes(x = factor(scenNumb),
+           y = D_gm,
+           fill = factor(scenSimpl2))) + # ,
+  geom_boxplot() +  # aes(fill = factor(scenSimpl2))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+
+
 
 
 # ----------------------------------------------
@@ -330,17 +417,19 @@ head(df.npi)
 
 
 # Plot multifunctionnality
-ggplot(df.npi, aes(x = NPI,
+ggplot(df.npi, aes(x = NPI/10000,
                    y = MF,
                    group = TypeSimple,
                    color = TypeSimple)) + 
   geom_line() +
   ylab("multifunctionnality") +
   xlab("NPI") +
-  ylim(0,3)
+  ylim(0,3) + 
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90, hjust = 1))
 
 
-
+# Chack if different trends between using sum or min values??
 
 wind.sum <- aggregate(windRisk ~ scenario, df.all, sum)
 wind.mean <- aggregate(windRisk ~ scenario, df.all, mean)
@@ -398,6 +487,8 @@ ggplot(wind.mean, aes(x = NPI/1000000,
  # theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
+
+# ----------------------------------------------------
 # Compare the wind risk between individual stands under different regimes???
 # ---------------------------------------------------------------
 
