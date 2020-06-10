@@ -51,6 +51,46 @@ head(df)
 head(df.rst)
 
 
+# 2020/06/10 - time since thinning was wrongly calculated!!!
+# ---------------------------------------------
+head(df)
+
+
+# remove duplicated columns???
+#df.s.d<- 
+ # df.s %>% 
+ # distinct()
+
+# Correct script - seems that some data are duplicated: possible to remove and then recalculate??
+library(dplyr)
+library(tidyr) 
+df <- 
+  df %>%
+  mutate(THIN = na_if(THIN, 0))  %>% 
+  mutate(THIN2 = substring(THIN,0,4)) %>%  # keep the firt 4 characters from CCF regimes, datum in format "2016-04-16" -> to "2016"
+  group_by(id, avohaakut, scenario) %>% 
+  mutate(THIN_filled_lagged = lag(THIN2)) %>%
+  mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
+  tidyr::fill(THIN_filled_lagged) %>% 
+  mutate(difference = year - THIN_filled_lagged) %>% 
+  mutate(since_thin = case_when(is.na(difference) | difference < 0 ~ ">10",
+                                difference %in% c(0:5) ~ "0-5",
+                                difference %in% c(6:10) ~ "6-10",
+                                difference > 10 ~ ">10")) 
+  #print(n = 80) 
+
+# ---------------------------------------
+# Test if THIN is correct for CCF and RF???
+# -------------------------------------
+
+# test if it ok well calculated??
+# Subset two regimes and recalculate teh THIN values:
+#df.s <- df2 %>% 
+#  filter(id == 6667292 & (avohaakut == "CCF_3_45" | avohaakut == "LRT30")) %>% 
+#  dplyr::select(id, year, THIN, H_dom, BA, THIN_filled_lagged, difference, avohaakut, since_thin) #%>%
+
+#df.s %>% print(n = 80)
+
 # Replace since_thin value >11 to >10
 df$since_thin[df$since_thin == ">11"] <- ">10" 
 
