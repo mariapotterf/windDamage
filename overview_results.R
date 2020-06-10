@@ -50,29 +50,45 @@ df.geom <- subset(df.geom, standid %in% unique(df.all$id))
 # -------------------------
 #
 
-# Split 'scenario' into 2 factors: ALL, CCF, RF or 1-20 (SA%)L
-unique(df.all$scenario)
+# classify regimes in 4 groups:
+# SA, CCF, RF_T, RF_WoT
+# Get mean values for stands and years
+# Calculate teh difference of teh wind risk from teh SA state
+# plot differences over years, groupped by regimes
+# Make spider plot
 
 
-# --------------------------------------
-# Split the string with numbers and characters into string and numbers:
-# -----------------------------------------------
-df.all <- 
+# SA, RF with and without thinng and CCF (always thinning included)
+df.all <-
   df.all %>% 
-  tidyr::extract(scenario, 
-                 c('scenSimpl2', 'scenNumb'), 
-                 '(.*?)(\\d+)', 
-                 remove = FALSE) %>% 
-  mutate(scenNumb = as.numeric(scenNumb))
-  
-
-# Order the data by simple scenario, and within scenario by the 
-# scenNumb as indication of increasing SA %
-# order the 
-
+  mutate(avoh_Simpl = case_when(
+    str_detect(avohaakut, "SA")   ~ "SA",
+    str_detect(avohaakut, "CCF_") ~ "CCF",
+    str_detect(avohaakut, "LRH")  ~ "RF_noT",
+    str_detect(avohaakut, "LRT")  ~ "RF_T",
+    str_detect(avohaakut, "SR5")  ~ "RF_noT",
+    str_detect(avohaakut, "SRT5") ~ "RF_T",
+    str_detect(avohaakut, "TH")   ~ "RF_noT",
+    str_detect(avohaakut, "TT")   ~ "RF_T")) 
 
 
 
+# ------------------------------------------
+# sample the data to speed up visualisation
+# ------------------------------------------
+
+# especially if many points are present
+
+# Sample  random rows:
+set.seed(1)
+sample_row <- sample(1:nrow(df.all), 100000, replace=F)
+df.sample <- df.all[sample_row,]
+
+
+
+
+
+#------------------------------
 #     Make boxplots:
 # --------------------------
 
@@ -217,7 +233,9 @@ ggplot(risk.mean,
 # what is my tree height and tree age?
 
 
-# Explotre indivudual predictors:
+
+# ------------------------------------------
+# Explore individual predictors:
 # ---------------------------------------
 # How does the H_dom changes over year???
 # Increases, less variability in RF and with the lower % of the SA
@@ -237,7 +255,6 @@ ggplot(df.all,
   geom_boxplot() + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         legend.position = "bottom")
-
 
 
 
@@ -291,7 +308,7 @@ ggplot(df.all,
 
 # Does particular management regime increase wind risk?
 
-ggplot(df.all, 
+ggplot(df.sample, 
        aes(x = avohaakut ,  # % of stands with SA
            y = windRisk,
            group = avohaakut,
@@ -346,29 +363,6 @@ ggplot(subset(df.all, avohaakut == "SA"),
 # How does the the alternative regimes over stand 
 # affect stand level wind risk??
 # -----------------------------------
-
-# classify regimes in 4 groups:
-# SA, CCF, RF_T, RF_WoT
-# Get mean values for stands and years
-# Calculate teh difference of teh wind risk from teh SA state
-# plot differences over years, groupped by regimes
-# Make spider plot
-
-
-# SA, RF with and without thinng and CCF (always thinning included)
-df.all <-
-  df.all %>% 
-  mutate(avoh_Simpl = case_when(
-    str_detect(avohaakut, "SA")   ~ "SA",
-    str_detect(avohaakut, "CCF_") ~ "CCF",
-    str_detect(avohaakut, "LRH")  ~ "RF_noT",
-    str_detect(avohaakut, "LRT")  ~ "RF_T",
-    str_detect(avohaakut, "SR5")  ~ "RF_noT",
-    str_detect(avohaakut, "SRT5") ~ "RF_T",
-    str_detect(avohaakut, "TH")   ~ "RF_noT",
-    str_detect(avohaakut, "TT")   ~ "RF_T")) 
-
-
 
 # Calculate mean by stand and 4 alternatives by year, mean not sum beacsue I have more 
 # CCFs then RF
@@ -481,12 +475,6 @@ ggarrange(p.H, p.BA, p.V,
 # ------------------------------------
 # How does time since thinning affect wind risk??
 # ------------------------------------
-
-# Sample  random rows:
-set.seed(1)
-sample_row <- sample(1:nrow(df.all), 100000, replace=F)
-df.sample <- df.all[sample_row,]
-
 
 # Column 'difference' shows "time since thinngs"
 
