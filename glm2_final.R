@@ -116,7 +116,9 @@ df.new<-
   
 
 
+# -------------------------------------------
 # JOin df data with data derived from raster geometry
+# -------------------------------------------
 # make sure they have the same stands
 my.stands<- unique(df.new$id)
 df.rst <- subset(df.rst, standid %in% my.stands)
@@ -211,10 +213,6 @@ range(df.all$windRisk)  # na.rm = T
 
 
 
-# Check teh raster values for Jyvakyla: tile N4
-# http://www.nic.funet.fi/index/geodata/luke/forest_wind_damage_sensitivity/
-
-
 # Define three main scenarios: ALL, CCF, RF
 # Recalassify based on scenarion maes into 3 categories: CCF, ALL, RF
 
@@ -223,6 +221,21 @@ df.all <- df.all %>%
     str_detect(scenario, "not_CCF") ~ "RF",
     str_detect(scenario, "ALL") ~ "ALL",
     str_detect(scenario, "CCF") ~ "CCF"))
+
+
+# Add string with indication of the optimla scenarioL: 0-20 from teh SA%
+# --------------------------------------
+# Split the string with numbers and characters into string and numbers:
+# -----------------------------------------------
+df.all <- 
+  df.all %>% 
+  tidyr::extract(scenario, 
+                 c('scenSimpl2', 'scenNumb'), 
+                 '(.*?)(\\d+)', 
+                 remove = FALSE) %>% 
+  mutate(scenNumb = as.numeric(scenNumb))
+
+
 
 
 # Export data
