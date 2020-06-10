@@ -10,6 +10,7 @@ library(raster)
 library(ggplot2)
 library(sf)
 library(stringr)
+library(gridExtra)
 
 
 theme_set(theme_classic())
@@ -53,7 +54,9 @@ df.geom <- subset(df.geom, standid %in% unique(df.all$id))
 unique(df.all$scenario)
 
 
+# --------------------------------------
 # Split the string with numbers and characters into string and numbers:
+# -----------------------------------------------
 df.all <- 
   df.all %>% 
   tidyr::extract(scenario, 
@@ -332,19 +335,308 @@ ggplot(subset(df.all, avohaakut == "SA"),
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
+
+
 # Does combination of management and scenario increases wind risk?
 
 # What terrain confirugation of SA increases wind risk???
+
+
+# -----------------------------------
+# How does the the alternative regimes over stand 
+# affect stand level wind risk??
+# -----------------------------------
+
+# classify regimes in 4 groups:
+# SA, CCF, RF_T, RF_WoT
+# Get mean values for stands and years
+# Calculate teh difference of teh wind risk from teh SA state
+# plot differences over years, groupped by regimes
+# Make spider plot
+
+
+# SA, RF with and without thinng and CCF (always thinning included)
+df.all <-
+  df.all %>% 
+  mutate(avoh_Simpl = case_when(
+    str_detect(avohaakut, "SA")   ~ "SA",
+    str_detect(avohaakut, "CCF_") ~ "CCF",
+    str_detect(avohaakut, "LRH")  ~ "RF_noT",
+    str_detect(avohaakut, "LRT")  ~ "RF_T",
+    str_detect(avohaakut, "SR5")  ~ "RF_noT",
+    str_detect(avohaakut, "SRT5") ~ "RF_T",
+    str_detect(avohaakut, "TH")   ~ "RF_noT",
+    str_detect(avohaakut, "TT")   ~ "RF_T")) 
+
+
+
+# Calculate mean by stand and 4 alternatives by year, mean not sum beacsue I have more 
+# CCFs then RF
+df.mean <- aggregate(windRisk ~ id + year + avoh_Simpl, df.all, mean)
+
+# Does every stand have 4 regimes?? NO!!!
+table(df.mean$avoh_Simpl)
+
+# CCF RF_noT   RF_T     SA 
+# 27340  24780   9220  29400 
+
+
+# Filter only values that have all 4 regimes:
+df.mean %>% 
+  arrange(id) %>% 
+  head()
+
+
+# Calulate differences among alternative states
+# Calculate the differences 
+df.mean.diff <- 
+  df.mean %>%
+  group_by(id, year) %>%
+  mutate(windRisk.sa = windRisk[avoh_Simpl == 'SA']) %>% 
+  mutate(diff = windRisk.sa - windRisk) %>% 
+  arrange(id, year)
+
+
+# Filter only stands that have all 4 regimes:
+df.mean.diff <-
+  df.mean.diff %>% 
+  group_by(id, year) %>% 
+  filter(all(c("CCF","RF_noT", "SA", "RF_T") %in% avoh_Simpl))
+
+
+
+# PLot the differences:
+pp1<- ggplot(subset(df.mean.diff, id == 6667292),
+       aes(x = year,
+           y = diff,
+           color = avoh_Simpl)) +
+  geom_line(size=1.2) + 
+  ggtitle("differences from SA") +
+  ylim(c(-0.025, 0.09)) + ylab("difference from SA") +
+  theme()
+
+
+
+# PLot the differences:
+pp2<- ggplot(subset(df.mean.diff,  id == 6667292),
+       aes(x = year,
+           y = windRisk,
+           color = avoh_Simpl)) +
+  geom_line(size=1.2) +
+  ylim(c(-0.025, 0.09)) +
+  ggtitle("windrisk over time")
+
+
+
+
+# H_dom
+p.H <- df.all%>%
+  filter(id == 6667292) %>% 
+  group_by(id,year, avoh_Simpl)%>%
+  summarise(H_dom_mean=mean(H_dom))%>%
+  ggplot(aes(x = year,
+             y = H_dom_mean))+
+  geom_line(aes(color=avoh_Simpl),size=1.2)+
+    ggtitle("mean H_dom")
+
+
+# BA
+p.BA <- df.all%>%
+  filter(id == 6667292) %>% 
+  group_by(id,year, avoh_Simpl)%>%
+  summarise(BA_mean=mean(BA))%>%
+  ggplot(aes(x = year,
+             y = BA_mean))+
+  geom_line(aes(color=avoh_Simpl),size=1.2)+
+  ggtitle("mean BA")
+
+
+# V
+p.V <- df.all%>%
+  filter(id == 6667292) %>% 
+  group_by(id,year, avoh_Simpl)%>%
+  summarise(V_mean=mean(V))%>%
+  ggplot(aes(x = year,
+             y = V_mean))+
+  geom_line(aes(color=avoh_Simpl),size=1.2)+
+  ggtitle("mean V")
+
+
+library(ggpubr)
+
+# Risk
+windows()
+ggarrange(pp1, pp2,
+          ncol=2, 
+          nrow=1, common.legend = TRUE, legend="bottom")
+
+# Characteristics
+windows()
+ggarrange(p.H, p.BA, p.V,
+          ncol=3, 
+          nrow=1, common.legend = TRUE, legend="bottom")
+
+
+
+# ------------------------------------
+# How does time since thinning affect wind risk??
+# ------------------------------------
+
+# Sample  random rows:
+set.seed(1)
+sample_row <- sample(1:nrow(df.all), 100000, replace=F)
+df.sample <- df.all[sample_row,]
+
+
+# Column 'difference' shows "time since thinngs"
+
+df.all %>% 
+  #filter(id == 6667292) %>% 
+  distinct(difference)
+
+
+# CHeck single stand example: LRT5 - rotation with thinnings, id 6667292
+# does this contains duplicated rows???
+df.all %>% 
+  filter(id == 6667292 & avohaakut == "LRT30") %>% 
+  dplyr::select(id, year, THIN, H_dom, BA, THIN_filled_lagged, difference, scenSimpl2 )
+
+
+# what is the range of thinnings in CCF? "CCF_3_45"
+df.all %>% 
+  filter(id == 6667292 ) %>%
+  distinct(avohaakut)
   
 
+#   avohaakut
+#1        SA
+#2  THwoTM20
+#3     LRH30
+#4     LRT30
+#5  CCF_4_45
+#6  CCF_3_45
+
+
+df.all %>% 
+  filter(id == 6667292 & avohaakut == "CCF_3_45") %>% 
+  dplyr::select(id, year, THIN, H_dom, BA, THIN_filled_lagged, difference, scenSimpl2 ) #%>%
+  #distinct(difference)
 
 
 
+# Plot:
+# does time since thinning predict wind risk??? 
+
+windows()
+df.sample %>% 
+  filter(difference > 0) %>% 
+  ggplot(aes(x = difference,
+             y = windRisk,
+             color = avoh_Simpl)) +
+ #geom_jitter(alpha = 0.3, size = 0.1)  +
+ geom_smooth(method = "lm",
+             formula = y~ log(x)) +
+  xlab("Years since thinning")
 
 
+# -----------------------------------
+# Some of the CCF ahe THIN 0:
+# -----------------------------------
+# check what are the values??
+unique(subset(df.all, simpleScen == "CCF")$time_thinning)
+#[1] "0-5"
+
+unique(subset(df.all, simpleScen == "CCF")$difference)
 
 
+# Subset two regimes and recalculate teh THIN values:
+df.s <- df.all %>% 
+  filter(id == 6667292 & (avohaakut == "CCF_3_45" | avohaakut == "LRT30")) %>% 
+  dplyr::select(id, year, THIN, H_dom, BA, THIN_filled_lagged, difference, avohaakut) #%>%
+#distinct(difference)
 
+str(df.s)
+
+unique(df.s$THIN)
+
+
+df.s.d<- 
+  df.s %>% 
+  distinct()
+
+# Correct script - seems that some data are duplicated: possible to remove and then recalculate??
+
+
+  
+  library(dplyr)
+  library(tidyr) 
+df.s.d %>% 
+
+  mutate(THIN = na_if(THIN, 0))  %>% 
+  mutate(THIN2 = substring(THIN,0,4)) %>% 
+  group_by(id, avohaakut) %>% 
+    mutate(THIN_filled_lagged = lag(THIN2)) %>%
+  mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
+  fill(THIN_filled_lagged) %>% 
+ 
+
+    mutate(difference = year - THIN_filled_lagged) %>% 
+
+    mutate(since_thin = case_when(is.na(difference) | difference < 0 ~ ">11",
+                                  difference %in% c(0:5) ~ "0-5",
+                                  difference %in% c(6:10) ~ "6-10",
+                                  difference > 10 ~ ">11")) %>%
+  print(n = 80) 
+  
+  
+  
+nrow(df.all)  
+  # 1 852 200
+
+# how many data do i need?
+# 20 year * 1470 * 58
+
+# CHeck if I have duplicated rows in df.all that I can remove?
+df.unique<- 
+  df.all %>% 
+  distinct()   # same number of rows, keep all
+ 
+
+  
+  
+  
+  
+  
+  
+# working example  
+  
+  
+id = rep(c("a", "b"),each =  9)  
+year = rep(seq(5,45, 5), 2)
+event = c(NA, 14,NA, NA, 29, NA, NA, NA, 44, 
+          NA, NA,NA, NA, NA, 34, NA, NA, 49)  
+  
+my.df <- data.frame(id,
+                    year,
+                    event, stringsAsFactors = F)
+
+
+library(dplyr)
+library(tidyr)
+my.df %>% 
+  group_by(id) %>% 
+  mutate(event_filled_lagged = lag(event)) %>% 
+  tidyr::fill(event_filled_lagged) %>% 
+  mutate(difference = year - event_filled_lagged) %>% 
+  mutate(since_thin = case_when(is.na(difference) ~ ">11",
+                                difference %in% c(0:5) ~ "0-5",
+                                difference %in% c(6:10) ~ "6-10",
+                                difference > 10 ~ ">11")) #%>% 
+  
+
+  
+a = c("", "2012", "2090-12-31")
+substring(a,0,4)
 # -------------------------
 # stand 'fidelity' to individual regimes??
 # --------------------------
@@ -663,12 +955,12 @@ df.all <-
   mutate(avoh_Simpl = case_when(
     str_detect(avohaakut, "SA")   ~ "SA",
     str_detect(avohaakut, "CCF_") ~ "CCF",
-    str_detect(avohaakut, "LRH")  ~ "RF_noTHIN",
-    str_detect(avohaakut, "LRT")  ~ "RF_THIN",
-    str_detect(avohaakut, "SR5")  ~ "RF_noTHIN",
-    str_detect(avohaakut, "SRT5") ~ "RF_THIN",
-    str_detect(avohaakut, "TH")   ~ "RF_noTHIN",
-    str_detect(avohaakut, "TT")   ~ "RF_THIN"))
+    str_detect(avohaakut, "LRH")  ~ "RF_noT",
+    str_detect(avohaakut, "LRT")  ~ "RF_T",
+    str_detect(avohaakut, "SR5")  ~ "RF_noT",
+    str_detect(avohaakut, "SRT5") ~ "RF_T",
+    str_detect(avohaakut, "TH")   ~ "RF_noT",
+    str_detect(avohaakut, "TT")   ~ "RF_T"))
          
 # Check if correct
 subset(df.all, avohaakut == "TT")
