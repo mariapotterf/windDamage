@@ -19,6 +19,12 @@ theme_set(theme_classic())
 # Read datasets:
 df.all <- fread("C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
 
+# Create two regimes: SA and non-SA"
+df.all <- 
+  df.all %>% 
+  mutate(twoRegm = case_when(avohaakut == "SA" ~ "SA",
+                           avohaakut != "SA" ~ "no_SA"))
+
 #  -----------------------------------------
 # read stand geometry data
 # ------------------------------------------
@@ -98,7 +104,7 @@ df.sample <- df.all[sample_row,]
 
 # Over the years:
 
-ggplot(df.all, 
+ggplot(df.sample, 
        aes(x = as.factor(year),
            y = windRisk)) +
   geom_boxplot() + 
@@ -107,7 +113,7 @@ ggplot(df.all,
 
 
 # By three main scenarios:
-ggplot(df.all, 
+ggplot(df.sample, 
        aes(x = as.factor(simpleScen),
            y = windRisk)) +
   geom_boxplot(fill = "grey92") + 
@@ -116,7 +122,7 @@ ggplot(df.all,
 
 
 # BY 63 scenarios:
-ggplot(df.all, 
+ggplot(df.sample, 
        aes(x = year,
            y = windRisk,
            group = year)) +
@@ -127,15 +133,54 @@ ggplot(df.all,
 
 # The scenNumb indicates the % of SA over the landscape: 
 # how does this affects wind risk?
+df.sample %>% 
+  group_by(scenNumb, scenSimpl2) %>% 
+  summarize(risk.mean = mean(windRisk)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+            y = risk.mean,
+            color = scenSimpl2,
+            group = scenSimpl2)) + # ,
+  geom_line() +
+  xlab("harvest intensity") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+  
 
-ggplot(df.all, 
+
+
+# BOxplot
+
+df.sample %>% 
+  #group_by(scenNumb, scenSimpl2) %>% 
+  #summarize(risk.mean = mean(windRisk)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = windRisk,
+             fill = factor(scenSimpl2))) + # ,
+  #group = factor(scenSimpl2)
+  geom_boxplot(outlier.size=0.5, 
+               outlier.alpha = 0.3) +  # aes(fill = factor(scenSimpl2))
+  #facet_grid(scenSimpl2 ~  .) +
+  xlab("harvest intensity") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+
+
+
+
+
+# How does the % of SA affect windRisk???
+# Calculate teh wind risk by scenario oevr time and plot with the freq data
+risk.mean <- aggregate(windRisk ~ scenNumb + scenSimpl2, df.all, mean)
+
+ggplot(risk.mean, 
        aes(x = factor(scenNumb),
            y = windRisk,
-           fill = factor(scenSimpl2))) + # ,
+           color = scenSimpl2,
+           group = scenSimpl2)) + # ,
   #group = factor(scenSimpl2)
-  geom_boxplot() +  # aes(fill = factor(scenSimpl2))
+  geom_line(size = 1.5) +
   #facet_grid(scenSimpl2 ~  .) +
-  
+  xlab("harvest intensity") + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         legend.position = "bottom")
 
@@ -339,6 +384,37 @@ ggplot(subset(df.all, simpleScen == "RF" & avohaakut != "SA" ),
 
 
 
+# HOw does wind risk differs between SA/Non-SA regimes???
+ggplot(df.sample, aes(y = windRisk,
+                      x = simpleScen,
+                      color = twoRegm)) +
+  geom_boxplot() 
+
+# evaluate over years:
+# SA is very stable over time
+ggplot(df.sample, aes(y = windRisk,
+                      x = simpleScen,
+                      color = twoRegm)) +
+  geom_boxplot() +
+  facet_grid(.~year)
+
+# what is the trend over SA gradient? the difference in windRisk between SA and non-SA regimes:
+risk.mean <- aggregate(windRisk ~ scenNumb + scenSimpl2 + twoRegm, df.all, mean)
+
+ggplot(risk.mean, 
+       aes(x = factor(scenNumb),
+           y = windRisk,
+           color = scenSimpl2,
+           group = scenSimpl2)) + # ,
+  #group = factor(scenSimpl2)
+  geom_line(size = 1.5) +
+  facet_grid(.~ twoRegm) +
+  xlab("harvest intensity") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+
+
+
 
 
 # Very variable, bude definitely trends between CCF and RF
@@ -517,7 +593,6 @@ df.all %>%
 
 windows()
 df.sample %>% 
-  filter(difference > 0) %>% 
   ggplot(aes(x = difference,
              y = windRisk,
              color = avoh_Simpl)) +
@@ -525,6 +600,20 @@ df.sample %>%
  geom_smooth(method = "lm",
              formula = y~ log(x)) +
   xlab("Years since thinning")
+
+
+# show all regimes???
+df.all %>% 
+  ggplot(aes(x = difference,
+             y = windRisk,
+             color = avohaakut)) +
+  #geom_jitter(alpha = 0.3, size = 0.1)  +
+  geom_smooth(method = "lm",
+              formula = y~ log(x)) +
+  xlab("Years since thinning")
+
+
+table(df.all$difference)
 
 
 # -----------------------------------
@@ -552,79 +641,7 @@ df.s.d<-
   df.s %>% 
   distinct()
 
-# Correct script - seems that some data are duplicated: possible to remove and then recalculate??
-
-
-  
-  library(dplyr)
-  library(tidyr) 
-df.s.d %>% 
-
-  mutate(THIN = na_if(THIN, 0))  %>% 
-  mutate(THIN2 = substring(THIN,0,4)) %>% 
-  group_by(id, avohaakut) %>% 
-    mutate(THIN_filled_lagged = lag(THIN2)) %>%
-  mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
-  fill(THIN_filled_lagged) %>% 
  
-
-    mutate(difference = year - THIN_filled_lagged) %>% 
-
-    mutate(since_thin = case_when(is.na(difference) | difference < 0 ~ ">11",
-                                  difference %in% c(0:5) ~ "0-5",
-                                  difference %in% c(6:10) ~ "6-10",
-                                  difference > 10 ~ ">11")) %>%
-  print(n = 80) 
-  
-  
-  
-nrow(df.all)  
-  # 1 852 200
-
-# how many data do i need?
-# 20 year * 1470 * 58
-
-# CHeck if I have duplicated rows in df.all that I can remove?
-df.unique<- 
-  df.all %>% 
-  distinct()   # same number of rows, keep all
- 
-
-  
-  
-  
-  
-  
-  
-# working example  
-  
-  
-id = rep(c("a", "b"),each =  9)  
-year = rep(seq(5,45, 5), 2)
-event = c(NA, 14,NA, NA, 29, NA, NA, NA, 44, 
-          NA, NA,NA, NA, NA, 34, NA, NA, 49)  
-  
-my.df <- data.frame(id,
-                    year,
-                    event, stringsAsFactors = F)
-
-
-library(dplyr)
-library(tidyr)
-my.df %>% 
-  group_by(id) %>% 
-  mutate(event_filled_lagged = lag(event)) %>% 
-  tidyr::fill(event_filled_lagged) %>% 
-  mutate(difference = year - event_filled_lagged) %>% 
-  mutate(since_thin = case_when(is.na(difference) ~ ">11",
-                                difference %in% c(0:5) ~ "0-5",
-                                difference %in% c(6:10) ~ "6-10",
-                                difference > 10 ~ ">11")) #%>% 
-  
-
-  
-a = c("", "2012", "2090-12-31")
-substring(a,0,4)
 # -------------------------
 # stand 'fidelity' to individual regimes??
 # --------------------------
@@ -664,6 +681,7 @@ df.regimes <-
 
 # How many unique regimes?
 length(unique(df.regimes$avohaakut))
+# Yes, all of teh regimes were used
 
 
 # How many of each?
@@ -671,14 +689,62 @@ length(unique(df.regimes$avohaakut))
 # Dominance of SA, in ALL& RF THwoTH20 seems to prevail
 # in CCF it is CCF 1, CCF2, CCF3, CCF4even not the extensions
 
-ggplot(df.regimes, aes(x = avohaakut)) +
-  geom_bar() +
-  facet_grid(.~ simpleScen) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+ggplot(df.regimes, 
+       aes(x = avohaakut, fill = simpleScen)) +
+  geom_bar(stat = "count") +
+  #facet_grid(.~ simpleScen) +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   vjust = 0.5))
 
 
 
+# order the data by count
+df.regimes.c <- 
+  df.regimes %>% 
+  group_by(avohaakut, simpleScen) %>% 
+    summarise(counts = n()) %>% 
+    arrange(desc(counts)) 
 
+# Change the levels order manually (does not work with mutate):
+df.regimes.c$avohaakut <- factor(df.regimes.c$avohaakut, 
+                                 levels = unique(df.regimes.c$avohaakut))
+
+# Plot the mos useful regimes
+windows(width = 7, height = 3.5)
+df.regimes.c %>% 
+  filter(counts> 100) %>% 
+  ggplot(aes(x = avohaakut, 
+             y = counts,
+             fill = simpleScen,
+             label = counts)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   vjust = 0.5)) + 
+  geom_text(aes(x = avohaakut, 
+                y = counts,
+                group = simpleScen),
+            angle = 90,
+            check_overlap = FALSE,
+            size = 3,
+            vjust = 0.5,
+            hjust = 0,
+            position = position_stack(vjust = 0.3))
+
+
+# How does the % of SA affect which 
+# How does the frequency of regimes changes over scenarios (63?)
+
+ 
+# by %SA/landscape?
+
+
+
+df.regimes
+
+# How many where??
+table(df.regimes.c$simpleScen, df.regimes.c$avohaakut)
+
+length(unique(df.regimes$id))  # 1470
 
 # ---------------------------------------------------
 # What is the sum of wind risk and total NFI value for scenario?
@@ -742,13 +808,14 @@ ggplot(wind.sum, aes(x = NPI,
   ylab("total sum wind risk") +
   xlab("NPI k € by ha")
 
-  
+
+windows()  
 ggplot(wind.mean, aes(x = NPI/1000000,
                      y = windRisk,
                      group = simpleScen,
                      color = simpleScen)) + 
-  geom_line() +
-  ylab("total sum wind risk") +
+  geom_line(lwd = 1.5) +
+  ylab("mean wind risk") +
   xlab("NPI k € by ha")
 
 
