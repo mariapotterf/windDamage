@@ -78,6 +78,40 @@ df.all <-
     str_detect(avohaakut, "TT")   ~ "RF_T")) 
 
 
+# -----------------------------------
+# initial conditions??
+# ----------------------------------
+# Get histograms by tree species, age and BA in 2016:
+df.2016 <- df.all %>% 
+  filter(year == 2016)
+
+# why so many stands???? I should have 1470/by scenario?
+
+
+# Check by landscapes:
+window(8,4)
+df.all %>% 
+  filter(year == 2016) %>% 
+  ggplot(aes(species,
+             fill = species)) +
+  geom_histogram(stat = "count") +
+  facet_grid(scenSimpl2 ~ scenNumb) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Species composition: 2016")
+
+# Did management changed stand composition at the end??
+windows(8, 4)
+df.all %>% 
+  filter(year == 2111) %>%
+  ggplot( aes(species,
+              fill = species)) +
+  geom_histogram(stat = "count") +
+  facet_grid(scenSimpl2 ~ scenNumb) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Species composition: 2111")
+
+  
+
 
 # ------------------------------------------
 # sample the data to speed up visualisation
@@ -711,6 +745,20 @@ df.regimes.c$avohaakut <- factor(df.regimes.c$avohaakut,
 
 # Plot the mos useful regimes
 windows(width = 7, height = 3.5)
+
+df.regimes.c %>% 
+  ggplot(aes(x = avohaakut, 
+             y = counts,
+             fill = simpleScen,
+             label = counts)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   vjust = 0.5, 
+                                   size = 7,
+                                   face="italic")) 
+  
+
+# Show just ones with frequebcy over 100:
 df.regimes.c %>% 
   filter(counts> 100) %>% 
   ggplot(aes(x = avohaakut, 
@@ -733,7 +781,11 @@ df.regimes.c %>%
 
 # How does the % of SA affect which 
 # How does the frequency of regimes changes over scenarios (63?)
-
+# Get disctinct regimes by 
+df.regimes.sa <- 
+  df.all %>% 
+  group_by(id, simpleScen, scenNumb) %>% 
+  distinct(avohaakut)  #%>% 
  
 # by %SA/landscape?
 
