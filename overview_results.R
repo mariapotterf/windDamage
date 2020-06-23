@@ -11,6 +11,8 @@ library(ggplot2)
 library(sf)
 library(stringr)
 library(gridExtra)
+library(tidyr)
+library(ggpubr)
 
 
 theme_set(theme_classic())
@@ -79,7 +81,7 @@ df.all <-
 
 
 # -----------------------------------
-# initial conditions??
+# Species composition change: 2016 to 2011
 # ----------------------------------
 # Get histograms by tree species, age and BA in 2016:
 df.2016 <- df.all %>% 
@@ -132,6 +134,27 @@ df.sample <- df.all[sample_row,]
 #     Make boxplots:
 # --------------------------
 
+# plot different levels of wind risk: based on 3 models:
+# How to make a plot with 3 y axis data??? for 3 wind risk:
+# convert to long format???
+# subset the data:
+df.3risks <- 
+  df.sample %>% 
+  dplyr::select(windRisk.open.l, 
+         windRisk.open.u, 
+         windRisk) %>% 
+  tidyr::gather()
+
+# amke a boxplot of values
+ggplot(df.3risks, aes(x = key,
+                      y = value)) +
+  geom_boxplot()
+
+
+boxplot(df.sample)
+
+
+
 
 # How does scenarios (63) differ in term of wind risk???
 # df.all
@@ -167,7 +190,7 @@ ggplot(df.sample,
 
 # The scenNumb indicates the % of SA over the landscape: 
 # how does this affects wind risk?
-df.sample %>% 
+p.normal <- df.sample %>% 
   group_by(scenNumb, scenSimpl2) %>% 
   summarize(risk.mean = mean(windRisk)) %>% 
   ggplot(aes(x = factor(scenNumb),
@@ -177,8 +200,53 @@ df.sample %>%
   geom_line() +
   xlab("harvest intensity") + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
-        legend.position = "bottom")
-  
+        legend.position = "bottom") + 
+  ggtitle("Normal") +
+  ylim(0,0.050)
+
+
+# Lower   
+p.lower <- df.sample %>% 
+  group_by(scenNumb, scenSimpl2) %>% 
+  summarize(risk.mean = mean(windRisk.open.l)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = risk.mean,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line() +
+  xlab("harvest intensity") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("Lower") +
+  ylim(0,0.050)
+
+
+# upper
+p.upper <- df.sample %>% 
+  group_by(scenNumb, scenSimpl2) %>% 
+  summarize(risk.mean = mean(windRisk.open.u)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = risk.mean,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line() +
+  xlab("harvest intensity") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("Upper")  +
+  ylim(0,0.050)
+
+
+# --------------------------
+# Plot all 3 open edge coefficients values:
+# -------------------------
+# question to answer: how sensitive the stands are to open edge?
+windows()
+ggarrange(p.lower, p.normal,p.upper,
+          ncol=3, 
+          nrow=1, common.legend = TRUE, legend="bottom")
+
+
 
 
 
@@ -566,7 +634,7 @@ p.V <- df.all%>%
   ggtitle("mean V")
 
 
-library(ggpubr)
+
 
 # Risk
 windows()
