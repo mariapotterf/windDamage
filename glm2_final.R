@@ -56,7 +56,7 @@ head(df.rst)
 head(df)
 
 
-# remove duplicated columns???
+# remove duplicated columns??? NO, they are required for different management commbination
 #df.s.d<- 
  # df.s %>% 
  # distinct()
@@ -91,9 +91,6 @@ df <-
 
 #df.s %>% print(n = 80)
 
-# Replace since_thin value >11 to >10
-df$since_thin[df$since_thin == ">11"] <- ">10" 
-
 
 # Reclassify values:
 df.new<-
@@ -109,7 +106,7 @@ df.new<-
   mutate(species = case_when(MAIN_SP == 1 ~ "pine",
                              MAIN_SP == 2 ~ "spruce",
                              TRUE ~ "other")) %>% 
-  mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0)  
+  mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
   mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
   # dplyr::select(my.cols.glm)  %>%      # select columns 
   mutate_if(is.character, as.factor)   # convert all characters to factor
@@ -201,17 +198,43 @@ df.all$tempSum          <- df.all$tempSum/100   # according to Susane
 # ------------------------------------------
 # Calculate predicted values for wind risk 
 # ------------------------------------------
+# Susane model: windRisk.m
+
+# Create new models to modify the open_edge by +- SE:
+coefficients(windRisk.m)  # the open_edge is coefficient #8
+
+# Create new models for open_edge lower and upper interval:
+# modify the coefficient: add/substract the SE from coefficnet #8 
+windRisk.m.open.low <- windRisk.m
+windRisk.m.open.up  <- windRisk.m
+
+
+# Replace the coefficients by +- SE: 0.095
+windRisk.m.open.low$coefficients[8] <- windRisk.m$coefficients[8] - 0.095  
+windRisk.m.open.up$coefficients[8]  <- windRisk.m$coefficients[8] + 0.095  
+
+
 # For temperature sum, I have single value: not variabilit over the landscape: 1299.273
 df.all$windRisk <- predict.glm(windRisk.m,
                                      subset(df.all, select = glm.colnames),
                                      type="response")
 
+# Calculate wind risk for new models:
+df.all$windRisk.open.l <- predict.glm(windRisk.m.open.low,
+                               subset(df.all, select = glm.colnames),
+                               type="response")
+
+
+df.all$windRisk.open.u <- predict.glm(windRisk.m.open.up,
+                                      subset(df.all, select = glm.colnames),
+                                      type="response")
+
 range(df.all$windRisk, na.rm = T) # 
 # 2.220446e-16 9.591686e-01
 
 range(df.all$windRisk)  # na.rm = T
-
-
+range(df.all$windRisk.open.l)
+range(df.all$windRisk.open.u) # using upped limit increases the risk a bit 
 
 # Define three main scenarios: ALL, CCF, RF
 # Recalassify based on scenarion maes into 3 categories: CCF, ALL, RF
