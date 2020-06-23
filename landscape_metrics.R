@@ -50,6 +50,7 @@ df.all <- subset(df.all, !id %in% stands.remove)
 
 
 # stands geometry
+# ===================================
 df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
 df.geom <- subset(df.geom, select = c("KUVIO_ID"))
 names(df.geom) <- c("standid", "geometry")
@@ -59,15 +60,9 @@ df.geom <- subset(df.geom, standid %in% unique(df.all$id))
 df.geom$id <- as.numeric(as.character(df.geom$standid ))
 
 
-# Split df.all data into simpleScenario and SA proportion (0-20):
-# Split the string with numbers and characters into string and numbers:
+# Split regimes in two groups: SA or no_SA
 df.all <- 
   df.all %>% 
-  tidyr::extract(scenario, 
-                 c('scenSimpl2', 'scenNumb'), 
-                 '(.*?)(\\d+)', 
-                 remove = FALSE) %>% 
-  mutate(scenNumb = as.numeric(scenNumb)) %>% 
   mutate(twoRegm = case_when(avohaakut == "SA" ~ "SA",
                              avohaakut != "SA" ~ "no_SA"))
 
@@ -184,15 +179,90 @@ out.p
 # The question is how does the configuration of SA contributes to
 # hetegorebours/homogenous H_dom among adjacent stands??? !!!!
 
+# ===================================
+#    Calculate landscape metrics
+# ===================================
+
+# Subset data to have one landscape (scenario), at one time (year)
+# Merge landscape data with geometry
+# convert to raster: H_dom
+# calculate edge differences index:
+
+df1 <- subset(df.all, 
+              scenario == "not_CCF11" & year == 2016)
+
+# Merge data together
+df1.g<-
+  df.geom %>% 
+  left_join(df1, by = "id")
 
 
+# Convert to raster
+library(sf)
+library(raster)
+library(fasterize)
+
+# Create raster with desired resolution, then fill in values
+r1 <- raster::raster(df2.g, res = 16)
+r1 <- fasterize(df1.g, r1, field = "H_dom" )
 
 
+# Make 2nd raster (to allow camparison:)
+
+df2 <- subset(df.all, 
+              scenario == "not_CCF11" & year == 2096)
+
+# Merge data together
+df2.g<-
+  df.geom %>% 
+  left_join(df2, by = "id")
+
+# Create raster with desired resolution, then fill in values
+r2 <- raster(df2.g, res = 16)
+r2  <- fasterize(df2.g, r2, field = "H_dom" )
+
+# Plot both:
+par(mfrow = c(2,1))
+plot(r1)
+plot(r2)
+
+# Calculate landscape metrics:
+# on categorical patterns: need to convert to classes?
+hist(r1)
+hist(r2)
+
+# Create reclassification matrix:
+reclass_m <- matrix(
+              c(0, 5, 5,
+                5,10, 10,
+                10, 15, 15,
+                15, 20, 20,
+                20,25,25,
+                25, Inf, 30),
+                ncol = 3, 
+              byrow = TRUE)
+
+# Reclassify rasters based on matrix
+r1.c <- reclassify(r1,
+                   reclass_m)
+
+r2.c <- reclassify(r2,
+                   reclass_m)
+
+windows()
+par(mfrow = c(2,1))
+plot(r1.c)
+plot(r2.c)
 
 
+# Calculate teh contrast between patches:
 
 
+# Calculate edge density (landscape level)
 
+library(landscapemetrics)
+
+lsm_c_ed(r1.c, count_boundary = FALSE, directions = 8)
 
 
 
