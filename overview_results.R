@@ -247,6 +247,87 @@ ggarrange(p.lower, p.normal,p.upper,
           nrow=1, common.legend = TRUE, legend="bottom")
 
 
+# -------------------------
+# Rescale the V at risk
+# -------------------------
+
+# define teh variables to rescale
+
+maxRisk = 4  # the max % of the windRisk - Suvanto
+ratio_V = 2  # what is the proportion of timber fallwen? let say 1/2 
+
+df.all <-
+  df.all %>%
+  mutate(rescal_V = V/ratio_V * windRisk/maxRisk)
+
+
+
+df.all %>% 
+  filter(V > 842) # stand in 2111, 12976980
+
+# Count number of stands with timber volume over 600 m3/ha - but this likely
+# recalculated on area:
+# 271 stands has it
+df.all %>% 
+  filter(V > 600) %>% 
+  distinct(id) %>% 
+  count()
+
+
+# --------------------
+# Plot: does the % of SA increases winf risk?
+# ---------------------
+df.all %>% 
+  group_by(scenNumb, scenSimpl2) %>% 
+  summarize(rescal_V.mean = mean(rescal_V)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = rescal_V.mean,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line() +
+  xlab("harvest intensity") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("Does % of SA increases V at risk?") 
+
+
+# ---------------------
+df.all %>% 
+  group_by(scenNumb, scenSimpl2) %>% 
+  summarize(V.mean = mean(V)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = V.mean,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line() +
+  xlab("harvest intensity") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("Does % of SA increases V at risk?") 
+
+
+
+
+# --------------------------------
+# Does the interannual differences in Volume affect wind risk on stand level??
+# ordered differences in wind risk by landscape - total sum - over time
+# ordered differences in Volume by landscape - total sum - over time
+# plot by the % of SA and main 3 scenarios:
+# ----------------------------
+# Maybe to be continued ... ????
+
+
+
+
+
+range(df.all$V)
+
+hist(df.all$V)
+
+
+# What is the amount of timber volume at risk???
+
+
 
 
 
