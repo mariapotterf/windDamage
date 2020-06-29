@@ -42,14 +42,26 @@ stands.remove <-c(13243875,
 # Subset stands only for normal H_dom values
 df.all <- subset(df.all, !id %in% stands.remove)
 
+# Area is included in df.all!!! no need to add it from geom data
+
 
 # stands geometry
 df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
 df.geom <- subset(df.geom, select = c("KUVIO_ID"))
-names(df.geom) <- c("standid", "geometry")
+names(df.geom) <- c("id", "geometry")
 df.geom$area <- st_area(df.geom)
-#df.geom <- subset(df.geom, !standid %in% stands.remove)
-df.geom <- subset(df.geom, standid %in% unique(df.all$id))
+df.geom <- subset(df.geom, id %in% unique(df.all$id))
+
+
+# ---------------------
+# CHaracterize stands extends:
+# ---------------------
+length(unique(df.geom$area))
+mean(df.geom$area)
+max(df.geom$area)
+min(df.geom$area)
+
+hist(df.geom$area/10000)
 
 
 
@@ -87,7 +99,6 @@ df.all <-
 df.2016 <- df.all %>% 
   filter(year == 2016)
 
-# why so many stands???? I should have 1470/by scenario?
 
 
 # Check by landscapes:
@@ -113,6 +124,157 @@ df.all %>%
   ggtitle("Species composition: 2111")
 
   
+
+
+# Get sum of area by species
+# In 2016
+windows(8, 4)
+df.all %>% 
+  group_by(scenSimpl2, scenNumb, species, year) %>% 
+  summarise(sumAreaS = sum(area)) %>% 
+  filter(year == 2016)  %>% 
+  ggplot(aes(x = species,
+             y = sumAreaS,
+             fill = species)) +
+  geom_col() +
+  facet_grid(scenSimpl2 ~ scenNumb) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Species composition: 2016 (area)")
+
+
+# In 2111
+windows(8, 4)
+df.all %>% 
+  group_by(scenSimpl2, scenNumb, species, year) %>% 
+  summarise(sumAreaS = sum(area)) %>% 
+  filter(year == 2111)  %>% 
+  ggplot(aes(x = species,
+             y = sumAreaS,
+             fill = species)) +
+  geom_col() +
+  facet_grid(scenSimpl2 ~ scenNumb) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Species composition: 2111 (area)")
+  
+
+
+
+# Check counts of open_edge???
+windows(8, 4)
+df.all %>% 
+  group_by(scenSimpl2, scenNumb, open_edge, year) %>% 
+  summarise(sumAreaS = sum(area)) %>% 
+  filter(year == 2016)  %>% 
+  ggplot(aes(x = open_edge,
+             y = sumAreaS,
+             fill = open_edge)) +
+  geom_col() +
+  facet_grid(scenSimpl2 ~ scenNumb) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Open edge: 2016 (area)")
+
+
+windows(8, 4)
+df.all %>% 
+  group_by(scenSimpl2, scenNumb, open_edge, year) %>% 
+  summarise(sumAreaS = sum(area)) %>% 
+  filter(year == 2016 & open_edge == FALSE)  %>% 
+  ggplot(aes(x = open_edge,
+             y = sumAreaS,
+             fill = open_edge)) +
+  geom_col() +
+  facet_grid(scenSimpl2 ~ scenNumb) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Open edge: 2091 (area)")
+
+
+
+
+# -----------------------------
+# Landscape configuration: 
+# -----------------------------
+# Measure the variability between stand height???
+# how to measure contrast???
+
+
+# How often h_dom 0 occurs??? difference between CF, RF, ALL?
+min(df.all$H_dom) # 0.001
+
+
+mu = aggregate(H_dom ~ scenSimpl2, df.all, mean)
+  
+df.all %>% 
+  ggplot(aes(H_dom,
+             group = scenSimpl2,
+             fill = scenSimpl2,
+             color = scenSimpl2)) + 
+  geom_density(alpha = 0.1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") 
+ # geom_vline(mu, 
+  #           aes(x=H_dom, 
+  #               color=scenSimpl2),
+  #           linetype="dashed")
+ # facet_grid(scenSimpl2 ~ scenNumb)
+
+
+
+df.all %>% 
+  filter(H_dom == min(df.all$H_dom)) %>% 
+  group_by(scenSimpl2, scenNumb, year) %>% 
+  #filter(open_edge == FALSE) %>% 
+  tally() %>% 
+  group_by(scenSimpl2, scenNumb) %>% 
+  summarize(mean.m = mean(n)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = mean.m,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line(lwd = 1) +
+  xlab("harvest intensity") + 
+  ylab("# of stand with 0 height)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("")# + 
+#ylim(0,350)
+
+
+
+
+
+
+
+
+# Plot open_edge FALSE = (closed stand) over SA %
+# ---------------------
+df.all %>% 
+  group_by(scenSimpl2, scenNumb, open_edge, year) %>% 
+  filter(open_edge == TRUE) %>% 
+  tally() %>% 
+  group_by(scenSimpl2, scenNumb) %>% 
+  summarize(mean.m = mean(n)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = mean.m,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line(lwd = 1) +
+  xlab("harvest intensity") + 
+  ylab("# of stand with open edge (mean)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("")# + 
+  #ylim(0,350)
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ------------------------------------------
@@ -256,11 +418,12 @@ ggarrange(p.lower, p.normal,p.upper,
 maxRisk = 4  # the max % of the windRisk - Suvanto
 ratio_V = 2  # what is the proportion of timber fallwen? let say 1/2 
 
+
 df.all <-
   df.all %>%
   mutate(rescal_V = V/ratio_V * windRisk/maxRisk)
 
-
+max(df.all$V)
 
 df.all %>% 
   filter(V > 842) # stand in 2111, 12976980
@@ -270,7 +433,7 @@ df.all %>%
 # 271 stands has it
 df.all %>% 
   filter(V > 600) %>% 
-  distinct(id) %>% 
+  distinct(regime.x)# %>% 
   count()
 
 
@@ -299,11 +462,12 @@ df.all %>%
              y = V.mean,
              color = scenSimpl2,
              group = scenSimpl2)) + # ,
-  geom_line() +
+  geom_line(lwd = 1) +
   xlab("harvest intensity") + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         legend.position = "bottom") +
-  ggtitle("Does % of SA increases V at risk?") 
+  ggtitle("") + 
+  ylim(0,350)
 
 
 
