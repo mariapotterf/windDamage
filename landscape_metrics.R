@@ -66,6 +66,77 @@ df.all <-
   mutate(twoRegm = case_when(avohaakut == "SA" ~ "SA",
                              avohaakut != "SA" ~ "no_SA"))
 
+# -------------------------------------
+# Understand where the logging/management happened??
+# -------------------------------------
+# spatially, but also calculate the frequency of thinnings and 
+# loggings by landscape???
+
+
+# Understand how the management actipons are coded:
+# for RF: THIN, cash_flow = max
+
+# Check individual stand to understand this
+# let's select stand: 6667292
+df.all %>% 
+  filter(id == 6667292 ) %>% 
+  distinct(avohaakut)   # has all scenarios
+
+#    avohaakut
+# 1:        SA
+# 2:  THwoTM20
+# 3:     LRH30
+# 4:     LRT30
+# 5:  CCF_4_45
+# 6:  CCF_3_45
+
+df.all %>% 
+  filter(id == 6667292 ) %>% 
+  distinct(scenario)
+
+# Check stand development for specific scenario and regime: RF
+df.all %>% 
+  filter(id == 6667292 ) %>% 
+  filter(avohaakut == "THwoTM20") %>% 
+  filter(scenario == "not_CCF15") %>% 
+  dplyr::select(year, BA, V, avohaakut, cash_flow, THIN2)
+
+# Fror RF the year of the final cut is where V == 0
+
+
+df.all %>% 
+    filter(id == 6667292 ) %>% 
+    filter(avohaakut == "CCF_3_45") %>% 
+    filter(scenario == "CCF20") %>% 
+  dplyr::select(year, BA, V, avohaakut, cash_flow, THIN2)
+
+
+# Reclassify teh management actions: thin = thining, finalCut
+# also THIN from above or THIN from belov? RF = below, CCF = above
+# get frequency of the actions
+head(df.all)
+
+# Add new values:
+# Categuory it is it RF or CCF action,m or SA
+# categorize thinning: above, below, finalCut
+df %>% 
+  mutate(mainRegime = case_when(avohaakut == "SA" ~ "SA",
+                                avo))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ----------------------------------
 #     Prepare data for animation:
