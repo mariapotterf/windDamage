@@ -63,7 +63,7 @@ values(r2) <- matrix(data = c(20,  NA, NA, NA, NA,20,
 
 # Plot raster
 par(mfrow = c(1,2))
-plot(r1[])
+plot(r1)
 
 
 # ----------------------------------
