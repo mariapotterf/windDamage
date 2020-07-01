@@ -97,8 +97,9 @@ df.all %>%
 # Check stand development for specific scenario and regime: RF
 df.all %>% 
   filter(id == 6667292 ) %>% 
-  filter(avohaakut == "THwoTM20") %>% 
-  filter(scenario == "not_CCF15") %>% 
+  filter(avohaakut == "LRT30") %>% 
+  #distinct(scenario)
+  filter(scenario == "ALL18") %>% 
   dplyr::select(year, BA, V, avohaakut, cash_flow, THIN2)
 
 # Fror RF the year of the final cut is where V == 0
@@ -117,21 +118,27 @@ df.all %>%
 head(df.all)
 
 # Add new values:
-# Categuory it is it RF or CCF action,m or SA
+# Category it is it RF or CCF action, or SA
 # categorize thinning: above, below, finalCut
-df %>% 
-  mutate(mainRegime = case_when(avohaakut == "SA" ~ "SA",
-                                avo))
-
-
-
-
-
-
-
-
-
-
+df.all<- 
+  df.all %>% 
+  mutate(mainRegime = case_when(
+                      str_detect(avohaakut, "SA")   ~ "SA",
+                      str_detect(avohaakut, "CCF_") ~ "CCF",
+                      str_detect(avohaakut, "LRH")  ~ "RF",
+                      str_detect(avohaakut, "LRT")  ~ "RF",
+                      str_detect(avohaakut, "SR5")  ~ "RF",
+                      str_detect(avohaakut, "SRT5") ~ "RF",
+                      str_detect(avohaakut, "TH")   ~ "RF",
+                      str_detect(avohaakut, "TT")   ~ "RF")) %>% 
+  #group_by(id, scenario) %>% 
+  mutate(managAction = case_when(
+    mainRegime == "SA"                  ~ "SA",
+    !is.na(THIN2) & mainRegime == "RF"  ~ "thinBelow",
+    !is.na(THIN2) & mainRegime == "CCF" ~ "thinAbove",
+    mainRegime == "RF" & V == 0         ~ "finalCut",
+    TRUE ~ "no action"))# %>% 
+ 
 
 
 
@@ -141,6 +148,170 @@ df %>%
 # ----------------------------------
 #     Prepare data for animation:
 # ----------------------------------
+
+# Example in R animate
+# https://www.r-graph-gallery.com/271-ggplot2-animated-gif-chart-with-gganimate.html
+
+
+# Get data:
+#library(gapminder)
+
+# Charge libraries:
+library(ggplot2)
+library(gganimate)
+library(transformr)
+
+
+
+# Animate harvest over selected scenario and over years:
+# -------------------
+# ALL8
+df.sub <- 
+  df.all %>%  
+  filter(scenario == "ALL8") %>%   # regimes are stable over scenarios
+  dplyr::select(id, year, scenario, managAction) #%>% 
+  #arrange(year) %>% 
+  #print(n = 200)
+
+# Merge with geometry data
+df.sub.g <-
+  df.geom %>% 
+  left_join(df.sub, by = "id")# %>% 
+
+
+
+# My data:
+df.sub.g %>% 
+ # filter(year == 2016) %>% 
+  ggplot() + 
+  geom_sf(aes(fill = factor(managAction)),
+              color = NA) +
+  scale_fill_manual(values = c("red",           # finalCut 
+                               "grey82",        # no action
+                               "darkgreen",     # SA
+                               "blue",          # thinAbove
+                               "orange")) +  # thinBelow
+  annotation_scale(location = "bl", width_hint = 0.4) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  theme_bw() +
+  xlab("Longitude") + 
+  ylab("Latitude") +
+  # theme(axis.title=element_blank(),
+  #      axis.text=element_blank(),
+  #     axis.ticks=element_blank()) +
+  # gganimate specific bits:
+  labs(title = 'Harvest action ALL18 Year: {current_frame}') +
+  transition_manual(year) +
+  #transition_time(year) +
+  ease_aes('linear')
+
+
+
+# Save at gif:
+anim_save("avoh_ALL8.gif")
+
+
+
+# --------------------------------------
+
+# Animate harvest over selected scenario and over years:
+# "not_CCF8"
+
+df.sub <- 
+  df.all %>%  
+  filter(scenario == "not_CCF8") %>%   # regimes are stable over scenarios
+  dplyr::select(id, year, scenario, managAction) #%>% 
+#arrange(year) %>% 
+#print(n = 200)
+
+# Merge with geometry data
+df.sub.g <-
+  df.geom %>% 
+  left_join(df.sub, by = "id")# %>% 
+
+
+
+# My data:
+df.sub.g %>% 
+  ggplot() + 
+  geom_sf(aes(fill = factor(managAction)),
+          color = NA) +
+  scale_fill_manual(values = c("red",           # finalCut 
+                               "grey82",        # no action
+                               "darkgreen",     # SA
+                               "blue",          # thinAbove
+                               "orange")) +  # thinBelow
+  
+  annotation_scale(location = "bl", width_hint = 0.4) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  theme_bw() +
+  xlab("Longitude") + 
+  ylab("Latitude") +
+  # theme(axis.title=element_blank(),
+  #      axis.text=element_blank(),
+  #     axis.ticks=element_blank()) +
+  # gganimate specific bits:
+  labs(title = 'Harvest action not_CCF8 Year: {current_frame}') +
+  transition_manual(year) +
+  #transition_time(year) +
+  ease_aes('linear')
+
+
+
+# Save at gif:
+anim_save("avoh_not_CCF8.gif")
+
+
+
+# ------------------------------------------
+# Animate harvest over selected scenario and over years:
+# "CCF8"
+
+df.sub <- 
+  df.all %>%  
+  filter(scenario == "CCF8") %>%   # regimes are stable over scenarios
+  dplyr::select(id, year, scenario, managAction) 
+
+# Merge with geometry data
+df.sub.g <-
+  df.geom %>% 
+  left_join(df.sub, by = "id")# %>% 
+
+
+
+# My data:
+df.sub.g %>% 
+  ggplot() + 
+  geom_sf(aes(fill = factor(managAction))) +
+  scale_fill_manual(values = c("red",  # finalCut 
+                               "blue",    # thinAbove
+                               "darkgreen")) +    # thinBelow
+  annotation_scale(location = "bl", width_hint = 0.4) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  theme_bw() +
+  xlab("Longitude") + 
+  ylab("Latitude") +
+  # theme(axis.title=element_blank(),
+  #      axis.text=element_blank(),
+  #     axis.ticks=element_blank()) +
+  # gganimate specific bits:
+  labs(title = 'Harvest action CCF8 Year: {current_frame}') +
+  transition_manual(year) +
+  #transition_time(year) +
+  ease_aes('linear')
+
+
+
+# Save at gif:
+anim_save("avoh_CCF8.gif")
+
+
 
 
 # Animate SA regimes over 63 scenarios:
