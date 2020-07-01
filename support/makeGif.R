@@ -39,7 +39,9 @@ stands.all = read_sf("MV_Pori.shp")
 stands.simul <- unique(df$id)
 
 # Subset stand geometry:
-stands.sub <- subset(stands.all, standid %in% stands.simul )
+stands.sub <- subset(stands.all, 
+                     standid %in% stands.simul )  %>% 
+  mutate(id = as.numeric(standid))
 
 
 
@@ -60,15 +62,14 @@ length(unique(df$regime))
 
 
 # convert the stand id "integer" to the 'character'
-df$id <- as.character(df$id)
+#df$id <- as.character(df$id)
 
 
 # Subset by one regime, to create clean attribute table
 df.bau<-
   df %>% 
   filter(regime == "BAU") %>% 
-  mutate(regime = factor(regime))        # drop unused factors
-
+  mutate(regime = factor(regime))  #%>%       # drop unused factors
 
 # three stands are missing between simulated data and geometry data
 length(unique(df.bau$id))
@@ -78,7 +79,8 @@ length(unique(stands.sub$standid))
 setdiff(unique(stands.sub$standid), unique(df.bau$id))
 
 # Identify which stands are missing???
-stands.notSimulated <- subset(stands.all, standid %in% setdiff(unique(stands.sub$standid), unique(df.bau$id)))
+stands.notSimulated <- subset(stands.all, 
+                              standid %in% setdiff(unique(stands.sub$standid), unique(df.bau$id)))
 
 
 
@@ -102,7 +104,7 @@ unique(subset(df.bau, year == 2016)$H_dom)
 # Join the geometry table with simulated data
 stand.all<-
   stands.sub %>% 
-  left_join(df.bau, by = c("standid" = "id")) %>% 
+  left_join(df.bau, by = c("id")) %>% 
   filter(!is.na(year)) 
 
 
@@ -254,7 +256,11 @@ write.gif(X, 'Mandelbrot.gif', col=tim.colors(256), delay=100)
 # Another working example:
 
 # Make a ggplot, but add frame=year: one image per year
-ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, color = continent)) +
+ggplot(gapminder, 
+       aes(gdpPercap, 
+           lifeExp, 
+           size = pop, 
+           color = continent)) +
   geom_point() +
   scale_x_log10() +
   theme_bw() +
