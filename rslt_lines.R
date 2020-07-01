@@ -51,11 +51,6 @@ df.geom$id <- as.numeric(as.character(df.geom$standid ))
 # Split the string with numbers and characters into string and numbers:
 df.all <- 
   df.all %>% 
-  tidyr::extract(scenario, 
-                 c('scenSimpl2', 'scenNumb'), 
-                 '(.*?)(\\d+)', 
-                 remove = FALSE) %>% 
-  mutate(scenNumb = as.numeric(scenNumb)) %>% 
   mutate(twoRegm = case_when(avohaakut == "SA" ~ "SA",
                              avohaakut != "SA" ~ "no_SA"))
 
@@ -100,7 +95,7 @@ ggplot(windsum.agg, aes(x = scenNumb,
               #se = F,
               size = 0.5,
               show.legend = T)  +
-  xlab("% of SA over landscape") + 
+  xlab("landscape intensity") + 
   ylab("sum of wind risk (%)") + 
   labs(color= "Scenarios") +
   theme(legend.position = "bottom")
@@ -111,7 +106,7 @@ ggplot(windsum.agg, aes(x = scenNumb,
 # ----------------------------------------
 # Calculate as the sum by stand
 
-# Sample 1000 random rows:
+# Sample  random rows:
 
 sample_row <- sample(1:nrow(df.all), 100000, replace=F)
 df.sample <- df.all[sample_row,]
@@ -138,12 +133,13 @@ p.H_dom <-
 # Make scatter plot BA vs. wind risk
 p.BA <- 
   # Make scatter plot D_gm vs. wind risk
-  ggplot(df.sample, aes(x = BA,
+  ggplot(subset(df.sample, !anyNA(BA)), 
+         aes(x = BA,
                         y = windRisk,
                         color = factor(scenSimpl2))) +
 
-  geom_smooth(method = "lm")+ #,
-             # formula = y ~ a*x^(-b),
+  geom_smooth(method = "lm", #,
+              formula = y ~ log(x)) +
               #method.args = list(start= c(a=10.1, b=10.01), #c(a=20, b=0.01), 
                            #      control=nls.control(maxiter=200)),   
              # se = F,
