@@ -4,7 +4,7 @@
 
 # Change extensions of all files
 
-df.files = list.files("C:/MyTemp/avohaakut_db/solutions",
+df.files = list.files("C:/MyTemp/avohaakut_db/Solutions_2",
                       full.names = TRUE) #
 
 new.names<- gsub(".csv", "_", df.files)
