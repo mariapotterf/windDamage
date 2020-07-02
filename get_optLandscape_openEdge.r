@@ -200,12 +200,27 @@ unique(merged.df2$since_thin)
 # different stands or scenarios
 # unsure how can I check for this???
 
-
-
-
-
-
-         
+# Create new variables and remove columns tha won't be further needed
+# --------------------------------
+merged.df2 <-
+  merged.df2 %>% 
+  # Differentiate between SA, CCF and RF with and without thinning
+  mutate(avoh_Simpl = case_when(   
+    str_detect(avohaakut, "SA")   ~ "SA",
+    str_detect(avohaakut, "CCF_") ~ "CCF",
+    str_detect(avohaakut, "LRH")  ~ "RF_noT",
+    str_detect(avohaakut, "LRT")  ~ "RF_T",
+    str_detect(avohaakut, "SR5")  ~ "RF_noT",
+    str_detect(avohaakut, "SRT5") ~ "RF_T",
+    str_detect(avohaakut, "TH")   ~ "RF_noT",
+    str_detect(avohaakut, "TT")   ~ "RF_T")) %>% 
+  # Simple 3 scenarios: RF, CCF and ALL
+  mutate(simpleScen = case_when(
+    stringr::str_detect(scenario, "not_CCF") ~ "RF",
+    stringr::str_detect(scenario, "ALL") ~ "ALL",
+    stringr::str_detect(scenario, "CCF") ~ "CCF"))
+  
+  
 # write the table
 fwrite(merged.df2, "C:/MyTemp/myGitLab/windDamage/output/df_glm.csv")
 
