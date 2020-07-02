@@ -55,18 +55,6 @@ df.geom <- subset(df.geom, !standid %in% stands.remove)
 
 source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
-# Set working directory
-#inDataPath = "U:/projects/2019_windthrowModel/Janita/outSimulated"
-#setwd(inDataPath)
-# c:\MyTemp\myGitLab\windDamage\output\
- 
-# # read simulated data
-#df <- read.csv("rsl_without_MV_Korsnas.csv", sep = ";")  # without == climate change is not included
-# 
-# # Read stand geometry
-#df.geom = read_sf("MV_Korsnas.shp")
-
-
 # 
 # Get daily temperatures 
 # zonal statistics
