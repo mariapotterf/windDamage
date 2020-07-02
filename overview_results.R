@@ -544,10 +544,32 @@ prop.regimes<-
   group_by(scenario, avohaakut) %>% 
   distinct(id) %>% 
   summarise(stands_n = n()) %>%
+#  filter(avohaakut == "SA") %>% 
+#  head() 
   mutate(freq = 100* (stands_n / sum(stands_n))) %>% 
   arrange(scenario) 
 
 
+  
+# Get teh proportion of SA by the each scenario??
+sa.share <- 
+  df.all %>% 
+  group_by(scenSimpl2,scenNumb, avohaakut) %>% 
+  distinct(id) %>% 
+  summarise(stands_n = n()) %>%
+  filter(avohaakut == "SA") %>% 
+  mutate(SA_share = 100* (stands_n / 1470)) #%>%
+ # print(n = 63)
+ # arrange(scenario) 
+
+ggplot(sa.share, aes(x = scenNumb,
+                     y = SA_share,
+                     group = scenSimpl2,
+                     color = scenSimpl2)) +
+  geom_line()
+
+
+write.csv(sa.share, "output/SA_share.csv")
 
 # Calculate how many different regimes are by each scenario:
 regime.n <-
