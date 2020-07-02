@@ -1,7 +1,7 @@
 
 # ------------------------------------------
-#    Clean avohaakut simulated data
-# to correspond to optiimal scenarios
+# Clean avohaakut simulated data
+# to correspond to optimal scenarios
 # --------------------------------
 
 
@@ -28,6 +28,7 @@ setwd(myPathAll)
 df.names = list.files(myPathAll,
                         pattern=".csv$") # ends with .csv$, \\. matches .
 
+(df.names)   
 # Read all dataframes in a loop
 my.df.list = lapply(df.names, function(x) {
                      read.csv(x, sep = ";", stringsAsFactors = FALSE)
@@ -49,6 +50,7 @@ unique(df$branching_group)
 df<- df %>% 
   mutate(name_new = str_replace(name, "RCP45_NEW_", ""))
 
+unique(df$name_new)
 
 # -----------------------------
 #     Rename branches by .db name
@@ -78,6 +80,13 @@ df.orig <-
 df<- rbind(df.selection, 
            df.orig)
 
+# Check the new file: branching new
+
+df %>% 
+  filter(grepl("Selection cut_1_20", branching_group)) %>% 
+  dplyr::select(name_new, branching_group, branching_new) 
+
+# OK, seems correct (the 'name_new' corresponds to 'branching_new')
 
 # ----------------------------
 # Filter NA regime in each .db
@@ -125,8 +134,9 @@ df.av <- df.av %>%
 
 
 # One last check:
-unique(df.av$avohaakut)
-unique(df.av$branching_group)
+unique(df.av$avohaakut) # regimes 58
+unique(df.av$branching_group) # 54 - corrected in new columns
+unique(df.av$branching_new) # 58 - great!!
 
 
 
