@@ -25,7 +25,7 @@ library(raster)
 library(ggplot2)
 library(sf)
 library(stringr)
-
+library(ggspatial)
 
 theme_set(theme_classic())
 
@@ -117,7 +117,9 @@ df.all %>%
 # get frequency of the actions
 head(df.all)
 
+# -----------------------
 # Add new values:
+# ------------------------
 # Category it is it RF or CCF action, or SA
 # categorize thinning: above, below, finalCut
 df.all<- 
@@ -169,20 +171,16 @@ library(transformr)
 df.sub <- 
   df.all %>%  
   filter(scenario == "ALL8") %>%   # regimes are stable over scenarios
-  dplyr::select(id, year, scenario, managAction) #%>% 
-  #arrange(year) %>% 
-  #print(n = 200)
+  dplyr::select(id, year, scenario, managAction) 
 
 # Merge with geometry data
 df.sub.g <-
   df.geom %>% 
-  left_join(df.sub, by = "id")# %>% 
-
+  left_join(df.sub, by = "id")
 
 
 # My data:
 df.sub.g %>% 
- # filter(year == 2016) %>% 
   ggplot() + 
   geom_sf(aes(fill = factor(managAction)),
               color = NA) +
@@ -198,15 +196,10 @@ df.sub.g %>%
   theme_bw() +
   xlab("Longitude") + 
   ylab("Latitude") +
-  # theme(axis.title=element_blank(),
-  #      axis.text=element_blank(),
-  #     axis.ticks=element_blank()) +
-  # gganimate specific bits:
-  labs(title = 'Harvest action ALL18 Year: {current_frame}') +
+  labs(title = 'Harvest action ALL8 Year: {current_frame}') +
   transition_manual(year) +
   #transition_time(year) +
   ease_aes('linear')
-
 
 
 # Save at gif:
@@ -221,16 +214,13 @@ anim_save("avoh_ALL8.gif")
 
 df.sub <- 
   df.all %>%  
-  filter(scenario == "not_CCF8") %>%   # regimes are stable over scenarios
-  dplyr::select(id, year, scenario, managAction) #%>% 
-#arrange(year) %>% 
-#print(n = 200)
+  filter(scenario == "not_CCF8") %>%  
+  dplyr::select(id, year, scenario, managAction) 
 
 # Merge with geometry data
 df.sub.g <-
   df.geom %>% 
   left_join(df.sub, by = "id")# %>% 
-
 
 
 # My data:
@@ -251,15 +241,11 @@ df.sub.g %>%
   theme_bw() +
   xlab("Longitude") + 
   ylab("Latitude") +
-  # theme(axis.title=element_blank(),
-  #      axis.text=element_blank(),
-  #     axis.ticks=element_blank()) +
   # gganimate specific bits:
   labs(title = 'Harvest action not_CCF8 Year: {current_frame}') +
   transition_manual(year) +
   #transition_time(year) +
   ease_aes('linear')
-
 
 
 # Save at gif:
@@ -286,10 +272,15 @@ df.sub.g <-
 # My data:
 df.sub.g %>% 
   ggplot() + 
-  geom_sf(aes(fill = factor(managAction))) +
-  scale_fill_manual(values = c("red",  # finalCut 
-                               "blue",    # thinAbove
-                               "darkgreen")) +    # thinBelow
+  geom_sf(aes(fill = factor(managAction)),
+          color = NA) +
+  scale_fill_manual(values = c(#"red",           # finalCut 
+                               "grey82",        # no action
+                               "darkgreen",     # SA
+                               "blue" #,          # thinAbove
+                               #"orange"
+                               )) +   # thinBelow
+  
   annotation_scale(location = "bl", width_hint = 0.4) +
   annotation_north_arrow(location = "bl", which_north = "true", 
                          pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
@@ -297,9 +288,6 @@ df.sub.g %>%
   theme_bw() +
   xlab("Longitude") + 
   ylab("Latitude") +
-  # theme(axis.title=element_blank(),
-  #      axis.text=element_blank(),
-  #     axis.ticks=element_blank()) +
   # gganimate specific bits:
   labs(title = 'Harvest action CCF8 Year: {current_frame}') +
   transition_manual(year) +
@@ -312,109 +300,7 @@ df.sub.g %>%
 anim_save("avoh_CCF8.gif")
 
 
-
-
-# Animate SA regimes over 63 scenarios:
-# Need to restructure the table: 
-# each has id, scenario (63) and regime: SA, noSA
-# split those into individual landscapes
-# question is: are SA always the same stands among scenarios, or not?? not
-
-df.sub <- df.all %>%  
-  filter(year == 2016 & simpleScen == "RF") %>%   # regimes are stable over scenarios
-  dplyr::select(id, scenSimpl2, scenNumb, twoRegm)
-
-
-# Check it out:
-length(unique(df.sub$id)) # 1470
-unique(df.sub$year)   # 2016
-
-# Merge all RF scenarios with 
-df.sub.g <-
-  df.geom %>% 
-  left_join(df.sub, by = "id")# %>% 
-  
-
-# SUPER SLOW RENDERING!!!!!!!!!
-windows()
-out.p<- 
-  ggplot(df.sub.g) +
-  geom_sf(aes(fill = factor(twoRegm)), colour = NA) +
-  scale_fill_manual(values = c("grey92", "red")) +
-  facet_wrap(.~scenNumb)
-#scale_fill_gradient(fill = terrain.colors(2))
-
-
-windows()
-out.p 
-  
-
-# CCF
-# -----------------
-
-df.sub <- df.all %>%  
-  filter(year == 2016 & simpleScen == "CCF") %>%   # regimes are stable over scenarios
-  dplyr::select(id, scenSimpl2, scenNumb, twoRegm)
-
-
-# Check it out:
-length(unique(df.sub$id)) # 1470
-unique(df.sub$year)   # 2016
-
-# Merge all RF scenarios with 
-df.sub.g <-
-  df.geom %>% 
-  left_join(df.sub, by = "id")# %>% 
-
-
-# SUPER SLOW RENDERING!!!!!!!!!
-windows()
-out.p<- 
-  ggplot(df.sub.g) +
-  geom_sf(aes(fill = factor(twoRegm)), colour = NA) +
-  scale_fill_manual(values = c("grey92", "red")) +
-  facet_wrap(.~scenNumb)
-#scale_fill_gradient(fill = terrain.colors(2))
-
-
-windows()
-out.p 
-
-
-# ALL
-# -----------
-
-# CCF
-# -----------------
-
-df.sub <- df.all %>%  
-  filter(year == 2016 & simpleScen == "ALL") %>%   # regimes are stable over scenarios
-  dplyr::select(id, scenSimpl2, scenNumb, twoRegm)
-
-
-# Check it out:
-length(unique(df.sub$id)) # 1470
-unique(df.sub$year)   # 2016
-
-# Merge all RF scenarios with 
-df.sub.g <-
-  df.geom %>% 
-  left_join(df.sub, by = "id")# %>% 
-
-
-# SUPER SLOW RENDERING!!!!!!!!!
-windows()
-out.p<- 
-  ggplot(df.sub.g) +
-  geom_sf(aes(fill = factor(twoRegm)), colour = NA) +
-  scale_fill_manual(values = c("grey92", "red")) +
-  facet_wrap(.~scenNumb) + 
-  theme(legend.position = "bottom")
-#scale_fill_gradient(fill = terrain.colors(2))
-
-
-windows()
-out.p
+ 
 
 
 
