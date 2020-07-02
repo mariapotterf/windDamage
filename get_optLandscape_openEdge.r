@@ -222,7 +222,7 @@ merged.df2 <-
   
   
 # write the table
-fwrite(merged.df2, "C:/MyTemp/myGitLab/windDamage/output/df_glm.csv")
+fwrite(merged.df2, "C:/MyTemp/myGitLab/windDamage/output/df_openEdge.csv")
 
 
 
