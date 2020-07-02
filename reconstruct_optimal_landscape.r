@@ -4,7 +4,7 @@
 # ----------------------------------
 
 # filter simulated data (with correct names from optmal scenarios)
-# to create optimal lanscape: 58 regimes, XX landscapes
+# to create optimal lanscape: 58 regimes, 63 landscapes x 20 time steps
 
 # Read .csv files of optimal solutions
 # if there is not 1.0 solution: 
@@ -13,13 +13,12 @@
 # ----------------------------------
 rm(list = ls())
 
-load("C:/MyTemp/myGitLab/windDamage/.RData")
+#load("C:/MyTemp/myGitLab/windDamage/.RData")
 
 library(sf)
 library(dplyr)
 require(data.table)
 library(tidyr)
-
 
 
 stands.remove <- c(13243875,
@@ -62,11 +61,13 @@ source("C:/MyTemp/myGitLab/windDamage/myFunctions.r")
 # Read all optimal solutions to 
 # see applied regimes?? 
 # -------------------------------
-setwd("C:/MyTemp/avohaakut_db/solutions")
+setwd("C:/MyTemp/avohaakut_db/Solutions_2")
 df.optim = list.files(pattern=".csv$",
                       full.names = TRUE) # ends with .csv$, \\. matches .
 
-df.names <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_0_0_1_1_", "", df.optim)
+#
+#df.names <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_0_0_1_1_", "", df.optim)
+df.names <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_1_1_0_0_", "", df.optim)
 df.names <- gsub(".csv", "", df.names)
 
 # Read all dataframes in a loop
@@ -139,50 +140,69 @@ merged.ls <- Map(merge, land.ls, open_edge.ls, by="id")
 merged.df <- do.call(rbind, merged.ls)
 
 
-#fwrite(merged.df, "C:/MyTemp/myGitLab/windDamage/output/df.sim_open_edge.csv")
-
-#---------------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-
-# Interpretation of THIN years:
+# ----------------------------------
+# Interprete of THIN years:
+# ------------------------------
 # convert 0 to NA
-# calculate difference from other years
-
-
-# Actually, not each stand has to have all regimes, as we have optimal data
-#  
-# ----------------------------------------------
-
+# IN CCF: years area stored as "2016-04-16": 
+# keep only first 4 characters to convert this to numeric values
+# i.e. "2016-04-16" -> to "2016""
+# to calculate yearly differences
 
 # Thinning calculation takes forever: calculate time since thinning only for scenarios & stands 
 # with THIN included
 # convert all 0 to NA
 
-merged.df2 <- merged.df %>% 
-  group_by(id, scenario) %>% 
-  mutate(THIN = na_if(THIN, 0)) %>% 
-  mutate(THIN_filled_lagged = lag(THIN)) %>% # make sure that it is not calculated from previous value??
+# Probably not needed anymore, manually corrected
+#merged.df$landscape <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_1_1_0_0_", "", merged.df$landscape) 
+#merged.df$scenario <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_1_1_0_0_", "", merged.df$scenario) 
+
+
+
+merged.df2 <- 
+  merged.df %>%
+  mutate(THIN = na_if(THIN, 0))  %>% 
+  mutate(THIN2 = substring(THIN,0,4)) %>%  # keep the first 4 characters from CCF regimes, datum in format "2016-04-16" -> to "2016"
+
+  group_by(id, avohaakut, scenario) %>% 
+  mutate(THIN_filled_lagged = lag(THIN2)) %>%
   mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
-  tidyr::fill(THIN_filled_lagged)  %>%      # fill rows with values  
-  mutate(difference = if_else(year > THIN_filled_lagged,   # calculate the difference
-                              year - THIN_filled_lagged,
-                              NA_real_,
-                              missing = 0))  %>%
-  mutate(since_thin = case_when(difference < 0 ~ "NA",
+  tidyr::fill(THIN_filled_lagged) %>% 
+  mutate(difference = year - THIN_filled_lagged) %>% 
+  mutate(since_thin = case_when(is.na(difference) | difference < 0 ~ ">10",
                                 difference %in% c(0:5) ~ "0-5",
                                 difference %in% c(6:10) ~ "6-10",
-                                difference > 10 ~ ">11"))
+                                difference > 10 ~ ">10"))
+
+
+#merged.df2 <- merged.df %>% 
+#  group_by(id, scenario) %>% 
+#  mutate(THIN = na_if(THIN, 0)) %>% 
+#  mutate(THIN_filled_lagged = lag(THIN)) %>% # make sure that it is not calculated from previous value??
+#  mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
+#  tidyr::fill(THIN_filled_lagged)  %>%      # fill rows with values  
+#  mutate(difference = if_else(year > THIN_filled_lagged,   # calculate the difference
+#                              year - THIN_filled_lagged,
+#                              NA_real_,
+#                              missing = 0))  %>%
+#  mutate(since_thin = case_when(difference < 0 ~ "NA",
+ #                               difference %in% c(0:5) ~ "0-5",
+#                                difference %in% c(6:10) ~ "6-10",
+#                                difference > 10 ~ ">11"))
 
 
 unique(merged.df2$difference)
 unique(merged.df2$since_thin)
 
-         
+
 
 # inscepct the data if the the difference is not calculated between 
 # different stands or scenarios
 # unsure how can I check for this???
+
+
+
+
 
 
          
