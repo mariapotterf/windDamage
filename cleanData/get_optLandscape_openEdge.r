@@ -13,7 +13,6 @@
 # ----------------------------------
 rm(list = ls())
 
-#load("C:/MyTemp/myGitLab/windDamage/.RData")
 
 library(sf)
 library(dplyr)
@@ -34,22 +33,22 @@ df.sim <- subset(df.sim, !id %in% stands.remove)
 
 # Read stand geometry - subset twice
 # -----------------------------
-df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
-df.geom <- subset(df.geom, select = c("KUVIO_ID"))
-names(df.geom) <- c("standid", "geometry")
-df.geom$area <- st_area(df.geom)
+#df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
+#df.geom <- subset(df.geom, select = c("KUVIO_ID"))
+#names(df.geom) <- c("standid", "geometry")
+#df.geom$area <- st_area(df.geom)
 
-df.geom <- subset(df.geom, !standid %in% stands.remove)
+#df.geom <- subset(df.geom, !standid %in% stands.remove)
 
 # In my data they do not have NULL geometry, but I will remove the stands from 
 # simulated, optimal, and geometry data
 # ------------------------------------------
 
 # The geometry has more stands as simulated data!!
-length(unique(df.geom$standid)) # 1485 !!! I need to subset the simulated data
+#length(unique(df.geom$standid)) # 1485 !!! I need to subset the simulated data
 
 # need to subset it
-df.geom <- subset(df.geom, standid %in% unique(df.sim$id))
+#df.geom <- subset(df.geom, standid %in% unique(df.sim$id))
 
 # -----------------------------
 # Read optimal solution:
@@ -65,10 +64,14 @@ setwd("C:/MyTemp/avohaakut_db/Solutions_2")
 df.optim = list.files(pattern=".csv$",
                       full.names = TRUE) # ends with .csv$, \\. matches .
 
-#
-#df.names <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_0_0_1_1_", "", df.optim)
+
+# Replace names indications by simpler way 
+
 df.names <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_1_1_0_0_", "", df.optim)
 df.names <- gsub(".csv", "", df.names)
+df.names <- gsub("not_CCF", "RF", df.names)
+
+(df.names)
 
 # Read all dataframes in a loop
 df.opt.ls = lapply(df.optim, readOptimal)
@@ -107,6 +110,86 @@ df.sim.all <- do.call(rbind, df.sim.opt)
 df.sim.all$landscape <- paste(df.sim.all$year, df.sim.all$scenario, sep = "_")
 
 
+
+# ----------------------------------
+# Interpret of THIN years:
+# ------------------------------
+# convert 0 to NA
+# IN CCF: years area stored as "2016-04-16": 
+# keep only first 4 characters to convert this to numeric values
+# i.e. "2016-04-16" -> to "2016""
+# to calculate yearly differences
+
+# Thinning calculation takes forever: calculate time since thinning only for scenarios & stands 
+# with THIN included
+# convert all 0 to NA
+
+# Probably not needed anymore, manually corrected
+#merged.df$landscape <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_1_1_0_0_", "", merged.df$landscape) 
+#merged.df$scenario <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_1_1_0_0_", "", merged.df$scenario) 
+
+
+
+df.sim.all2 <- 
+  df.sim.all %>%
+  mutate(THIN = na_if(THIN, 0))  %>% 
+  mutate(THIN2 = substring(THIN,0,4)) %>%  # keep the first 4 characters from CCF regimes, datum in format "2016-04-16" -> to "2016"
+ 
+   group_by(id, avohaakut, scenario) %>% 
+  mutate(THIN_filled_lagged = lag(THIN2)) %>%
+  mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
+  tidyr::fill(THIN_filled_lagged) %>% 
+  mutate(difference = year - THIN_filled_lagged) %>% 
+  mutate(since_thin = case_when(is.na(difference) | difference < 0 ~ ">10",
+                                difference %in% c(0:5) ~ "0-5",
+                                difference %in% c(6:10) ~ "6-10",
+                                difference > 10 ~ ">10")) %>% 
+  # Remove unnecessary columns
+  dplyr::select(-branching_group, 
+                -regime.x,
+                -regime.y)
+
+
+
+
+unique(df.sim.all2$difference)
+unique(df.sim.all2$since_thin)
+
+
+# Create new factors: existence of thinning, simpleScen
+# --------------------------------
+df.sim.all2 <-
+  df.sim.all2 %>% 
+  # Differentiate between SA, CCF and RF with and without thinning
+  mutate(avoh_Simpl = case_when(   
+    str_detect(avohaakut, "SA")   ~ "SA",
+    str_detect(avohaakut, "CCF_") ~ "CCF",
+    str_detect(avohaakut, "LRH")  ~ "RF_noT",
+    str_detect(avohaakut, "LRT")  ~ "RF_T",
+    str_detect(avohaakut, "SR5")  ~ "RF_noT",
+    str_detect(avohaakut, "SRT5") ~ "RF_T",
+    str_detect(avohaakut, "TH")   ~ "RF_noT",
+    str_detect(avohaakut, "TT")   ~ "RF_T")) %>% 
+  # Simple 3 scenarios: RF, CCF and ALL
+  mutate(simpleScen = case_when(
+    stringr::str_detect(scenario, "RF") ~ "RF",
+    stringr::str_detect(scenario, "ALL") ~ "ALL",
+    stringr::str_detect(scenario, "CCF") ~ "CCF"))
+
+
+# write the table
+#fwrite(merged.df2, "C:/MyTemp/myGitLab/windDamage/output/df_openEdge.csv")
+fwrite(df.sim.all2, "C:/MyTemp/myGitLab/windDamage/output/df_sim_opt.csv")
+
+
+
+
+
+
+
+
+
+
 # Split dataframe into dataframe list
 land.ls <- df.sim.all %>% 
   group_by(landscape) %>% 
@@ -126,7 +209,6 @@ nbrs <- find_nbrs_geom(df.geom)
 # calculate on one landscape
 open_edge.ls <- lapply(land.ls, function(df) open_edge_by_nbrs(nbrs, df))
 
-#open_edge.df.all <- do.call(rbind, open_edge.ls)
 
 # change teh standid to id:
 for (i in seq_along(open_edge.ls)){
@@ -138,94 +220,6 @@ for (i in seq_along(open_edge.ls)){
 merged.ls <- Map(merge, land.ls, open_edge.ls, by="id")
 
 merged.df <- do.call(rbind, merged.ls)
-
-
-# ----------------------------------
-# Interprete of THIN years:
-# ------------------------------
-# convert 0 to NA
-# IN CCF: years area stored as "2016-04-16": 
-# keep only first 4 characters to convert this to numeric values
-# i.e. "2016-04-16" -> to "2016""
-# to calculate yearly differences
-
-# Thinning calculation takes forever: calculate time since thinning only for scenarios & stands 
-# with THIN included
-# convert all 0 to NA
-
-# Probably not needed anymore, manually corrected
-#merged.df$landscape <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_1_1_0_0_", "", merged.df$landscape) 
-#merged.df$scenario <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_1_1_0_0_", "", merged.df$scenario) 
-
-
-
-merged.df2 <- 
-  merged.df %>%
-  mutate(THIN = na_if(THIN, 0))  %>% 
-  mutate(THIN2 = substring(THIN,0,4)) %>%  # keep the first 4 characters from CCF regimes, datum in format "2016-04-16" -> to "2016"
-
-  group_by(id, avohaakut, scenario) %>% 
-  mutate(THIN_filled_lagged = lag(THIN2)) %>%
-  mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
-  tidyr::fill(THIN_filled_lagged) %>% 
-  mutate(difference = year - THIN_filled_lagged) %>% 
-  mutate(since_thin = case_when(is.na(difference) | difference < 0 ~ ">10",
-                                difference %in% c(0:5) ~ "0-5",
-                                difference %in% c(6:10) ~ "6-10",
-                                difference > 10 ~ ">10"))
-
-
-#merged.df2 <- merged.df %>% 
-#  group_by(id, scenario) %>% 
-#  mutate(THIN = na_if(THIN, 0)) %>% 
-#  mutate(THIN_filled_lagged = lag(THIN)) %>% # make sure that it is not calculated from previous value??
-#  mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
-#  tidyr::fill(THIN_filled_lagged)  %>%      # fill rows with values  
-#  mutate(difference = if_else(year > THIN_filled_lagged,   # calculate the difference
-#                              year - THIN_filled_lagged,
-#                              NA_real_,
-#                              missing = 0))  %>%
-#  mutate(since_thin = case_when(difference < 0 ~ "NA",
- #                               difference %in% c(0:5) ~ "0-5",
-#                                difference %in% c(6:10) ~ "6-10",
-#                                difference > 10 ~ ">11"))
-
-
-unique(merged.df2$difference)
-unique(merged.df2$since_thin)
-
-
-
-# inscepct the data if the the difference is not calculated between 
-# different stands or scenarios
-# unsure how can I check for this???
-
-# Create new variables and remove columns tha won't be further needed
-# --------------------------------
-merged.df2 <-
-  merged.df2 %>% 
-  # Differentiate between SA, CCF and RF with and without thinning
-  mutate(avoh_Simpl = case_when(   
-    str_detect(avohaakut, "SA")   ~ "SA",
-    str_detect(avohaakut, "CCF_") ~ "CCF",
-    str_detect(avohaakut, "LRH")  ~ "RF_noT",
-    str_detect(avohaakut, "LRT")  ~ "RF_T",
-    str_detect(avohaakut, "SR5")  ~ "RF_noT",
-    str_detect(avohaakut, "SRT5") ~ "RF_T",
-    str_detect(avohaakut, "TH")   ~ "RF_noT",
-    str_detect(avohaakut, "TT")   ~ "RF_T")) %>% 
-  # Simple 3 scenarios: RF, CCF and ALL
-  mutate(simpleScen = case_when(
-    stringr::str_detect(scenario, "not_CCF") ~ "RF",
-    stringr::str_detect(scenario, "ALL") ~ "ALL",
-    stringr::str_detect(scenario, "CCF") ~ "CCF"))
-  
-  
-# write the table
-fwrite(merged.df2, "C:/MyTemp/myGitLab/windDamage/output/df_openEdge.csv")
-
-
-
 
 
 
