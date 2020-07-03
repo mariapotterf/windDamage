@@ -31,24 +31,7 @@ df.sim<- data.table::fread("C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regime
 
 df.sim <- subset(df.sim, !id %in% stands.remove)
 
-# Read stand geometry - subset twice
-# -----------------------------
-#df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
-#df.geom <- subset(df.geom, select = c("KUVIO_ID"))
-#names(df.geom) <- c("standid", "geometry")
-#df.geom$area <- st_area(df.geom)
 
-#df.geom <- subset(df.geom, !standid %in% stands.remove)
-
-# In my data they do not have NULL geometry, but I will remove the stands from 
-# simulated, optimal, and geometry data
-# ------------------------------------------
-
-# The geometry has more stands as simulated data!!
-#length(unique(df.geom$standid)) # 1485 !!! I need to subset the simulated data
-
-# need to subset it
-#df.geom <- subset(df.geom, standid %in% unique(df.sim$id))
 
 # -----------------------------
 # Read optimal solution:
@@ -120,16 +103,6 @@ df.sim.all$landscape <- paste(df.sim.all$year, df.sim.all$scenario, sep = "_")
 # i.e. "2016-04-16" -> to "2016""
 # to calculate yearly differences
 
-# Thinning calculation takes forever: calculate time since thinning only for scenarios & stands 
-# with THIN included
-# convert all 0 to NA
-
-# Probably not needed anymore, manually corrected
-#merged.df$landscape <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_1_1_0_0_", "", merged.df$landscape) 
-#merged.df$scenario <- gsub("./Bundles_2_nocow_NPV_MANAGE_price_three_1_1_0_0_", "", merged.df$scenario) 
-
-
-
 df.sim.all2 <- 
   df.sim.all %>%
   mutate(THIN = na_if(THIN, 0))  %>% 
@@ -150,7 +123,7 @@ df.sim.all2 <-
                 -regime.y)
 
 
-
+# Check:
 
 unique(df.sim.all2$difference)
 unique(df.sim.all2$since_thin)
@@ -178,7 +151,6 @@ df.sim.all2 <-
 
 
 # write the table
-#fwrite(merged.df2, "C:/MyTemp/myGitLab/windDamage/output/df_openEdge.csv")
 fwrite(df.sim.all2, "C:/MyTemp/myGitLab/windDamage/output/df_sim_opt.csv")
 
 
@@ -186,14 +158,6 @@ fwrite(df.sim.all2, "C:/MyTemp/myGitLab/windDamage/output/df_sim_opt.csv")
 
 
 
-
-
-
-
-# Split dataframe into dataframe list
-land.ls <- df.sim.all %>% 
-  group_by(landscape) %>% 
-  group_split()
 
 # Convert to dataframe to have teh same odred of data as open_edge
 #land.df.all <- do.call(rbind, land.ls)
