@@ -1,6 +1,7 @@
 
 
-# Import the calculate open_edge datasets
+# Import the calculate open_edge datasets - merge by id and landscape value
+# inport raster data
 # Calculate wind risk for management regimes
 # create ggplots & main conclusions
 
@@ -14,7 +15,6 @@ rm(list = ls())
 setwd("C:/MyTemp/myGitLab/windDamage")
 
 # Read libraries
-
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -33,9 +33,12 @@ library(RColorBrewer)
 
 
 # Set working directory
+# Read simulated optimal landscape
+df.sim <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_sim_opt.csv", 
+                            data.table=FALSE)
 
-# read data with calculated open_edge
-df <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_openEdge.csv", 
+# Read data with calculated open_edge
+df.open <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_landscape_open_edge.csv", 
                         data.table=FALSE)
 
 # Read raster derived input variables: average wind, temperature, ...
@@ -46,23 +49,24 @@ df.rst <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm_raster.
 head(df)
 head(df.rst)
 
+# ---------------------------------
+# Merge the optimal simulated dataset, open_edge and raster data
+# -----------------------------
 
-#library(dplyr)
-#library(tidyr) 
-#df <- 
-#  df %>%
-#  mutate(THIN = na_if(THIN, 0))  %>% 
-#  mutate(THIN2 = substring(THIN,0,4)) %>%  # keep the firt 4 characters from CCF regimes, datum in format "2016-04-16" -> to "2016"
-#  group_by(id, avohaakut, scenario) %>% 
-#  mutate(THIN_filled_lagged = lag(THIN2)) %>%
-#  mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
-#  tidyr::fill(THIN_filled_lagged) %>% 
-#  mutate(difference = year - THIN_filled_lagged) %>% 
-#  mutate(since_thin = case_when(is.na(difference) | difference < 0 ~ ">10",
-#                                difference %in% c(0:5) ~ "0-5",
-#                                difference %in% c(6:10) ~ "6-10",
-#                                difference > 10 ~ ">10")) 
-#  #print(n = 80) 
+# make sure they have the same stands
+my.stands<- unique(df.sim$id)
+df.rst <- subset(df.rst, standid %in% my.stands)
+names(df.rst) <- c("id",   
+                   "area",
+                   "avgTemp",
+                   "windSpeed")
+
+
+# Merge the datasets
+df <- df.sim %>%
+  left_join(df.open, by = c("id", "landscape", "H_dom")) %>% 
+  left_join(df.rst, by = ("id")) 
+
 
 # ---------------------------------------
 # Test if THIN is correct for CCF and RF???
@@ -79,7 +83,7 @@ df %>%
 
 
 # Reclassify values:
-df.new<-
+df.all<-
   df %>% 
   mutate(PEAT.v = case_when(PEAT == 0 ~ "mineral soil",
                             PEAT == 1 ~ "peat"))  %>%
@@ -94,23 +98,9 @@ df.new<-
                              TRUE ~ "other")) %>% 
   mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
   mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
-  # dplyr::select(my.cols.glm)  %>%      # select columns 
   mutate_if(is.character, as.factor)   # convert all characters to factor
   
 
-
-# -------------------------------------------
-# JOin df data with data derived from raster geometry
-# -------------------------------------------
-# make sure they have the same stands
-my.stands<- unique(df.new$id)
-df.rst <- subset(df.rst, standid %in% my.stands)
-names(df.rst) <- c("id",   "area",      "avgTemp",   "windSpeed")
-
-
-# Merge the datasets
-df.all<- df.new %>% 
-  left_join(df.rst) # %>% 
 
 
 
@@ -190,13 +180,13 @@ coefficients(windRisk.m)  # the open_edge is coefficient #8
 
 # Create new models for open_edge lower and upper interval:
 # modify the coefficient: add/substract the SE from coefficnet #8 
-windRisk.m.open.low <- windRisk.m
-windRisk.m.open.up  <- windRisk.m
+#windRisk.m.open.low <- windRisk.m
+#windRisk.m.open.up  <- windRisk.m
 
 
 # Replace the coefficients by +- SE: 0.095
-windRisk.m.open.low$coefficients[8] <- windRisk.m$coefficients[8] - 0.095  
-windRisk.m.open.up$coefficients[8]  <- windRisk.m$coefficients[8] + 0.095  
+#windRisk.m.open.low$coefficients[8] <- windRisk.m$coefficients[8] - 0.095  
+#windRisk.m.open.up$coefficients[8]  <- windRisk.m$coefficients[8] + 0.095  
 
 
 # For temperature sum, I have single value: not variabilit over the landscape: 1299.273
@@ -205,14 +195,14 @@ df.all$windRisk <- predict.glm(windRisk.m,
                                      type="response")
 
 # Calculate wind risk for new models:
-df.all$windRisk.open.l <- predict.glm(windRisk.m.open.low,
-                               subset(df.all, select = glm.colnames),
-                               type="response")
+#df.all$windRisk.open.l <- predict.glm(windRisk.m.open.low,
+ #                              subset(df.all, select = glm.colnames),
+#                               type="response")
 
 
-df.all$windRisk.open.u <- predict.glm(windRisk.m.open.up,
-                                      subset(df.all, select = glm.colnames),
-                                      type="response")
+#df.all$windRisk.open.u <- predict.glm(windRisk.m.open.up,
+#                                      subset(df.all, select = glm.colnames),
+#                                      type="response")
 
 range(df.all$windRisk, na.rm = T) # 
 # 2.220446e-16 9.591686e-01
