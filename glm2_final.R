@@ -95,7 +95,7 @@ df.all<-
   mutate(species = case_when(MAIN_SP == 1 ~ "pine",
                              MAIN_SP == 2 ~ "spruce",
                              TRUE ~ "other")) %>% 
-  mutate(H_dom.x = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
+  mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
   mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
   mutate_if(is.character, as.factor)    # convert all characters to factor
 
@@ -206,38 +206,6 @@ range(df.all$windRisk, na.rm = T) #
 range(df.all$windRisk)  # na.rm = T
 
 
-subset(df.all, is.na(windRisk))
-
-subset(df.all, is.na(windRisk))$landscape
-
-# CHecch out what landscapes are problematic?
-
-subset(df.all, is.na(windRisk))$landscape
-#[1] 2056_RF16 2056_RF17 2056_RF18 2056_RF19 2041_RF20
-
-nrow(subset(df.open, landscape == "2056_RF16" & is.na(open_edge)))
-anyNA(df.all$open_edge)
-
-anyNA(df.open$open_edge)
-
-
-length(unique(df.open$id))
-length(unique(df.sim$id))
-length(unique(df.rst$id))
-
-
-range(df.all$windRisk.open.l)
-range(df.all$windRisk.open.u) # using upped limit increases the risk a bit 
-
-# Define three main scenarios: ALL, CCF, RF
-# Recalassify based on scenarion maes into 3 categories: CCF, ALL, RF
-
-df.all <- df.all %>% 
-  mutate(simpleScen = case_when(
-    str_detect(scenario, "not_CCF") ~ "RF",
-    str_detect(scenario, "ALL") ~ "ALL",
-    str_detect(scenario, "CCF") ~ "CCF"))
-
 
 # Add string with indication of the optimla scenarioL: 0-20 from teh SA%
 # --------------------------------------
@@ -255,7 +223,8 @@ df.all <-
 
 
 # Export data
-data.table::fwrite(df.all, "C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
+data.table::fwrite(df.all, 
+                   "C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
 
 
 
