@@ -65,9 +65,10 @@ df.npi <-
   rename(scenario = Type) %>%   # rename Type to scenario
   mutate(scenario = gsub("not_CCF", "RF", scenario)) %>% 
   tidyr::separate(scenario,   # Separate text from the number
-            into = c("simpleScen", "scenNumb"), 
+            into = c("scenSimpl2", "scenNumb"), 
             sep = "(?<=[A-Za-z])(?=[0-9])") %>% 
-  dplyr::select(-TypeSimple)
+  dplyr::select(-TypeSimple) %>% 
+  mutate(scenNumb = as.numeric(scenNumb))
 
 
 
@@ -75,9 +76,17 @@ df.npi <-
 # remove excessive columns from simulated data
 # add NPI & MF values
 # ------------------------------
-
-
-
+df <-
+  df.all %>% 
+  # remove excessive columns
+  dplyr::select(-c(AREA, V_total_deadwood, 
+                DEVEL_CLASS, SC,
+                SOIL_CLASS, MAIN_SP, 
+                name, THIN2,
+                scenario,
+                THIN_filled_lagged,
+                windSpeed, PEAT.v, tempSum)) %>% 
+  left_join(df.npi, by = c("scenSimpl2", "scenNumb"))
 
 
 
