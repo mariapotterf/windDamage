@@ -21,11 +21,15 @@
 
 find_nbrs_geom <- function(sf, ...) {
   
+  require(sf)
+  require(dplyr)
+  
   # create output to store the results
   nbrs.df.ls <- list()
   
   for (i in 1:nrow(sf)) {
-    
+    #sf <- df.geom
+   # i = 5
     one  = sf[i, ]
     left = sf[-i,]
     
@@ -46,8 +50,8 @@ find_nbrs_geom <- function(sf, ...) {
     gap.area <- as.numeric(int.buff.one.area)
     
     # Create output dataframe
-    central   <- one$standid
-    nbrs      <- if(nrow(nbrs.buff) == 0)  (0) else (nbrs.buff$standid) 
+    central   <- one$id
+    nbrs      <- if(nrow(nbrs.buff) == 0)  (0) else (nbrs.buff$id) 
     open_area <- if (length(gap.area) == 0) (0) else (round(gap.area,1))
     
     # Create dataframes
@@ -73,12 +77,17 @@ find_nbrs_geom <- function(sf, ...) {
 # output is a matrix
 open_edge_by_nbrs <- function(nbrs, 
                               df.sim,...) {
+  require(sf)
+  require(dplyr)
   
   # Create list to store the outputs
   nbrs_edge <- list()
   
+  #nbrs <- nbrs[[5]]
+  #df.sim <- land.ls[[5]]
+  
   for (i in seq_along(nbrs)) {
-    
+  #  i = 1
     # get ids of the central stand and neighbors
     central_id <- as.character(unique(nbrs[[i]]$central))
     nbrs_id    <- unique(nbrs[[i]]$nbrs)
@@ -112,9 +121,30 @@ open_edge_by_nbrs <- function(nbrs,
   }
   # Merge into single matrix
   df<- as.data.frame(do.call("rbind", nbrs_edge))
-  names(df) <- c("standid", "open_edge")
+  names(df) <- c("id", "open_edge")
   return(df)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
