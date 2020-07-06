@@ -40,14 +40,11 @@ df.sim <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_sim_opt.csv
 # Read data with calculated open_edge
 df.open <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_landscape_open_edge.csv", 
                         data.table=FALSE)
+df.open <- subset(df.open, select = -c(H_dom))  # remove H+_dom because have different number of decimals than other one and causes problems later
 
 # Read raster derived input variables: average wind, temperature, ...
 df.rst <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm_raster.csv", data.table=FALSE)
 
-
-
-head(df)
-head(df.rst)
 
 # ---------------------------------
 # Merge the optimal simulated dataset, open_edge and raster data
@@ -64,8 +61,10 @@ names(df.rst) <- c("id",
 
 # Merge the datasets
 df <- df.sim %>%
-  left_join(df.open, by = c("id", "landscape", "H_dom")) %>% 
+  left_join(df.open, by = c("id", "landscape")) %>% # , , "H_dom"
   left_join(df.rst, by = ("id")) 
+
+
 
 
 # ---------------------------------------
@@ -96,12 +95,9 @@ df.all<-
   mutate(species = case_when(MAIN_SP == 1 ~ "pine",
                              MAIN_SP == 2 ~ "spruce",
                              TRUE ~ "other")) %>% 
-  mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
+  mutate(H_dom.x = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
   mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
-  mutate_if(is.character, as.factor)   # convert all characters to factor
-  
-
-
+  mutate_if(is.character, as.factor)    # convert all characters to factor
 
 
 # -----------------------------------
@@ -208,6 +204,28 @@ range(df.all$windRisk, na.rm = T) #
 # 2.220446e-16 9.591686e-01
 
 range(df.all$windRisk)  # na.rm = T
+
+
+subset(df.all, is.na(windRisk))
+
+subset(df.all, is.na(windRisk))$landscape
+
+# CHecch out what landscapes are problematic?
+
+subset(df.all, is.na(windRisk))$landscape
+#[1] 2056_RF16 2056_RF17 2056_RF18 2056_RF19 2041_RF20
+
+nrow(subset(df.open, landscape == "2056_RF16" & is.na(open_edge)))
+anyNA(df.all$open_edge)
+
+anyNA(df.open$open_edge)
+
+
+length(unique(df.open$id))
+length(unique(df.sim$id))
+length(unique(df.rst$id))
+
+
 range(df.all$windRisk.open.l)
 range(df.all$windRisk.open.u) # using upped limit increases the risk a bit 
 
