@@ -53,9 +53,12 @@ names(df.geom) <- c("id", "geometry")
 df.geom$area <- st_area(df.geom)
 df.geom <- subset(df.geom, id %in% unique(df.all$id))
 
+# Total area of watershed:
+tot.area = as.numeric(sum(df.geom$area))
+
 
 # Read NPI values:
-
+# -------------------------
 # get the NPVI&NPI values over scenarios 
 df.npi <- fread("C:/MyTemp/avohaakut_db/NPI/MF_NPI.csv")
 
@@ -68,7 +71,7 @@ df.npi <-
             into = c("scenSimpl2", "scenNumb"), 
             sep = "(?<=[A-Za-z])(?=[0-9])") %>% 
   dplyr::select(-TypeSimple) %>% 
-  mutate(scenNumb = as.numeric(scenNumb))
+  mutate(scenNumb = as.numeric(scenNumb)) 
 
 
 
@@ -89,6 +92,9 @@ df <-
   left_join(df.npi, by = c("scenSimpl2", "scenNumb"))
 
 
+# remove original table to save the memory
+rm(df.all)
+
 
 
 # ---------------------
@@ -102,11 +108,151 @@ min(df.geom$area)
 hist(df.geom$area/10000)
 
 
+# Calculate the % of SA and add to table:
+df.SA_prop <-
+  df %>% 
+  group_by(scenSimpl2, scenNumb, avohaakut) %>% 
+  distinct(id) %>% 
+  summarise(stands_n = n()) %>%
+  filter(avohaakut == "SA") %>% 
+  #  head() 
+  mutate(SA_prop = 100* (stands_n / 1470)) %>%
+  dplyr::select(-c(avohaakut))
+  #arrange(scenario) 
+
+# Add SA % (frequency) to the simulated data table
+df <- 
+  df %>% 
+  left_join(df.SA_prop, by = c("scenSimpl2", "scenNumb"))
+
+
+
+# Check if scenario number correspond to NPI level???
+# sample one row from each category as they are duplicates
+df_1<- df %>% 
+  group_by(scenSimpl2, scenNumb) %>% 
+  sample_n(1)
+
+
+
+
+# plot NPI agains scenario number
+ggplot(df_1, aes(x = SA_prop,
+                 y = NPI/tot.area*10,
+                 color = scenSimpl2,
+                 group = scenSimpl2)) +
+  geom_line() +
+  ylab("NPI k€ by ha")
+
+
+
+
+# Check how does the % SA changes with NPI
+# plot NPI agains scenario number
+ggplot(df_1, aes(x = scenNumb,
+                 y = NPI/tot.area*10000,
+                 color = scenSimpl2,
+                 group = scenSimpl2)) +
+  geom_line() +
+  ylab("NPI k € by ha")
+
+
 
 # -------------------------
 #    Visualise results
 # -------------------------
 #
+
+# ------------------------------------------
+# sample the data to speed up visualisation
+# ------------------------------------------
+
+# especially if many points are present
+
+# Sample  random rows:
+set.seed(1)
+sample_row <- sample(1:nrow(df), 100000, replace=F)
+df.sample <- df[sample_row,]
+
+
+# -----------------------------------
+# Plot wind risk over NPI gradient
+# ----------------------------------
+
+# get sum wind risk oevr scenarios
+wind.sum <- aggregate(windRisk ~ scenSimpl2 + scenNumb + NPI, df, sum)
+
+
+# Calculate multiple statistics by groups:
+# min, mean, max
+wind.summary <-
+  df %>% 
+  group_by(scenSimpl2, scenNumb, NPI) %>% 
+  summarise(
+    min = min(windRisk),
+    mean = mean(windRisk),
+    max = max(windRisk),
+    sd = sd(windRisk))
+
+
+library(ggplot2)
+ggplot(wind.summary,
+       aes(x = NPI/tot.area*10,
+           y = mean,
+           group = scenSimpl2,
+           color = scenSimpl2)) +
+  geom_ribbon(aes(x = NPI/tot.area*10,
+                 ymax = mean + sd,
+                 ymin = mean - sd),
+             alpha = 0.3,
+             fill = "grey90",
+             color = "grey90") +
+  geom_line(lwd = 1) +# color = scenSimpl2,
+  facet_grid(.~ scenSimpl2) +
+  xlab("NPI k € by ha") + #  
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90, vjust = 0.5))
+
+
+
+
+# include the min and max as shaded regions:
+# https://stackoverflow.com/questions/25244241/line-plot-with-average-and-shadow-for-min-max 
+TEST <- data.frame(a=c(1,5,7,2), 
+                   b=c(3,8,2,5), 
+                   c=c(6,10,2,1))
+TEST$mean <- rowMeans(TEST)
+
+
+test.t <- transform(TEST, 
+                    Min = pmin(a,b,c), 
+                    Max = pmax(a,b,c), 
+                    indx = seq_len(dim(TEST)[1]))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ggplot(test.t) +
+  geom_line(aes(indx, mean), 
+            group = 1) +
+  geom_ribbon(aes(x = indx, 
+                  ymax = Max, 
+                  ymin = Min), 
+              alpha = 0.6, fill = "skyblue")
+
+
+
 
 # classify regimes in 4 groups:
 # SA, CCF, RF_T, RF_WoT
@@ -301,17 +447,6 @@ df.all %>%
 
 
 
-
-# ------------------------------------------
-# sample the data to speed up visualisation
-# ------------------------------------------
-
-# especially if many points are present
-
-# Sample  random rows:
-set.seed(1)
-sample_row <- sample(1:nrow(df.all), 100000, replace=F)
-df.sample <- df.all[sample_row,]
 
 
 
