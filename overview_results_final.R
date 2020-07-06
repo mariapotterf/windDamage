@@ -28,7 +28,7 @@ df.all <- fread("C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
 df.all <- 
   df.all %>% 
   mutate(twoRegm = case_when(avohaakut == "SA" ~ "SA",
-                           avohaakut != "SA" ~ "no_SA"))
+                             avohaakut != "SA" ~ "no_SA"))
 
 #  -----------------------------------------
 # read stand geometry data
@@ -45,8 +45,6 @@ stands.remove <-c(13243875,
 # Subset stands only for normal H_dom values
 df.all <- subset(df.all, !id %in% stands.remove)
 
-# Area is included in df.all!!! no need to add it from geom data
-
 
 # stands geometry
 df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
@@ -54,6 +52,34 @@ df.geom <- subset(df.geom, select = c("KUVIO_ID"))
 names(df.geom) <- c("id", "geometry")
 df.geom$area <- st_area(df.geom)
 df.geom <- subset(df.geom, id %in% unique(df.all$id))
+
+
+# Read NPI values:
+
+# get the NPVI&NPI values over scenarios 
+df.npi <- fread("C:/MyTemp/avohaakut_db/NPI/MF_NPI.csv")
+
+# reorganize teh data to correspond to simulated scenarios:
+df.npi <- 
+  df.npi %>% 
+  rename(scenario = Type) %>%   # rename Type to scenario
+  mutate(scenario = gsub("not_CCF", "RF", scenario)) %>% 
+  tidyr::separate(scenario,   # Separate text from the number
+            into = c("simpleScen", "scenNumb"), 
+            sep = "(?<=[A-Za-z])(?=[0-9])") %>% 
+  dplyr::select(-TypeSimple)
+
+
+
+# -------------------------------------
+# remove excessive columns from simulated data
+# add NPI & MF values
+# ------------------------------
+
+
+
+
+
 
 
 # ---------------------
@@ -1110,16 +1136,12 @@ table(df.regimes.c$simpleScen, df.regimes.c$avohaakut)
 
 length(unique(df.regimes$id))  # 1470
 
+
 # ---------------------------------------------------
 # What is the sum of wind risk and total NFI value for scenario?
 # --------------------------------------------------
-# get the NPVI&NPI values over scenarios 
-df.npi <- fread("C:/MyTemp/avohaakut_db/NPI/MF_NPI.csv")
 
 
-# Check Kyle;s script: https://gitlab.jyu.fi/kyjoeyvi/multifunctionality_costs/-/blob/master/figures_template.r
-# Wthat the value 2200000 stands for? 
-# does INCOME = NPV/2200000 ???
 
 
 # Is MF the aggregate of the NFa, MFb, MFc, MFd?
