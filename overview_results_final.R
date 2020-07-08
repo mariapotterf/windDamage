@@ -127,6 +127,62 @@ df <-
 
 
 
+# --------------------------------
+# Does any V values (volume) 
+#     have NA values?
+# ---------------------------------
+names(df)
+
+vol_cols <- c("V", 
+              "V_stand_log",
+              "V_stand_pulp",
+              "Harvested_V",
+              "Harvested_V_log_under_bark",
+              "Harvested_V_pulp_under_bark")
+
+for (i in vol_cols){
+  print(i)
+  print(anyNA(df$i))
+}
+
+# Seems that there are no NA values????
+anyNA(df$V)
+anyNA(df$V_stand_log)
+anyNA(df$V_stand_pulp)
+anyNA(df$Harvested_V)
+anyNA(df$Harvested_V_log_under_bark)
+anyNA(df$Harvested_V_pulp_under_bark)
+
+# there are NA values in all other volumes besides basic volume
+# get list of regimes where NA are present?
+df %>% 
+  filter(is.na(Harvested_V_log_under_bark)) %>% 
+  distinct(name_new)
+
+# 
+
+#name_new
+#1: CCF_4_10
+#2: CCF_4_15
+#3: CCF_4_20
+#4: CCF_4_25
+#5: CCF_4_30
+#6: CCF_4_35
+#7: CCF_4_45
+#8:    CCF_4
+#9:  CCF_4_5
+#10:      ROT
+#11: CCF_4_40
+
+# Checlk out the databases if tehre are really NA - yes
+
+# Understand how does the Harvested volume relate to my risk??? if it is harvested,
+# there is not risk?? Maybe I can use the year befor teh volume was harvested to 
+# better relate how much ti,mber is at risk?
+
+
+
+
 # Check if scenario number correspond to NPI level???
 # sample one row from each category as they are duplicates
 df_1<- df %>% 
@@ -212,22 +268,8 @@ ggplot(wind.summary,
   xlab("NPI k € by ha") + #  
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 90, vjust = 0.5))
-
-
-
-
 # include the min and max as shaded regions:
 # https://stackoverflow.com/questions/25244241/line-plot-with-average-and-shadow-for-min-max 
-TEST <- data.frame(a=c(1,5,7,2), 
-                   b=c(3,8,2,5), 
-                   c=c(6,10,2,1))
-TEST$mean <- rowMeans(TEST)
-
-
-test.t <- transform(TEST, 
-                    Min = pmin(a,b,c), 
-                    Max = pmax(a,b,c), 
-                    indx = seq_len(dim(TEST)[1]))
 
 
 
@@ -239,17 +281,202 @@ test.t <- transform(TEST,
 
 
 
+# -------------------------
+# Rescale the V at risk
+# -------------------------
+
+# define teh variables to rescale
+
+maxRisk = 4  # the max % of the windRisk - Suvanto
+ratio_V = 2  # what is the proportion of timber fallwen? let say 1/2 
+
+
+df <-
+  df %>%
+  mutate(rescal_V = V/ratio_V * windRisk/maxRisk)
+
+max(df$V)
+
+df %>% 
+  filter(V > 842) # stand in 2111, 12976980
+
+# Count number of stands with timber volume over 600 m3/ha - but this likely
+# recalculated on area:
+# 271 stands has it
+df %>% 
+  filter(V > 600) %>% 
+  #distinct(avohaakut) %>% 
+  count()
+
+
+# --------------------
+# Plot: does the % of SA increases winf risk?
+# ---------------------
+df %>% 
+  group_by(scenNumb, scenSimpl2) %>% 
+  summarize(rescal_V.mean = mean(rescal_V)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = rescal_V.mean,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line() +
+  xlab("Income") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("Does % of SA increases V at risk?") 
 
 
 
 
-ggplot(test.t) +
-  geom_line(aes(indx, mean), 
-            group = 1) +
-  geom_ribbon(aes(x = indx, 
-                  ymax = Max, 
-                  ymin = Min), 
-              alpha = 0.6, fill = "skyblue")
+# -------------------------------
+# Get the harvested volume over SA gradient:
+# -------------------------------
+
+# List Volumes to explore:
+
+vol_cols <- c("V", 
+              "V_stand_log",
+              "V_stand_pulp",
+              "Harvested_V",
+              "Harvested_V_log_under_bark",
+              "Harvested_V_pulp_under_bark")
+
+
+
+df %>% 
+  group_by(scenNumb, scenSimpl2, NPI) %>% 
+  summarize(V.mean = sum(Harvested_V, na.rm = T)) %>% 
+  ggplot(aes(x = NPI,
+             y = V.mean,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line(lwd = 1)# +
+  xlab("Income") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("Harvested_V_sum") + 
+  ylim(0,150)
+
+
+
+# MAke function to plot different y values
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ---------------------
+# Timber volume
+# ---------------------
+
+V.p <- df %>% 
+  group_by(scenNumb, scenSimpl2) %>% 
+  summarize(V.mean = mean(V)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = V.mean,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line(lwd = 1) +
+  xlab("Income") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("V total") + 
+  ylim(0,350)
+
+
+# ---------------------
+# V.pulp
+# -------------------
+pulp.p <- df %>% 
+  group_by(scenNumb, scenSimpl2) %>% 
+  summarize(V.pulp.mean = mean(V_stand_pulp)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = V.pulp.mean,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line(lwd = 1) +
+  xlab("Income") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("V pulp") + 
+  ylim(0,200)
+
+
+# ---------------------
+# V.log
+# -------------------
+
+log.p <-
+  df %>% 
+  group_by(scenNumb, scenSimpl2) %>% 
+  summarize(V.log.mean = mean(V_stand_log)) %>% 
+  ggplot(aes(x = factor(scenNumb),
+             y = V.log.mean,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line(lwd = 1) +
+  xlab("Income") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("Log V") + 
+  ylim(0,200)
+
+
+#V.harv.log.p <-
+# have NA values!!! replace by 0?? 
+df %>% 
+  group_by(scenNumb, scenSimpl2, NPI) %>% 
+  summarize(V.harv.log.mean = mean(Harvested_V_log_under_bark, na.rm = T))# %>% 
+  #ungroup() +
+  ggplot(aes(x = NPI,
+             y = V.harv.log.mean,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line(lwd = 1) +
+  xlab("Income") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("Log V") + 
+  ylim(0,200)
+
+  
+  # finnalize the harvested volume!! why I have NA values??
+
+
+#
+windows()
+grid.arrange(#V.p,
+  pulp.p,
+  log.p,
+  nrow = 1, ncol = 2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -498,122 +725,6 @@ ggplot(df.sample,
 
 
 
-
-
-# -------------------------
-# Rescale the V at risk
-# -------------------------
-
-# define teh variables to rescale
-
-maxRisk = 4  # the max % of the windRisk - Suvanto
-ratio_V = 2  # what is the proportion of timber fallwen? let say 1/2 
-
-
-df.all <-
-  df.all %>%
-  mutate(rescal_V = V/ratio_V * windRisk/maxRisk)
-
-max(df.all$V)
-
-df.all %>% 
-  filter(V > 842) # stand in 2111, 12976980
-
-# Count number of stands with timber volume over 600 m3/ha - but this likely
-# recalculated on area:
-# 271 stands has it
-df.all %>% 
-  filter(V > 600) %>% 
-  #distinct(avohaakut) %>% 
-  count()
-
-
-# --------------------
-# Plot: does the % of SA increases winf risk?
-# ---------------------
-df.all %>% 
-  group_by(scenNumb, scenSimpl2) %>% 
-  summarize(rescal_V.mean = mean(rescal_V)) %>% 
-  ggplot(aes(x = factor(scenNumb),
-             y = rescal_V.mean,
-             color = scenSimpl2,
-             group = scenSimpl2)) + # ,
-  geom_line() +
-  xlab("Income") + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
-        legend.position = "bottom") +
-  ggtitle("Does % of SA increases V at risk?") 
-
-
-# ---------------------
-# Timber volume
-# ---------------------
-
-V.p <- df.all %>% 
-  group_by(scenNumb, scenSimpl2) %>% 
-  summarize(V.mean = mean(V)) %>% 
-  ggplot(aes(x = factor(scenNumb),
-             y = V.mean,
-             color = scenSimpl2,
-             group = scenSimpl2)) + # ,
-  geom_line(lwd = 1) +
-  xlab("Income") + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
-        legend.position = "bottom") +
-  ggtitle("V total") + 
-  ylim(0,350)
-
-
-# CHeck V_stand_log and V_stand_pulp values
-# Contins NA values - replace by 0
-df.all$V_stand_log[is.na(df.all$V_stand_log)] <- 0
-df.all$V_stand_pulp[is.na(df.all$V_stand_pulp)] <- 0
-
-# ---------------------
-# V.pulp
-# -------------------
-pulp.p <- df.all %>% 
-  group_by(scenNumb, scenSimpl2) %>% 
-  summarize(V.pulp.mean = mean(V_stand_pulp)) %>% 
-  ggplot(aes(x = factor(scenNumb),
-             y = V.pulp.mean,
-             color = scenSimpl2,
-             group = scenSimpl2)) + # ,
-  geom_line(lwd = 1) +
-  xlab("Income") + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
-        legend.position = "bottom") +
-  ggtitle("V pulp") + 
-  ylim(0,200)
-
-
-# ---------------------
-# V.log
-# -------------------
-
-log.p <-
-  df.all %>% 
-  group_by(scenNumb, scenSimpl2) %>% 
-  summarize(V.log.mean = mean(V_stand_log)) %>% 
-  ggplot(aes(x = factor(scenNumb),
-             y = V.log.mean,
-             color = scenSimpl2,
-             group = scenSimpl2)) + # ,
-  geom_line(lwd = 1) +
-  xlab("Income") + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
-        legend.position = "bottom") +
-  ggtitle("Log V") + 
-  ylim(0,200)
-
-
-
-#
-windows()
-grid.arrange(#V.p,
-             pulp.p,
-             log.p,
-             nrow = 1, ncol = 2)
 
 
 
