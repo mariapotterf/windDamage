@@ -115,10 +115,9 @@ df.SA_prop <-
   distinct(id) %>% 
   summarise(stands_n = n()) %>%
   filter(avohaakut == "SA") %>% 
-  #  head() 
   mutate(SA_prop = 100* (stands_n / 1470)) %>%
   dplyr::select(-c(avohaakut))
-  #arrange(scenario) 
+  
 
 # Add SA % (frequency) to the simulated data table
 df <- 
@@ -126,11 +125,9 @@ df <-
   left_join(df.SA_prop, by = c("scenSimpl2", "scenNumb"))
 
 
-
-# --------------------------------
-# Does any V values (volume) 
-#     have NA values?
-# ---------------------------------
+# -----------------------------------------
+# Visualize volume dynamics over scenarios
+# -----------------------------------------
 names(df)
 
 vol_cols <- c("V", 
@@ -142,82 +139,57 @@ vol_cols <- c("V",
 
 for (i in vol_cols){
   print(i)
-  print(anyNA(df$i))
+  print(anyNA(df[[i]]))
 }
 
-# Seems that there are no NA values????
-anyNA(df$V)
-anyNA(df$V_stand_log)
-anyNA(df$V_stand_pulp)
-anyNA(df$Harvested_V)
-anyNA(df$Harvested_V_log_under_bark)
-anyNA(df$Harvested_V_pulp_under_bark)
 
-# there are NA values in all other volumes besides basic volume
-# get list of regimes where NA are present?
-df %>% 
-  filter(is.na(Harvested_V_log_under_bark)) %>% 
-  distinct(name_new)
+# -------------------------------------------
+# plot sum of different volumes over x
+# -------------------------------------------
+# For harvested V - calculate sum, as this is not measured every time,
+# otherwise calculate mean or max???
 
-# 
+V_mean          <- aggregate(V ~ scenSimpl2 +  NPI, df, mean)
+V_st_log_mean   <- aggregate(V_stand_log ~ scenSimpl2 +  NPI, df, mean)
+V_st_pulp_mean  <- aggregate(V_stand_pulp ~ scenSimpl2 +  NPI, df, mean)
 
-#name_new
-#1: CCF_4_10
-#2: CCF_4_15
-#3: CCF_4_20
-#4: CCF_4_25
-#5: CCF_4_30
-#6: CCF_4_35
-#7: CCF_4_45
-#8:    CCF_4
-#9:  CCF_4_5
-#10:      ROT
-#11: CCF_4_40
+V_harv_sum      <- aggregate(Harvested_V ~ scenSimpl2 +  NPI, df, sum)
+V_harv_log_sum  <- aggregate(Harvested_V_log_under_bark ~  scenSimpl2 +  NPI, df, sum)
+V_harv_pupl_sum <- aggregate(Harvested_V_pulp_under_bark ~  scenSimpl2 +  NPI, df, sum)
 
-# Checlk out the databases if tehre are really NA - yes
 
-# Understand how does the Harvested volume relate to my risk??? if it is harvested,
-# there is not risk?? Maybe I can use the year befor teh volume was harvested to 
-# better relate how much ti,mber is at risk?
+# Merge data into one table
+all.V <- V_mean %>% 
+  left_join(V_st_log_mean) %>% 
+  left_join(V_st_pulp_mean) %>% 
+  left_join(V_harv_sum) %>% 
+  left_join(V_harv_log_sum) %>% 
+  left_join(V_harv_pupl_sum)
 
 
 
-
-# Check if scenario number correspond to NPI level???
-# sample one row from each category as they are duplicates
-df_1<- df %>% 
-  group_by(scenSimpl2, scenNumb) %>% 
-  sample_n(1)
-
-
-
-
-# plot NPI agains scenario number
-ggplot(df_1, aes(x = SA_prop,
-                 y = NPI/tot.area*10,
-                 color = scenSimpl2,
-                 group = scenSimpl2)) +
+# Plot all values
+Plotfunction <- function(y){
+  my.plot <- 
+  ggplot(all.V, aes_string(x = "NPI",
+                        y = y,
+                        group = "scenSimpl2",
+                        color = "scenSimpl2")) +
   geom_line() +
-  ylab("NPI k€ by ha")
+    theme(legend.position = "none")
+    }
+
+
+
+do.call("grid.arrange",
+        c(lapply(vol_cols, Plotfunction), 
+          ncol = 3,
+          nrow = 2))
 
 
 
 
-# Check how does the % SA changes with NPI
-# plot NPI agains scenario number
-ggplot(df_1, aes(x = scenNumb,
-                 y = NPI/tot.area*10000,
-                 color = scenSimpl2,
-                 group = scenSimpl2)) +
-  geom_line() +
-  ylab("NPI k € by ha")
 
-
-
-# -------------------------
-#    Visualise results
-# -------------------------
-#
 
 # ------------------------------------------
 # sample the data to speed up visualisation
@@ -282,7 +254,7 @@ ggplot(wind.summary,
 
 
 # -------------------------
-# Rescale the V at risk
+# Rescale the Volume (V) at risk
 # -------------------------
 
 # define teh variables to rescale
@@ -359,20 +331,73 @@ df %>%
 
 
 
-# MAke function to plot different y values
+# MAke function to plot different y values:
+# --------------------------------  
+  # Dion't know how to do it
+  # 
   
+set.seed(5)
+df <- data.frame(x = rep(c(1:5), 2),
+                 y1 = rnorm(10)*3+2,
+                 y2 = rnorm(10),
+                 group = rep(c("a", "b"), each = 5))  
+
+
+p.y2<- ggplot(df, aes(x = x,
+              y = y2,
+              group = group,
+              color = group)) +
+  geom_line()
+p.y1<- ggplot(df, aes(x = x,
+                      y = y1,
+                      group = group,
+                      color = group)) +
+  geom_line()
+
+grid.arrange(p.y1, p.y2)
+
+
+# vector of my Y
+my.s<-c("y1", "y2")
+
+windows(par(mfrow = c(2,1)))
+# Loop over list of y to create different plots
+outPlots<- list()
+for (i in my.s) {
+  print(i)
+  my.plot <- 
+    ggplot(df, aes_string(x = "x",
+                          y = i,
+                          group = "group",
+                          color = "group")) +
+    geom_line()
+ # print(plot)
+  outPlots <- append(outPlots, my.plot)
+}
+
+class(outPlots) 
+
+
+
+# Stack overflow
+library(reshape2)
+df.melt <- melt(df, id.vars = c('x', 'group'))
+
+
+ggplot(df.melt,
+       aes(x=x,
+           y=value,
+           group=group,
+           color=group))+
+  geom_line()+
+  facet_wrap(~variable,ncol = 1,scales = 'free')+theme_bw()
 
 
 
 
-
-
-
-
-
-
-
-
+# Other example: using plto function
+# ------------------------------
+  
 
 # ---------------------
 # Timber volume
