@@ -20,8 +20,8 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
                                              size = 0.1,
                                              linetype = 2))
 
-
 # Read datasets:
+# ----------------------------------------
 df.all <- fread("C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
 
 # Create two regimes: SA and non-SA"
@@ -71,7 +71,8 @@ df.npi <-
             into = c("scenSimpl2", "scenNumb"), 
             sep = "(?<=[A-Za-z])(?=[0-9])") %>% 
   dplyr::select(-TypeSimple) %>% 
-  mutate(scenNumb = as.numeric(scenNumb)) 
+  mutate(scenNumb = as.numeric(scenNumb)) %>% 
+  mutate(NPI = NPI/tot.area*10)   # change the values to corresponds Kyle's values
 
 
 
@@ -97,6 +98,7 @@ rm(df.all)
 
 
 
+# Complete factors:
 # ---------------------
 # CHaracterize stands extends:
 # ---------------------
@@ -117,12 +119,17 @@ df.SA_prop <-
   filter(avohaakut == "SA") %>% 
   mutate(SA_prop = 100* (stands_n / 1470)) %>%
   dplyr::select(-c(avohaakut))
-  
+
 
 # Add SA % (frequency) to the simulated data table
 df <- 
   df %>% 
   left_join(df.SA_prop, by = c("scenSimpl2", "scenNumb"))
+
+# export simplified table
+
+fwrite(df, "output/final_df.csv")
+
 
 
 # -----------------------------------------
@@ -137,6 +144,8 @@ vol_cols <- c("V",
               "Harvested_V_log_under_bark",
               "Harvested_V_pulp_under_bark")
 
+
+# Check which Volume characteristics contains NA values??
 for (i in vol_cols){
   print(i)
   print(anyNA(df[[i]]))
@@ -167,25 +176,55 @@ all.V <- V_mean %>%
   left_join(V_harv_pupl_sum)
 
 
+# Try to melt the data???
+all.V_melt <- reshape2::melt(all.V, id.vars = c('NPI', 'scenSimpl2'))
 
-# Plot all values
-Plotfunction <- function(y){
-  my.plot <- 
-  ggplot(all.V, aes_string(x = "NPI",
-                        y = y,
-                        group = "scenSimpl2",
-                        color = "scenSimpl2")) +
-  geom_line() +
-    theme(legend.position = "none")
-    }
+# Add new variable: stand or harvested
+all.V_melt <- all.V_melt %>% 
+  mutate(type = case_when(
+    stringr::str_detect(variable, "Harvested_V") ~ "harvested",
+   TRUE ~ "stand"))
 
 
 
-do.call("grid.arrange",
-        c(lapply(vol_cols, Plotfunction), 
-          ncol = 3,
-          nrow = 2))
+# Create two plots, merge later into one
+p.stand <- 
+  all.V_melt %>% 
+  filter(type == "stand" & variable != "V") %>% 
+  ggplot(aes(x = NPI,
+                       y = value,
+                       group = scenSimpl2,
+                       color = scenSimpl2)) +
+  geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("mean stand volume") +
+  facet_wrap(.~ variable) 
 
+
+
+p.harvested <- 
+  all.V_melt %>% 
+  filter(type == "harvested" & variable != "Harvested_V") %>% 
+  ggplot(aes(x = NPI,
+             y = value/10000,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+  geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("sum harvested volume (*1000)") +
+  facet_wrap(.~ variable) 
+
+
+
+ggarrange(p.stand, p.harvested, ncol = 1, nrow = 2,
+          common.legend = TRUE, legend="bottom")
+
+
+
+# --------------------------------
+# make plots individually to allow 
+# control for the y lims - same for STAND and for harvested volume
+# --------------------------------
 
 
 

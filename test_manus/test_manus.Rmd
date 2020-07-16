@@ -1,0 +1,254 @@
+---
+title: How restrictions of forest management affect landscape level wind damage risk
+author:
+  - name: 'Mária Potterf Kyle Eyvindson'
+    email: mpotterf@jyu.fi
+    affiliation: group1  
+    footnote: 1
+  - name: Kyle Eyvindson
+    email: kyle.j.eyvindson@jyu.fi
+    affiliation: Department of Biological and Environmental Science
+  - name: Clemens Blattert 
+    email: clemens.c.blattert@jyu.fi
+    affiliation: Department of Biological and Environmental Science
+   # footnote: 2
+  - name: Mikko Mönkkönen
+    email: mikko.monkkonen@jyu.fi
+    affiliation: Department of Biological and Environmental Science
+   # footnote: 2
+address:
+  - code: group1
+    address: Department of Biological and Environmental Science, University of Jyvaskyla, P.O. Box 35, FI-40014 Jyvaskyla, Finland
+  - code: LUKE
+    address: THIS is Luke address Department, Street, City, State, Zip
+footnote:
+  - code: 1
+    text: "Corresponding Author"
+  - #code: 2
+    #text: "Equal contribution"
+abstract: |
+  The current forest management seeks to reconside timber harvesting while aim to improve forest diversity and halt biodiversity loss. Noveal approaches inclusing optimal forest management, increasing proportion of set-aside forest stand or novel management approaches such as continuous forest cover emerges. However, ongoing climate change will challenge stability of forest ecosystem, and test the resilience of stands shaped by management regimes under multiple climatic disruptions, such as windthrows. To understand how does the traditienal (rotation forestry) vs. novel forest managements techniques (continuous cover forest) alternate the risk of wind damage over the landscape under the increasing harvesting levels, we  combined the forest growth simulator, optimal forest management and estimated landscape levels wind damage risks. Specifically, we 
+  
+
+  It consists of two paragraphs.
+
+journal: "Forest Ecology and Management"
+date: "`r Sys.Date()`"
+bibliography: mybibfile.bib
+#linenumbers: true
+#numbersections: true
+csl: elsevier-harvard.csl
+#output: rticles::elsevier_article
+output: word_document
+---
+
+_Text based on elsarticle sample manuscript, see [http://www.elsevier.com/author-schemas/latex-instructions#elsarticle](http://www.elsevier.com/author-schemas/latex-instructions#elsarticle)_
+
+
+The Elsevier article class
+==========================
+
+#### Installation
+
+If the document class *elsarticle* is not available on your computer,
+you can download and install the system package *texlive-publishers*
+(Linux) or install the LaTeX package *elsarticle* using the package
+manager of your TeX installation, which is typically TeX Live or MikTeX.
+
+#### Usage
+
+Once the package is properly installed, you can use the document class
+*elsarticle* to create a manuscript. Please make sure that your
+manuscript follows the guidelines in the Guide for Authors of the
+relevant journal. It is not necessary to typeset your manuscript in
+exactly the same way as an article, unless you are submitting to a
+camera-ready copy (CRC) journal.
+
+#### Functionality
+
+The Elsevier article class is based on the standard article class and
+supports almost all of the functionality of that class. In addition, it
+features commands and options to format the
+
+-   document style
+
+-   baselineskip
+
+-   front matter
+
+-   keywords and MSC codes
+
+-   theorems, definitions and proofs
+
+-   lables of enumerations
+
+-   citation style and labeling.
+
+Front matter
+============
+
+The author names and affiliations could be formatted in two ways:
+
+(1) Group the authors per affiliation.
+
+(2) Use footnotes to indicate the affiliations.
+
+See the front matter of this document for examples. You are recommended
+to conform your choice to the journal you are submitting to.
+
+Bibliography styles
+===================
+your choice in the preamble of this document. These styles are
+Elsevier style
+There are various bibliography styles available. You can select the
+style of s based on standard styles like Harvard and Vancouver.
+Please use BibTeX to generate your bibliography and include DOIs
+whenever available.
+
+
+And here are my references: (long loading from Mendeley: export-> bibtext) @Feynman1963118
+
+this was said in @Dirac1953888 
+
+```{r process_input_data, eval = T, echo = F, warning = F, message = F, include = F}
+# 
+rm(list = ls())
+
+# , eval = FALSE
+library(data.table)
+library(dplyr)
+library(raster)
+library(ggplot2)
+library(sf)
+library(stringr)
+library(gridExtra)
+library(tidyr)
+library(ggpubr)
+
+
+theme_set(theme_classic())
+theme_update(panel.grid.major = element_line(colour = "grey95",
+                                             size = 0.1,
+                                             linetype = 2))
+
+# Read datasets:
+# ----------------------------------------
+df <- fread("C:/MyTemp/myGitLab/windDamage/output/final_df.csv")
+
+# stands geometry
+df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.shp")
+df.geom <- subset(df.geom, select = c("KUVIO_ID"))
+names(df.geom) <- c("id", "geometry")
+df.geom$area <- st_area(df.geom)
+df.geom <- subset(df.geom, id %in% unique(df$id))
+
+# Total area of watershed:
+tot.area = as.numeric(sum(df.geom$area))
+
+
+
+# Complete factors:
+# ---------------------
+# CHaracterize stands extends:
+# ---------------------
+length(unique(df.geom$area))
+mean(df.geom$area)
+max(df.geom$area)
+min(df.geom$area)
+
+hist(df.geom$area/10000)
+
+
+# -----------------------------------------
+# Visualize volume dynamics over scenarios
+# -----------------------------------------
+names(df)
+
+vol_cols <- c("V", 
+              "V_stand_log",
+              "V_stand_pulp",
+              "Harvested_V",
+              "Harvested_V_log_under_bark",
+              "Harvested_V_pulp_under_bark")
+
+
+
+
+# -------------------------------------------
+# plot sum of different volumes over x
+# -------------------------------------------
+# For harvested V - calculate sum, as this is not measured every time,
+# otherwise calculate mean or max???
+
+V_mean          <- aggregate(V ~ scenSimpl2 +  NPI, df, mean)
+V_st_log_mean   <- aggregate(V_stand_log ~ scenSimpl2 +  NPI, df, mean)
+V_st_pulp_mean  <- aggregate(V_stand_pulp ~ scenSimpl2 +  NPI, df, mean)
+
+V_harv_sum      <- aggregate(Harvested_V ~ scenSimpl2 +  NPI, df, sum)
+V_harv_log_sum  <- aggregate(Harvested_V_log_under_bark ~  scenSimpl2 +  NPI, df, sum)
+V_harv_pupl_sum <- aggregate(Harvested_V_pulp_under_bark ~  scenSimpl2 +  NPI, df, sum)
+
+
+# Merge data into one table
+all.V <- V_mean %>% 
+  left_join(V_st_log_mean) %>% 
+  left_join(V_st_pulp_mean) %>% 
+  left_join(V_harv_sum) %>% 
+  left_join(V_harv_log_sum) %>% 
+  left_join(V_harv_pupl_sum)
+
+
+# Try to melt the data???
+all.V_melt <- reshape2::melt(all.V, id.vars = c('NPI', 'scenSimpl2'))
+
+# Add new variable: stand or harvested
+all.V_melt <- all.V_melt %>% 
+  mutate(type = case_when(
+    stringr::str_detect(variable, "Harvested_V") ~ "harvested",
+   TRUE ~ "stand"))
+
+
+
+# Create two plots, merge later into one
+p.stand <- 
+  all.V_melt %>% 
+  filter(type == "stand" & variable != "V") %>% 
+  ggplot(aes(x = NPI,
+                       y = value,
+                       group = scenSimpl2,
+                       color = scenSimpl2)) +
+  geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("mean stand volume") +
+  facet_wrap(.~ variable) 
+
+
+
+p.harvested <- 
+  all.V_melt %>% 
+  filter(type == "harvested" & variable != "Harvested_V") %>% 
+  ggplot(aes(x = NPI,
+             y = value/10000,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+  geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("sum harvested volume (*1000)") +
+  facet_wrap(.~ variable) 
+
+
+
+```
+ HERE i ADD THE TEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEX
+
+```{r plot_V_timber,}
+ggarrange(p.stand, p.harvested, ncol = 1, nrow = 2,
+          common.legend = TRUE, legend="bottom")
+```
+
+# Close chunk
+
+# rESULTS
+
+References {#references .unnumbered}
+==========
