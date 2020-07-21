@@ -240,7 +240,7 @@ df %>%
 
 
 # --------------------
-# Plot: does the % of SA increases winf risk?
+# Plot: does the % of SA increases wind risk?
 # ---------------------
 df %>% 
   group_by(scenNumb, scenSimpl2) %>% 
@@ -257,19 +257,6 @@ df %>%
 
 
 
-
-# -------------------------------
-# Get the harvested volume over SA gradient:
-# -------------------------------
-
-# List Volumes to explore:
-
-vol_cols <- c("V", 
-              "V_stand_log",
-              "V_stand_pulp",
-              "Harvested_V",
-              "Harvested_V_log_under_bark",
-              "Harvested_V_pulp_under_bark")
 
 
 
@@ -289,73 +276,7 @@ df %>%
 
 
 
-# MAke function to plot different y values:
-# --------------------------------  
-  # Dion't know how to do it
-  # 
-  
-set.seed(5)
-df <- data.frame(x = rep(c(1:5), 2),
-                 y1 = rnorm(10)*3+2,
-                 y2 = rnorm(10),
-                 group = rep(c("a", "b"), each = 5))  
 
-
-p.y2<- ggplot(df, aes(x = x,
-              y = y2,
-              group = group,
-              color = group)) +
-  geom_line()
-p.y1<- ggplot(df, aes(x = x,
-                      y = y1,
-                      group = group,
-                      color = group)) +
-  geom_line()
-
-grid.arrange(p.y1, p.y2)
-
-
-# vector of my Y
-my.s<-c("y1", "y2")
-
-windows(par(mfrow = c(2,1)))
-# Loop over list of y to create different plots
-outPlots<- list()
-for (i in my.s) {
-  print(i)
-  my.plot <- 
-    ggplot(df, aes_string(x = "x",
-                          y = i,
-                          group = "group",
-                          color = "group")) +
-    geom_line()
- # print(plot)
-  outPlots <- append(outPlots, my.plot)
-}
-
-class(outPlots) 
-
-
-
-# Stack overflow
-library(reshape2)
-df.melt <- melt(df, id.vars = c('x', 'group'))
-
-
-ggplot(df.melt,
-       aes(x=x,
-           y=value,
-           group=group,
-           color=group))+
-  geom_line()+
-  facet_wrap(~variable,ncol = 1,scales = 'free')+theme_bw()
-
-
-
-
-# Other example: using plto function
-# ------------------------------
-  
 
 # ---------------------
 # Timber volume
@@ -477,14 +398,14 @@ grid.arrange(#V.p,
 # Species composition change: 2016 to 2011
 # ----------------------------------
 # Get histograms by tree species, age and BA in 2016:
-df.2016 <- df.all %>% 
+df.2016 <- df %>% 
   filter(year == 2016)
 
 
 
 # Check by landscapes:
 window(8,4)
-df.all %>% 
+df %>% 
   filter(year == 2016) %>% 
   ggplot(aes(species,
              fill = species)) +
@@ -495,7 +416,7 @@ df.all %>%
 
 # Did management changed stand composition at the end??
 windows(8, 4)
-df.all %>% 
+df %>% 
   filter(year == 2111) %>%
   ggplot( aes(species,
               fill = species)) +
@@ -510,7 +431,7 @@ df.all %>%
 # Get sum of area by species
 # In 2016
 windows(8, 4)
-df.all %>% 
+df %>% 
   group_by(scenSimpl2, scenNumb, species, year) %>% 
   summarise(sumAreaS = sum(area)) %>% 
   filter(year == 2016)  %>% 
@@ -525,7 +446,7 @@ df.all %>%
 
 # In 2111
 windows(8, 4)
-df.all %>% 
+df %>% 
   group_by(scenSimpl2, scenNumb, species, year) %>% 
   summarise(sumAreaS = sum(area)) %>% 
   filter(year == 2111)  %>% 
@@ -542,7 +463,7 @@ df.all %>%
 
 # Check counts of open_edge???
 windows(8, 4)
-df.all %>% 
+df %>% 
   group_by(scenSimpl2, scenNumb, open_edge, year) %>% 
   summarise(sumAreaS = sum(area)) %>% 
   filter(year == 2016)  %>% 
@@ -556,7 +477,7 @@ df.all %>%
 
 
 windows(8, 4)
-df.all %>% 
+df %>% 
   group_by(scenSimpl2, scenNumb, open_edge, year) %>% 
   summarise(sumAreaS = sum(area)) %>% 
   filter(year == 2016 & open_edge == FALSE)  %>% 
@@ -579,12 +500,12 @@ df.all %>%
 
 
 # How often h_dom 0 occurs??? difference between CF, RF, ALL?
-min(df.all$H_dom) # 0.001
+min(df$H_dom) # 0.001
 
 
-mu = aggregate(H_dom ~ scenSimpl2, df.all, mean)
+mu = aggregate(H_dom ~ scenSimpl2, df, mean)
   
-df.all %>% 
+df %>% 
   ggplot(aes(H_dom,
              group = scenSimpl2,
              fill = scenSimpl2,
@@ -600,8 +521,8 @@ df.all %>%
 
 
 
-df.all %>% 
-  filter(H_dom == min(df.all$H_dom)) %>% 
+df %>% 
+  filter(H_dom == min(df$H_dom)) %>% 
   group_by(scenSimpl2, scenNumb, year) %>% 
   #filter(open_edge == FALSE) %>% 
   tally() %>% 
@@ -628,7 +549,7 @@ df.all %>%
 
 # Plot open_edge FALSE = (closed stand) over SA %
 # ---------------------
-df.all %>% 
+df %>% 
   group_by(scenSimpl2, scenNumb, open_edge, year) %>% 
   filter(open_edge == TRUE) %>% 
   tally() %>% 
@@ -677,7 +598,7 @@ boxplot(df.sample)
 
 
 # How does scenarios (63) differ in term of wind risk???
-# df.all
+# df
 
 # Over the years:
 ggplot(df.sample, 
@@ -725,9 +646,9 @@ ggplot(df.sample,
 
 
 
-range(df.all$V)
+range(df$V)
 
-hist(df.all$V)
+hist(df$V)
 
 
 # What is the amount of timber volume at risk???
@@ -758,7 +679,7 @@ df.sample %>%
 
 # How does the % of SA affect windRisk???
 # Calculate teh wind risk by scenario oevr time and plot with the freq data
-risk.mean <- aggregate(windRisk ~ scenNumb + scenSimpl2, df.all, mean)
+risk.mean <- aggregate(windRisk ~ scenNumb + scenSimpl2, df, mean)
 
 ggplot(risk.mean, 
        aes(x = factor(scenNumb),
@@ -781,7 +702,7 @@ ggplot(risk.mean,
 # Count the number of stands with SA regime
 # --------------------------------------------
 prop.regimes<-
-  df.all %>% 
+  df %>% 
   group_by(scenario, avohaakut) %>% 
   distinct(id) %>% 
   summarise(stands_n = n()) %>%
@@ -794,7 +715,7 @@ prop.regimes<-
   
 # Get teh proportion of SA by the each scenario??
 sa.share <- 
-  df.all %>% 
+  df %>% 
   group_by(scenSimpl2,scenNumb, avohaakut) %>% 
   distinct(id) %>% 
   summarise(stands_n = n()) %>%
@@ -814,7 +735,7 @@ write.csv(sa.share, "output/SA_share.csv")
 
 # Calculate how many different regimes are by each scenario:
 regime.n <-
-  df.all %>% 
+  df %>% 
   group_by(scenario) %>% 
   distinct(avohaakut) %>% 
   summarise(regimes_n = n()) %>%
@@ -846,12 +767,12 @@ SA.perc <-
 
 # Check if the regimes couls are correct:
 # ALL11 should have 48 avohaakut regimes 
-unique(subset(df.all, scenario == "ALL11")$avohaakut)
+unique(subset(df, scenario == "ALL11")$avohaakut)
 
 
 # How does the % of SA affect windRisk???
 # Calculate teh wind risk by scenario oevr time and plot with the freq data
-risk.mean <- aggregate(windRisk ~ scenario + year, df.all, mean)
+risk.mean <- aggregate(windRisk ~ scenario + year, df, mean)
 
 
 # join the SA% data:
@@ -894,7 +815,7 @@ ggplot(risk.mean,
 # ---------------------------------------
 # How does the H_dom changes over year???
 # Increases, less variability in RF and with the lower % of the SA
-ggplot(df.all, 
+ggplot(df, 
        aes(x = factor(year),  # % of stands with SA
            y = H_dom,
            group = factor(year))) +
@@ -903,7 +824,7 @@ ggplot(df.all,
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
-ggplot(df.all, 
+ggplot(df, 
        aes(x = factor(scenNumb),
            y = H_dom,
            fill = factor(scenSimpl2))) + # ,
@@ -915,7 +836,7 @@ ggplot(df.all,
 
 # What about BA?
 # also increases over years
-ggplot(df.all, 
+ggplot(df, 
        aes(x = year,  # % of stands with SA
            y = BA,
            group = year)) +
@@ -925,7 +846,7 @@ ggplot(df.all,
 
 
 # BA
-ggplot(df.all, 
+ggplot(df, 
        aes(x = factor(scenNumb),
            y = BA,
            fill = factor(scenSimpl2))) + # ,
@@ -935,7 +856,7 @@ ggplot(df.all,
 
 
 # Volume
-ggplot(df.all, 
+ggplot(df, 
        aes(x = factor(scenNumb),
            y = V,
            fill = factor(scenSimpl2))) + # ,
@@ -946,7 +867,7 @@ ggplot(df.all,
 
 
 # Diameter: D_gm
-ggplot(df.all, 
+ggplot(df, 
        aes(x = factor(scenNumb),
            y = D_gm,
            fill = factor(scenSimpl2))) + # ,
@@ -975,7 +896,7 @@ ggplot(df.sample,
 
 # High variability in RF forestry, chack which one it is?
 
-ggplot(subset(df.all, simpleScen == "RF" & avohaakut != "SA" ), 
+ggplot(subset(df, simpleScen == "RF" & avohaakut != "SA" ), 
        aes(x = avohaakut ,  # % of stands with SA
            y = windRisk,
            group = avohaakut)) +
@@ -984,7 +905,7 @@ ggplot(subset(df.all, simpleScen == "RF" & avohaakut != "SA" ),
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
-ggplot(subset(df.all, simpleScen == "RF" & avohaakut != "SA" ), 
+ggplot(subset(df, simpleScen == "RF" & avohaakut != "SA" ), 
        aes(x = avohaakut ,  # % of stands with SA
            y = windRisk,
            group = avohaakut)) +
@@ -1009,7 +930,7 @@ ggplot(df.sample, aes(y = windRisk,
   facet_grid(.~year)
 
 # what is the trend over SA gradient? the difference in windRisk between SA and non-SA regimes:
-risk.mean <- aggregate(windRisk ~ scenNumb + scenSimpl2 + twoRegm, df.all, mean)
+risk.mean <- aggregate(windRisk ~ scenNumb + scenSimpl2 + twoRegm, df, mean)
 
 ggplot(risk.mean, 
        aes(x = factor(scenNumb),
@@ -1029,7 +950,7 @@ ggplot(risk.mean,
 
 # Very variable, bude definitely trends between CCF and RF
 # What is the situation of teh SA
-ggplot(subset(df.all, avohaakut == "SA"), 
+ggplot(subset(df, avohaakut == "SA"), 
        aes(x = year ,  # % of stands with SA
            y = windRisk,
            group = year)) +
@@ -1052,7 +973,7 @@ ggplot(subset(df.all, avohaakut == "SA"),
 
 # Calculate mean by stand and 4 alternatives by year, mean not sum beacsue I have more 
 # CCFs then RF
-df.mean <- aggregate(windRisk ~ id + year + avoh_Simpl, df.all, mean)
+df.mean <- aggregate(windRisk ~ id + year + avoh_Simpl, df, mean)
 
 # Does every stand have 4 regimes?? NO!!!
 table(df.mean$avoh_Simpl)
@@ -1110,7 +1031,7 @@ pp2<- ggplot(subset(df.mean.diff,  id == 6667292),
 
 
 # H_dom
-p.H <- df.all%>%
+p.H <- df%>%
   filter(id == 6667292) %>% 
   group_by(id,year, avoh_Simpl)%>%
   summarise(H_dom_mean=mean(H_dom))%>%
@@ -1121,7 +1042,7 @@ p.H <- df.all%>%
 
 
 # BA
-p.BA <- df.all%>%
+p.BA <- df%>%
   filter(id == 6667292) %>% 
   group_by(id,year, avoh_Simpl)%>%
   summarise(BA_mean=mean(BA))%>%
@@ -1132,7 +1053,7 @@ p.BA <- df.all%>%
 
 
 # V
-p.V <- df.all%>%
+p.V <- df%>%
   filter(id == 6667292) %>% 
   group_by(id,year, avoh_Simpl)%>%
   summarise(V_mean=mean(V))%>%
@@ -1164,20 +1085,20 @@ ggarrange(p.H, p.BA, p.V,
 
 # Column 'difference' shows "time since thinngs"
 
-df.all %>% 
+df %>% 
   #filter(id == 6667292) %>% 
   distinct(difference)
 
 
 # CHeck single stand example: LRT5 - rotation with thinnings, id 6667292
 # does this contains duplicated rows???
-df.all %>% 
+df %>% 
   filter(id == 6667292 & avohaakut == "LRT30") %>% 
   dplyr::select(id, year, THIN, H_dom, BA, THIN_filled_lagged, difference, scenSimpl2 )
 
 
 # what is the range of thinnings in CCF? "CCF_3_45"
-df.all %>% 
+df %>% 
   filter(id == 6667292 ) %>%
   distinct(avohaakut)
   
@@ -1191,7 +1112,7 @@ df.all %>%
 #6  CCF_3_45
 
 
-df.all %>% 
+df %>% 
   filter(id == 6667292 & avohaakut == "CCF_3_45") %>% 
   dplyr::select(id, year, THIN, H_dom, BA, THIN_filled_lagged, difference, scenSimpl2 ) #%>%
   #distinct(difference)
@@ -1213,7 +1134,7 @@ df.sample %>%
 
 
 # show all regimes???
-df.all %>% 
+df %>% 
   ggplot(aes(x = difference,
              y = windRisk,
              color = avohaakut)) +
@@ -1223,21 +1144,21 @@ df.all %>%
   xlab("Years since thinning")
 
 
-table(df.all$difference)
+table(df$difference)
 
 
 # -----------------------------------
 # Some of the CCF ahe THIN 0:
 # -----------------------------------
 # check what are the values??
-unique(subset(df.all, simpleScen == "CCF")$time_thinning)
+unique(subset(df, simpleScen == "CCF")$time_thinning)
 #[1] "0-5"
 
-unique(subset(df.all, simpleScen == "CCF")$difference)
+unique(subset(df, simpleScen == "CCF")$difference)
 
 
 # Subset two regimes and recalculate teh THIN values:
-df.s <- df.all %>% 
+df.s <- df %>% 
   filter(id == 6667292 & (avohaakut == "CCF_3_45" | avohaakut == "LRT30")) %>% 
   dplyr::select(id, year, THIN, H_dom, BA, THIN_filled_lagged, difference, avohaakut) #%>%
 #distinct(difference)
@@ -1259,7 +1180,7 @@ df.s.d<-
 
 
 stand.fidelity <-
-  df.all %>% 
+  df %>% 
   group_by(id) %>% 
   distinct(avohaakut)  %>% 
   summarise(regimes_n = n()) #%>%
@@ -1270,7 +1191,7 @@ hist(stand.fidelity$regimes_n)
 
 # how many regimes each stand has under different regimes?
 stand.fid.scen <-
-  df.all %>% 
+  df %>% 
   group_by(id, simpleScen) %>% 
   distinct(avohaakut)  %>% 
   summarise(regimes_n = n()) #%>%
@@ -1284,7 +1205,7 @@ ggplot(stand.fid.scen, aes(regimes_n)) +
 # Which are those regimes???
 # are all the regimes used overall, or not?
 df.regimes <- 
-  df.all %>% 
+  df %>% 
     group_by(id, simpleScen) %>% 
     distinct(avohaakut)  #%>% 
   
@@ -1359,7 +1280,7 @@ df.regimes.c %>%
 # How does the frequency of regimes changes over scenarios (63?)
 # Get disctinct regimes by 
 df.regimes.sa <- 
-  df.all %>% 
+  df %>% 
   group_by(id, simpleScen, scenNumb) %>% 
   distinct(avohaakut)  #%>% 
  
@@ -1401,8 +1322,8 @@ ggplot(df.npi, aes(x = NPI/10000,
 
 # Chack if different trends between using sum or min values??
 
-wind.sum <- aggregate(windRisk ~ scenario, df.all, sum)
-wind.mean <- aggregate(windRisk ~ scenario, df.all, mean)
+wind.sum <- aggregate(windRisk ~ scenario, df, sum)
+wind.mean <- aggregate(windRisk ~ scenario, df, mean)
 
 wind.sum <-
   wind.sum %>% 
@@ -1465,7 +1386,7 @@ ggplot(wind.mean, aes(x = NPI/1000000,
 
 # How does the % of SA affect windRisk???
 # Calculate teh wind risk by scenario oevr time and plot with the freq data
-stand.risk.mean <- aggregate(windRisk ~ scenario + id, df.all, mean)
+stand.risk.mean <- aggregate(windRisk ~ scenario + id, df, mean)
 
 
 # join the SA% data:
@@ -1604,9 +1525,9 @@ subset(df.cc2, standid == 12469153,
 # for individual stand between SA and no SA overall wind risk values??
 #
 # -------------------------------
-head(df.all)
+head(df)
 
-stand.risk.rgm.df <- aggregate(windRisk ~ id + avohaakut, df.all, mean)
+stand.risk.rgm.df <- aggregate(windRisk ~ id + avohaakut, df, mean)
 
 
 ggplot(stand.risk.rgm.df, aes(x = avohaakut,
@@ -1616,10 +1537,10 @@ ggplot(stand.risk.rgm.df, aes(x = avohaakut,
 
 
 # How many stands have actually SA option included?
-length(unique(subset(df.all, avohaakut == "SA")$id))
+length(unique(subset(df, avohaakut == "SA")$id))
 #1470 
 
-length(unique(df.all$id))
+length(unique(df$id))
 # 1470
 
 # are some stands consistently choosed as suitable for SA? seems that not 
@@ -1629,8 +1550,8 @@ length(unique(df.all$id))
 
 # Create 4 basic groups depending on regime:
 # SA, RF with and without thinng and CCF (always thinning included)
-df.all <-
-  df.all %>% 
+df <-
+  df %>% 
   mutate(avoh_Simpl = case_when(
     str_detect(avohaakut, "SA")   ~ "SA",
     str_detect(avohaakut, "CCF_") ~ "CCF",
@@ -1642,16 +1563,16 @@ df.all <-
     str_detect(avohaakut, "TT")   ~ "RF_T"))
          
 # Check if correct
-subset(df.all, avohaakut == "TT")
+subset(df, avohaakut == "TT")
 
 
 # ten join into single table
 stand.sa.min <- aggregate(windRisk ~ id + avoh_Simpl, 
-                       subset(df.all, avohaakut == "SA"), min) %>% 
+                       subset(df, avohaakut == "SA"), min) %>% 
   mutate(regime = "SA")
 
 stand.no.sa.min <- aggregate(windRisk ~ id + avoh_Simpl, 
-                          subset(df.all, avohaakut != "SA"), min) %>% 
+                          subset(df, avohaakut != "SA"), min) %>% 
   mutate(regime = "no SA")
 
 # BInd data into one long table
@@ -1721,12 +1642,12 @@ length(unique(stand.no.sa.min$id))
 # 6667291
 
 aggregate(windRisk ~  avohaakut, 
-          subset(df.all, id == 6667291), min)
+          subset(df, id == 6667291), min)
 
 
 
 d<-aggregate(windRisk ~  avohaakut, 
-          subset(df.all, id == 12538077), min)
+          subset(df, id == 12538077), min)
 
 
 ggplot(d, aes(x = avohaakut,
@@ -1744,7 +1665,7 @@ ggplot(d, aes(x = avohaakut,
 theme_set(theme_classic())
 
 # How does scenarios (63) differ in term of wind risk???
-ggplot(df.all, 
+ggplot(df, 
        aes(x = as.factor(year),
            y = windRisk)) +
   geom_boxplot() + 
@@ -1753,7 +1674,7 @@ ggplot(df.all,
 
 
 
-ggplot(df.all, 
+ggplot(df, 
        aes(x = as.factor(simpleScen),
            y = windRisk)) +
   geom_boxplot(fill = "grey92") + 
@@ -1767,7 +1688,7 @@ ggplot(df.all,
 # Wind risk by time _since thining
 # ------------------------
 
-p.edge <- ggplot(df.all, 
+p.edge <- ggplot(df, 
        aes(x = as.factor(open_edge),
            y = windRisk,
            fill = open_edge)) +
@@ -1778,7 +1699,7 @@ p.edge <- ggplot(df.all,
   theme(legend.position = "none")
 
 
-p.thin <- ggplot(df.all, 
+p.thin <- ggplot(df, 
                  aes(x = as.factor(since_thin),
                      y = windRisk,
                      fill = since_thin)) +
@@ -1791,7 +1712,7 @@ p.thin <- ggplot(df.all,
 
 
 p.soilDepth <-
-  ggplot(df.all, 
+  ggplot(df, 
                    aes(x = as.factor(soil_depth_less30),
                        y = windRisk,
                        fill =soil_depth_less30 )) +
@@ -1803,7 +1724,7 @@ p.soilDepth <-
 
 
 p.soilType <-
-  ggplot(df.all, 
+  ggplot(df, 
          aes(x = as.factor(soilType),
              y = windRisk, 
              fill =soilType )) +
@@ -1815,7 +1736,7 @@ p.soilType <-
 
 
 p.species <-
-  ggplot(df.all, 
+  ggplot(df, 
                  aes(x = as.factor(species),
                      y = windRisk,
                      fill = species)) +
@@ -1826,7 +1747,7 @@ p.species <-
   theme(legend.position = "none")
 
 p.PEAT <-
-  ggplot(df.all, 
+  ggplot(df, 
          aes(x = as.factor(PEAT),
              y = windRisk,
              fill = PEAT)) +
@@ -1853,8 +1774,8 @@ grid.arrange(p.edge,
 # Calculate teh means, min, max of wind risk over landscape by time
 # -----------------------------------------
 
-risk.min<- aggregate(windRisk ~ scenario, df.all, min)
-risk.max<- aggregate(windRisk ~ scenario, df.all, max)
+risk.min<- aggregate(windRisk ~ scenario, df, min)
+risk.max<- aggregate(windRisk ~ scenario, df, max)
 risk.range <- cbind(risk.min, risk.max$windRisk)
 names(risk.range) <- c("scenario", "min", "max")
 
@@ -1881,7 +1802,7 @@ ggplot(risk.range, aes(scenario)) +
 
 
 # Get means by scenarios, merge with NPI data
-risk.mean <- aggregate(windRisk ~ scenario, df.all, mean)
+risk.mean <- aggregate(windRisk ~ scenario, df, mean)
 
 
 
@@ -1905,7 +1826,7 @@ SA.perc <-
 
 # How does the % of SA affect windRisk???
 # Calculate teh wind risk by scenario oevr time and plot with the freq data
-risk.mean <- aggregate(windRisk ~ scenario, df.all, mean)
+risk.mean <- aggregate(windRisk ~ scenario, df, mean)
 
 
 # join the SA% data:
@@ -1954,7 +1875,7 @@ ggplot(risk.mean,
 
 # How does the % of SA affect windRisk???
 # Calculate teh wind risk by scenario oevr time and plot with the freq data
-stand.risk.mean <- aggregate(windRisk ~ scenario + id, df.all, mean)
+stand.risk.mean <- aggregate(windRisk ~ scenario + id, df, mean)
 
 
 # join the SA% data:

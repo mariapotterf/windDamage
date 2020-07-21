@@ -33,46 +33,6 @@
 % use microtype if available
 \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 \bibliographystyle{elsarticle-harv}
-\usepackage{color}
-\usepackage{fancyvrb}
-\newcommand{\VerbBar}{|}
-\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
-% Add ',fontsize=\small' for more characters per line
-\usepackage{framed}
-\definecolor{shadecolor}{RGB}{248,248,248}
-\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
-\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
-\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
-\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
-\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
-\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
-\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\ImportTok}[1]{#1}
-\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
-\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
-\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
-\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
-\newcommand{\BuiltInTok}[1]{#1}
-\newcommand{\ExtensionTok}[1]{#1}
-\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
-\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
-\newcommand{\RegionMarkerTok}[1]{#1}
-\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
-\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
-\newcommand{\NormalTok}[1]{#1}
 \usepackage{graphicx}
 % We will generate all images so they have a width \maxwidth. This means
 % that they will get their normal width if they fit onto the page, but
@@ -227,7 +187,7 @@ intensity of timber extraction will affects landscape level wind risk.
 
 \begin{figure}
 \centering
-\includegraphics{/MyTemp/myGitLab/windDamage/externalFigs/overview2.png}
+\includegraphics{/MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png}
 \caption{The study workflow from collecting initial stand conditions
 (2016) throught forest simulation growth under various ranges of forest
 management, and constriuction of teh harvesting intensity gradient using
@@ -236,7 +196,7 @@ optimization to landscape level stand configurations.}
 
 \section{Methods}\label{methods}
 
-\textbf{Study area}
+\subsubsection{Study area}\label{study-area}
 
 Our study area represents a typical Finnish production forested
 landscape with relatively structurally homogenous forests stands. In
@@ -254,12 +214,13 @@ study, please refer for more details.
 
 \begin{figure}
 \centering
-\includegraphics{/MyTemp/myGitLab/windDamage/externalFigs/studyArea.png}
+\includegraphics{/MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png}
 \caption{The study are located in Central Finland (watershed 14.534)
 comprising 1475 forest stands.}
 \end{figure}
 
-\textbf{Forest stand development under different regimes}
+\subsubsection{Forest stand development under different
+regimes}\label{forest-stand-development-under-different-regimes}
 
 We simulated the development of the forests stands using SIMO forest
 growth simulator (Rasinmäki et al., 2009) over 100 years, separated into
@@ -279,7 +240,7 @@ less fertile sites to 22m2/ha for fertile sites) prior to harvesting was
 modified by -3, ±0, +3, +6, and we delayed the timing of the first
 harvest in 5 year increments up to a delay of 45 years.
 
-\textbf{Optimization}
+\subsubsection{Optimization}\label{optimization}
 
 The collection of the optimal management regimes explore the trade-offs
 between between net present income (NPI) and forest multifunctionality.
@@ -301,7 +262,7 @@ allowed us to reconstruct the dynamics landscape development over time
 under combination of management regimes, and harvest extraction
 gradient.
 
-\textbf{Wind risk calculation}
+\subsubsection{Wind risk calculation}\label{wind-risk-calculation}
 
 We have calculated the probability of wind damage based on
 ({\textbf{???}}) binomial generalized linear model with logit-link
@@ -319,7 +280,7 @@ be only partial to the stand. To process the datasets, calculate damage
 probability models and visualize results we used (R Development Core
 Team, 2019).
 
-\textbf{Data processing}
+\subsubsection{Data processing}\label{data-processing}
 
 We calculated the probability of wind damage based on stand level for
 each stand, scenario and time intervals. First, we evaluated wind damage
@@ -339,168 +300,86 @@ species compositions.
 
 \section{Results}\label{results}
 
-\textbf{Landscape level wind risk under management restriction and
-harvest intensity scenarios}
+\subsubsection{Landscape level wind risk under management restriction
+and harvest intensity
+scenarios}\label{landscape-level-wind-risk-under-management-restriction-and-harvest-intensity-scenarios}
 
 The set-aside landscape level management resulted at the same mean
-landscape level rsk for the all scenarios (Fig. 2). However,
-intensifying harvesting triggers different response under groups of
-management regimes and intensification of the timber extraction. The RF
-management techniques lowers the wind risk over whole harvest intensity
-gradient, ie.e with increasing economic gain we also lowers the wind
-damage probability. On the other hand, both ALL and CCF scenarios
-increase the wind risk where CCF monotonically increases with increasing
-harvesting rates, while ALL regimes have slightly humpened curve shape,
-culminating at XXX harvest intensity level. Then it slightly lovers. The
-CCF increases monotonically while maximal harvesting increase the wind
-risk by 25\% compared to completely set-aside stands.
+landscape level risk for all management regimes (Fig. 2). However,
+intensifying harvesting triggers different responses under groups of
+management regimes and intensification of the timber extraction. Sole
+use of the RF managements lowered the wind risk with increasing harvest
+intensity. On the other hand, both ALL and CCF scenarios increased the
+wind risk where CCF monotonically increased with increasing harvesting
+rates, while ALL regimes have slightly humpened curve shape, culminating
+around inteinsity of 7.5K by ha. The CCF increases monotonically while
+maximal harvesting increase the wind risk by 25\% compared to completely
+set-aside stands.
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{df }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{group_by}\NormalTok{(scenSimpl2, scenNumb, NPI) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{summarize}\NormalTok{(}\DataTypeTok{mean.m =} \KeywordTok{mean}\NormalTok{(windRisk)) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ NPI}\OperatorTok{/}\NormalTok{tot.area}\OperatorTok{*}\DecValTok{10}\NormalTok{,}
-             \DataTypeTok{y =}\NormalTok{ mean.m,}
-             \DataTypeTok{color =}\NormalTok{ scenSimpl2,}
-             \DataTypeTok{group =}\NormalTok{ scenSimpl2)) }\OperatorTok{+}\StringTok{ }\CommentTok{# ,}
-\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{lwd =} \DecValTok{1}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{color =} \StringTok{"Regimes"}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"NPI k € by ha"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\CommentTok{#  }
-\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"mean wind risk damage (%)"}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text.x =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{angle =} \DecValTok{90}\NormalTok{, }\DataTypeTok{hjust =} \DecValTok{1}\NormalTok{),}
-        \DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{""}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
+\begin{figure}
+\centering
+\includegraphics{test_manus_files/figure-latex/fig3_mean_risk_by_intensity_plot-1.pdf}
+\caption{Mean wind risk damage for three types of management regimes
+over harvest intensity gradient}
+\end{figure}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# -----------------------------------------}
-\CommentTok{# Visualize volume dynamics over scenarios}
-\CommentTok{# -----------------------------------------}
-\KeywordTok{names}\NormalTok{(df)}
-\end{Highlighting}
-\end{Shaded}
+\subsubsection{Timber volume at wind
+risk}\label{timber-volume-at-wind-risk}
 
-\begin{verbatim}
-##  [1] "id"                          "year"                       
-##  [3] "Age"                         "cash_flow"                  
-##  [5] "BA"                          "V"                          
-##  [7] "V_stand_log"                 "V_stand_pulp"               
-##  [9] "Harvested_V"                 "Harvested_V_log_under_bark" 
-## [11] "Harvested_V_pulp_under_bark" "Biomass"                    
-## [13] "N"                           "THIN"                       
-## [15] "PEAT"                        "H_dom"                      
-## [17] "D_gm"                        "income_biomass"             
-## [19] "CARBON_STORAGE"              "name_new"                   
-## [21] "branching_new"               "avohaakut"                  
-## [23] "THIN_included"               "mainRegime"                 
-## [25] "scenSimpl2"                  "scenNumb"                   
-## [27] "landscape"                   "difference"                 
-## [29] "time_thinning"               "avoh_Simpl"                 
-## [31] "simpleScen"                  "open_edge"                  
-## [33] "area"                        "siteFertility"              
-## [35] "soilDepthLess30"             "soilType"                   
-## [37] "species"                     "windRisk"                   
-## [39] "twoRegm"                     "NPI"                        
-## [41] "MF"                          "stands_n"                   
-## [43] "SA_prop"
-\end{verbatim}
+Increasing harvesting levels lowers the amount of the available timber
+at any time step to be lost due to windthrows. Interestingly, the CCF
+regimes produces higher logs volumes, while RF has higher production of
+the pulp wood, which is in high demand by cheaper then log wood. The
+same trends are visible for harvested log and pulp volumes. For ALL
+management regimes, using all available management regimes, is located
+between two extremities. The highest mean log timber volume as available
+for the wind damage at lowest harvesting levels. Interestingly, under
+RF, low levels of timber extraction increase levels of the pupl standing
+volume. The highest amount of harvested log wood is produced by CCF
+regimes, while RF dominates in harvesting pulp timber.
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{vol_cols <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"V"}\NormalTok{, }
-              \StringTok{"V_stand_log"}\NormalTok{,}
-              \StringTok{"V_stand_pulp"}\NormalTok{,}
-              \StringTok{"Harvested_V"}\NormalTok{,}
-              \StringTok{"Harvested_V_log_under_bark"}\NormalTok{,}
-              \StringTok{"Harvested_V_pulp_under_bark"}\NormalTok{)}
+\begin{figure}
+\centering
+\includegraphics{test_manus_files/figure-latex/fig_4_plot_V_timber-1.pdf}
+\caption{A. Mean standing and B. harvested pulp and log timber under
+three types of management regimes over harvest intensity gradient}
+\end{figure}
 
+The intensification of the harvesting levels increases the proportion of
+the pulp wood compared to log wood, especially in RF. In CCF, the
+proportion among standing log and pulp volume remains at the same rate
+(65:30) where the production of the log timber dominates See figure
+@ref(fig:fig\_5\_proportion\_V\_pulp\_log).
 
+\begin{figure}
+\centering
+\includegraphics{test_manus_files/figure-latex/fig_5_proportion_V_pulp_log-1.pdf}
+\caption{Ratio between standing log and pul volume (m\^{}3)}
+\end{figure}
 
+\subsubsection{Open stands frequency}\label{open-stands-frequency}
 
-\CommentTok{# -------------------------------------------}
-\CommentTok{# plot sum of different volumes over x}
-\CommentTok{# -------------------------------------------}
-\CommentTok{# For harvested V - calculate sum, as this is not measured every time,}
-\CommentTok{# otherwise calculate mean or max???}
+RF regimes increase the amount of stands with open edge with increasing
+harvest intensity while CCF regimes maintain the same amount of open
+stands over the harvest intensity gradient. Intensive RF increases
+number of stands with open edge by 5\%.
 
-\NormalTok{V_mean          <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(V }\OperatorTok{~}\StringTok{ }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, mean)}
-\NormalTok{V_st_log_mean   <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(V_stand_log }\OperatorTok{~}\StringTok{ }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, mean)}
-\NormalTok{V_st_pulp_mean  <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(V_stand_pulp }\OperatorTok{~}\StringTok{ }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, mean)}
+\begin{figure}
+\centering
+\includegraphics{test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf}
+\caption{Yearly count of stands with open edge over the intensity
+gradient}
+\end{figure}
 
-\NormalTok{V_harv_sum      <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(Harvested_V }\OperatorTok{~}\StringTok{ }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, sum)}
-\NormalTok{V_harv_log_sum  <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(Harvested_V_log_under_bark }\OperatorTok{~}\StringTok{  }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, sum)}
-\NormalTok{V_harv_pupl_sum <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(Harvested_V_pulp_under_bark }\OperatorTok{~}\StringTok{  }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, sum)}
+\subsubsection{Changes in species
+composition}\label{changes-in-species-composition}
 
-
-\CommentTok{# Merge data into one table}
-\NormalTok{all.V <-}\StringTok{ }\NormalTok{V_mean }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{left_join}\NormalTok{(V_st_log_mean) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{left_join}\NormalTok{(V_st_pulp_mean) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{left_join}\NormalTok{(V_harv_sum) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{left_join}\NormalTok{(V_harv_log_sum) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{left_join}\NormalTok{(V_harv_pupl_sum)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-## Joining, by = c("scenSimpl2", "NPI")
-## Joining, by = c("scenSimpl2", "NPI")
-## Joining, by = c("scenSimpl2", "NPI")
-## Joining, by = c("scenSimpl2", "NPI")
-## Joining, by = c("scenSimpl2", "NPI")
-\end{verbatim}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# Try to melt the data???}
-\NormalTok{all.V_melt <-}\StringTok{ }\NormalTok{reshape2}\OperatorTok{::}\KeywordTok{melt}\NormalTok{(all.V, }\DataTypeTok{id.vars =} \KeywordTok{c}\NormalTok{(}\StringTok{'NPI'}\NormalTok{, }\StringTok{'scenSimpl2'}\NormalTok{))}
-
-\CommentTok{# Add new variable: stand or harvested}
-\NormalTok{all.V_melt <-}\StringTok{ }\NormalTok{all.V_melt }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{type =} \KeywordTok{case_when}\NormalTok{(}
-\NormalTok{    stringr}\OperatorTok{::}\KeywordTok{str_detect}\NormalTok{(variable, }\StringTok{"Harvested_V"}\NormalTok{) }\OperatorTok{~}\StringTok{ "harvested"}\NormalTok{,}
-   \OtherTok{TRUE} \OperatorTok{~}\StringTok{ "stand"}\NormalTok{))}
-
-
-
-\CommentTok{# Create two plots, merge later into one}
-\NormalTok{p.stand <-}\StringTok{ }
-\StringTok{  }\NormalTok{all.V_melt }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{filter}\NormalTok{(type }\OperatorTok{==}\StringTok{ "stand"} \OperatorTok{&}\StringTok{ }\NormalTok{variable }\OperatorTok{!=}\StringTok{ "V"}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ NPI,}
-                       \DataTypeTok{y =}\NormalTok{ value,}
-                       \DataTypeTok{group =}\NormalTok{ scenSimpl2,}
-                       \DataTypeTok{color =}\NormalTok{ scenSimpl2)) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size =} \DecValTok{1}\NormalTok{) }\OperatorTok{+}\StringTok{ }
-\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"NPI k € by ha"}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"mean stand volume"}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(.}\OperatorTok{~}\StringTok{ }\NormalTok{variable) }
-
-
-
-\NormalTok{p.harvested <-}\StringTok{ }
-\StringTok{  }\NormalTok{all.V_melt }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{filter}\NormalTok{(type }\OperatorTok{==}\StringTok{ "harvested"} \OperatorTok{&}\StringTok{ }\NormalTok{variable }\OperatorTok{!=}\StringTok{ "Harvested_V"}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ NPI,}
-             \DataTypeTok{y =}\NormalTok{ value}\OperatorTok{/}\DecValTok{10000}\NormalTok{,}
-             \DataTypeTok{group =}\NormalTok{ scenSimpl2,}
-             \DataTypeTok{color =}\NormalTok{ scenSimpl2)) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size =} \DecValTok{1}\NormalTok{) }\OperatorTok{+}\StringTok{ }
-\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"NPI k € by ha"}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"sum harvested volume (*1000)"}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(.}\OperatorTok{~}\StringTok{ }\NormalTok{variable) }
-
-
-
-\KeywordTok{ggarrange}\NormalTok{(p.stand, p.harvested, }\DataTypeTok{ncol =} \DecValTok{1}\NormalTok{, }\DataTypeTok{nrow =} \DecValTok{2}\NormalTok{,}
-          \DataTypeTok{common.legend =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{legend=}\StringTok{"bottom"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
-\includegraphics{test_manus_files/figure-latex/plot_V_timber-1.pdf}
+\begin{figure}
+\centering
+\includegraphics{test_manus_files/figure-latex/fig_7_species_change-1.pdf}
+\caption{Changes in species composition under different management types
+and harvest intensity}
+\end{figure}
 
 \section{Discussion}\label{discussion}
 
