@@ -1,9 +1,10 @@
 ---
 title: How restrictions of forest management affect landscape level wind damage risk
+
 author:
-  - name: 'Mária Potterf Kyle Eyvindson'
+  - name: 'Mária Potterf'
     email: mpotterf@jyu.fi
-    affiliation: group1  
+    affiliation: Department of Biological and Environmental Science  
     footnote: 1
   - name: Kyle Eyvindson
     email: kyle.j.eyvindson@jyu.fi
@@ -17,7 +18,7 @@ author:
     affiliation: Department of Biological and Environmental Science
    # footnote: 2
 address:
-  - code: group1
+  - code: University of Jyvaskyla
     address: Department of Biological and Environmental Science, University of Jyvaskyla, P.O. Box 35, FI-40014 Jyvaskyla, Finland
   - code: LUKE
     address: THIS is Luke address Department, Street, City, State, Zip
@@ -34,81 +35,67 @@ abstract: |
 
 journal: "Forest Ecology and Management"
 date: "`r Sys.Date()`"
-bibliography: mybibfile.bib
+#bibliography: mybibfile.bib
+#bibliography: mendeley_mybibfile.bib
+bibliography: manual.bib
 #linenumbers: true
 #numbersections: true
 csl: elsevier-harvard.csl
-#output: rticles::elsevier_article
-output: word_document
+output: rticles::elsevier_article
+#output: word_document
 ---
 
 _Text based on elsarticle sample manuscript, see [http://www.elsevier.com/author-schemas/latex-instructions#elsarticle](http://www.elsevier.com/author-schemas/latex-instructions#elsarticle)_
 
-
-The Elsevier article class
+Introduction
 ==========================
 
-#### Installation
+The current times are challenging to balance between forest productivity and biodiversity. Existance of biodiversity, mostly attached to existence of deadwood, is limited by harvesting levels. Intensive logging activities fragment forested landspaces. 
+To balance between biodiversity and economic gain from timber, the propostion of set=aside forests within commercial forests emerges, and new forest management approaches are explored, such as continuous forest cover (Eyvindson 2020) and traditional harvesting regimes are becoming controversial or requested to ban (…). The increase of the set aside forests within the commercial forests, as well as development of the new management techniques affect landscape level structural diversity, timing of the thinning, presence of absence of the final cuts in rotation forestry or development of the larger trees within continuous cover forestry or in set-aside forestry. The fundamental is the carefull landscape level planning of the management actions balancing between set-aside (unmanaged forests), intensive management and continuously present forest cover.
 
-If the document class *elsarticle* is not available on your computer,
-you can download and install the system package *texlive-publishers*
-(Linux) or install the LaTeX package *elsarticle* using the package
-manager of your TeX installation, which is typically TeX Live or MikTeX.
+Optimal management scenarios fullfil the specific objectives of the society of forest owners to provide certain timber value, improve provision of timber and non-timber ecosystem services, or improve overall forest multifunctionality of the landscape. As such, optimization provides the combination of the specific forest management regimes on stand level. Althought the optimization process does not necessary involve the spatial configuration of the stands, it specifically assigns the particular regimes to individual stands and therefore allows to recreate alternative dynamics landscapes shaped by forest managements aggregated by optimal scenarios. As such, the spatial configuration of the management regimes allows to estimate the subsequent characteristics such as landscape level risk of wind damage. 
 
-#### Usage
+The risk of the wind damage increases with current climate change and it creates the major risk to the stability of the forest production. Windthrows are unpredictable climatic disruption that shapes forest structure and composition, and if left unsalvaged could create opportiunities for deadwood dependent species and support local biodiversity. From economical point of view, however, windthrows massively abrupt the continuity of the timber supply, lowers timber quality from log to pulp, increases the prices of unplanned salvage harvesting (REF). To lower the risk of wind risk damage, current suggestions include shortening the rotation period, promoting/avoiding the wind resistant vs. wind prone tree specuies, advocate for shortening of the minimal stand age (Latvia REF). This however poses further pressure on the multifucntionnal and multiple objective oriented landscapes, which will provide habitats for endangered species, support non-timber services and forest recreational use. 
 
-Once the package is properly installed, you can use the document class
-*elsarticle* to create a manuscript. Please make sure that your
-manuscript follows the guidelines in the Guide for Authors of the
-relevant journal. It is not necessary to typeset your manuscript in
-exactly the same way as an article, unless you are submitting to a
-camera-ready copy (CRC) journal.
+Traditional forest management regimes specialized in promoting timber revenues while minimizing costs. In Fennoscandia, over the decades, the traditional rotation forestry with multiple thinnings and final cuts  that over just mutlipel decades (from 1950) homogenized stands structureal diversity, homogenized landscapes and increased forest fragmenetations. On the other hand, forest management supporting multifunctional landscapes, and promoting non-timber ecosystem services requires implementation of the diverse set of management regimes (Mönkkönen et al., 2014; Triviño et al., 2017). Furthermore, provision of the endangered species habitats and non-woody ecosystem services are provided on different scales where the planning scale should match or overcome the scale that provided ecosystem (Pohjanmies et al., 2019). 
 
-#### Functionality
-
-The Elsevier article class is based on the standard article class and
-supports almost all of the functionality of that class. In addition, it
-features commands and options to format the
-
--   document style
-
--   baselineskip
-
--   front matter
-
--   keywords and MSC codes
-
--   theorems, definitions and proofs
-
--   lables of enumerations
-
--   citation style and labeling.
-
-Front matter
-============
-
-The author names and affiliations could be formatted in two ways:
-
-(1) Group the authors per affiliation.
-
-(2) Use footnotes to indicate the affiliations.
-
-See the front matter of this document for examples. You are recommended
-to conform your choice to the journal you are submitting to.
-
-Bibliography styles
-===================
-your choice in the preamble of this document. These styles are
-Elsevier style
-There are various bibliography styles available. You can select the
-style of s based on standard styles like Harvard and Vancouver.
-Please use BibTeX to generate your bibliography and include DOIs
-whenever available.
+Here we explore how the restriction of forest management practices, along with the increasing level of harvest levels over the landscape affects landscape level damage of wind risk and how much timber value is put on risk under alternative regimes and extraction levels. Our study for the first time evaluates the landcspeca level wind risk combined with the forest growth simulator and long-term consequences of he applied forest management practices. Therefore, we first calculate the stand level wind risk over alternative landscapes and further explore the likely drivers of the wind risk levels. We investigated how restriction of forest management regimes combined with levels of intensity of timber extraction will affects landscape level wind risk. 
 
 
-And here are my references: (long loading from Mendeley: export-> bibtext) @Feynman1963118
+![The study workflow from collecting initial stand conditions (2016) throught forest simulation growth under various ranges of forest management, and constriuction of teh harvesting intensity gradient using optimization to landscape level stand configurations.](/MyTemp/myGitLab/windDamage/externalFigs/overview2.png)
 
-this was said in @Dirac1953888 
+# Methods
+
+
+**Study area**
+
+Our study area represents a typical Finnish production forested landscape with relatively structurally homogenous forests stands. In total we used 1475 forests stands aggregated within a single watershed (number 14.534) in Central Finland, covering 2242 ha. Initial stand conditions were collected as open source data from the Finnish Forest Centre (available on www.metsaan.fi) providing currents stand conditions in 2016. 
+
+Our input datasets includes initial stand conditions, simulation of the forest regimes using forest growth simulator, and stand configurations over the range of optimal landscape level forest management, varying from over the harvest intensity is based on Eyvindosn et al. (2020) study, please refer for more details.
+
+![The study are located in Central Finland (watershed 14.534) comprising 1475 forest stands.](/MyTemp/myGitLab/windDamage/externalFigs/studyArea.png)
+
+
+
+**Forest stand development under different regimes**
+
+We simulated the development of the forests stands using SIMO forest growth simulator (Rasinmäki et al., 2009) over 100 years, separated into 20 5-year sequences. Each stand could be managed by up to 58 different management regimes (the total number of regimes per stands depended on the stand initial conditions), including 17 regimes for rotation forestry (RF), 40 variations of continuous cover forest (CCF) and one set aside (SA), where no management actions were taken. RF regimes different in in timing of final felling, optionali thinning (present/absent), and increase in retained green trees after final cut (more details in Eyvindson et al., 2018). Basic CCF management follows rules from Äijälä et al. (2014). To increase the range of CCF managements, we varied two rules defining the timing of harvesting: site-specific basal area and timing of the first thining. The pre-defined site-specific basal area (m2/ha) requirement (16m2/ha for less fertile sites to 22m2/ha for fertile sites) prior to harvesting was modified by -3, ±0, +3, +6,  and we delayed the timing of the first harvest in 5 year increments up to a delay of 45 years. 
+
+**Optimization**
+
+The collection of the optimal management regimes explore the trade-offs between between net present income (NPI) and forest multifunctionality. NPI represents economic value of the forests estimated by Metsähallitus (the Finnish governmental organization managing state owned forests) and higher NPI value presents higher timber extraction and oppose the proportion of the set-aside forest stands (i.e. without active harvesting). Optimization process over the NPI gradient was run using only RF, only CCF management types, or all possible managements (RF and CCF) included over the gradient of NPI values, from 0 (representing set-aside or no management in all stands) maximal amount of extracted timber (leaving up to 5% of SA stands). The optimization process resulted in creating of 63 alternative landscape development paths over 100 years period in 20 5-years time steps that different in applied management types (3) and levels of timber extraction (21), further referred as scenarios. Each optimized scenario represents a collection of management regimes applied uniquely over every stand. This setup allowed us to reconstruct the dynamics landscape development over time under combination of management regimes, and harvest extraction gradient.
+
+**Wind risk calculation** 
+
+We have calculated the probability of wind damage based on @suvanto2019 binomial generalized linear model with logit-link function for each stand, under each scenario and at every time step. @suvanto2019 This model calculates the probability of the wind damage considering available relevant open-access datasets, specifically dominant tree species, dominant tree height, time since thinning, predicted levels on max wind speed (for next 10 years, this remain stable in this study), evaluated if stand has open edge, soil type, mineral soil depth, site fertility and temperature sum (refer to (Suvanto et al., 2019) for all details). As it is difficult to predict specific location of the occurrence of strong winds in the future, the model outputs show the relative differences between stands, damage can be only partial to the stand. To process the datasets, calculate damage probability models and visualize results we used (R Development Core Team, 2019). 
+
+**Data processing**
+
+We calculated the probability of wind damage based on stand level for each stand, scenario and time intervals. First, we evaluated wind damage probability on stand level, which we averaged over the scenarios to allow comparison over the harvesting gradient, and application of RF, CCF and all possible management types. We hypothesized that RF would increase wind damage risk dues to increasing number of open edges while CCF would lower wind risk over the landscape. Further, we hypothetize that higher levels of timber extraction would increase wind risk. Lastly, we hypothetized than increasing amount of set-aside stands, over the landscape together with CCF management would increase wind damage risk due to larger present timber volume, and due to more frequent thinning activities. We investigated wind risk in terms of available timber volume, specifically saw and log timber volume. Lastly, we explored the trends of wind risk relevant to stands height, changes and species compositions. 
+
+ 
+
+# Results
 
 ```{r process_input_data, eval = T, echo = F, warning = F, message = F, include = F}
 # 
@@ -156,8 +143,44 @@ mean(df.geom$area)
 max(df.geom$area)
 min(df.geom$area)
 
-hist(df.geom$area/10000)
+# hist(df.geom$area/10000)
 
+
+
+
+
+```
+
+
+
+**Landscape level wind risk under management restriction and harvest intensity scenarios**
+
+The set-aside landscape level management resulted at the same mean landscape level rsk for the all scenarios (Fig. 2). However, intensifying harvesting triggers different response under groups of management regimes and intensification of the timber extraction. The RF management techniques lowers the wind risk over whole harvest intensity gradient, ie.e with increasing economic gain we also lowers the wind damage probability. On the other hand, both ALL and CCF scenarios increase the wind risk where CCF monotonically increases with increasing harvesting rates, while ALL regimes have slightly humpened curve shape, culminating at XXX harvest intensity level. Then it slightly lovers. The CCF increases monotonically while maximal harvesting increase the wind risk by 25% compared to completely set-aside stands.
+
+``` {r mean_risk_by_intensity_plot, eval = F, echo = T, warning = F, fig.width = 3}
+
+df %>% 
+  group_by(scenSimpl2, scenNumb, NPI) %>% 
+  summarize(mean.m = mean(windRisk)) %>% 
+  ggplot(aes(x = NPI/tot.area*10,
+             y = mean.m,
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+  geom_line(lwd = 1) +
+  labs(color = "Regimes") +
+  xlab("NPI k € by ha") + #  
+  ylab("mean wind risk damage (%)") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("")
+
+
+```
+
+
+
+
+```{r plot_V_timber,}
 
 # -----------------------------------------
 # Visualize volume dynamics over scenarios
@@ -238,17 +261,24 @@ p.harvested <-
 
 
 
-```
- HERE i ADD THE TEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEX
-
-```{r plot_V_timber,}
 ggarrange(p.stand, p.harvested, ncol = 1, nrow = 2,
           common.legend = TRUE, legend="bottom")
 ```
 
-# Close chunk
 
-# rESULTS
+
+
+
+
+
+
+# Discussion
+
+
+Should we discuss about findings?
+
+
+# Close chunk
 
 References {#references .unnumbered}
 ==========

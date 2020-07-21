@@ -114,7 +114,7 @@
 
   \title{How restrictions of forest management affect landscape level wind damage
 risk}
-    \author[group1]{Mária Potterf Kyle Eyvindson\corref{1}}
+    \author[Department of Biological and Environmental Science]{Mária Potterf\corref{1}}
    \ead{mpotterf@jyu.fi} 
     \author[Department of Biological and Environmental Science]{Kyle Eyvindson}
    \ead{kyle.j.eyvindson@jyu.fi} 
@@ -122,7 +122,7 @@ risk}
    \ead{clemens.c.blattert@jyu.fi} 
     \author[Department of Biological and Environmental Science]{Mikko Mönkkönen}
    \ead{mikko.monkkonen@jyu.fi} 
-      \address[group1]{Department of Biological and Environmental Science, University of
+      \address[University of Jyvaskyla]{Department of Biological and Environmental Science, University of
 Jyvaskyla, P.O. Box 35, FI-40014 Jyvaskyla, Finland}
     \address[LUKE]{THIS is Luke address Department, Street, City, State, Zip}
       \cortext[1]{Corresponding Author}
@@ -151,80 +151,350 @@ Jyvaskyla, P.O. Box 35, FI-40014 Jyvaskyla, Finland}
 \emph{Text based on elsarticle sample manuscript, see
 \url{http://www.elsevier.com/author-schemas/latex-instructions\#elsarticle}}
 
-\section{The Elsevier article class}\label{the-elsevier-article-class}
+\section{Introduction}\label{introduction}
 
-\paragraph{Installation}\label{installation}
+The current times are challenging to balance between forest productivity
+and biodiversity. Existance of biodiversity, mostly attached to
+existence of deadwood, is limited by harvesting levels. Intensive
+logging activities fragment forested landspaces. To balance between
+biodiversity and economic gain from timber, the propostion of set=aside
+forests within commercial forests emerges, and new forest management
+approaches are explored, such as continuous forest cover (Eyvindson
+2020) and traditional harvesting regimes are becoming controversial or
+requested to ban (\ldots{}). The increase of the set aside forests
+within the commercial forests, as well as development of the new
+management techniques affect landscape level structural diversity,
+timing of the thinning, presence of absence of the final cuts in
+rotation forestry or development of the larger trees within continuous
+cover forestry or in set-aside forestry. The fundamental is the carefull
+landscape level planning of the management actions balancing between
+set-aside (unmanaged forests), intensive management and continuously
+present forest cover.
 
-If the document class \emph{elsarticle} is not available on your
-computer, you can download and install the system package
-\emph{texlive-publishers} (Linux) or install the LaTeX package
-\emph{elsarticle} using the package manager of your TeX installation,
-which is typically TeX Live or MikTeX.
+Optimal management scenarios fullfil the specific objectives of the
+society of forest owners to provide certain timber value, improve
+provision of timber and non-timber ecosystem services, or improve
+overall forest multifunctionality of the landscape. As such,
+optimization provides the combination of the specific forest management
+regimes on stand level. Althought the optimization process does not
+necessary involve the spatial configuration of the stands, it
+specifically assigns the particular regimes to individual stands and
+therefore allows to recreate alternative dynamics landscapes shaped by
+forest managements aggregated by optimal scenarios. As such, the spatial
+configuration of the management regimes allows to estimate the
+subsequent characteristics such as landscape level risk of wind damage.
 
-\paragraph{Usage}\label{usage}
+The risk of the wind damage increases with current climate change and it
+creates the major risk to the stability of the forest production.
+Windthrows are unpredictable climatic disruption that shapes forest
+structure and composition, and if left unsalvaged could create
+opportiunities for deadwood dependent species and support local
+biodiversity. From economical point of view, however, windthrows
+massively abrupt the continuity of the timber supply, lowers timber
+quality from log to pulp, increases the prices of unplanned salvage
+harvesting (REF). To lower the risk of wind risk damage, current
+suggestions include shortening the rotation period, promoting/avoiding
+the wind resistant vs.~wind prone tree specuies, advocate for shortening
+of the minimal stand age (Latvia REF). This however poses further
+pressure on the multifucntionnal and multiple objective oriented
+landscapes, which will provide habitats for endangered species, support
+non-timber services and forest recreational use.
 
-Once the package is properly installed, you can use the document class
-\emph{elsarticle} to create a manuscript. Please make sure that your
-manuscript follows the guidelines in the Guide for Authors of the
-relevant journal. It is not necessary to typeset your manuscript in
-exactly the same way as an article, unless you are submitting to a
-camera-ready copy (CRC) journal.
+Traditional forest management regimes specialized in promoting timber
+revenues while minimizing costs. In Fennoscandia, over the decades, the
+traditional rotation forestry with multiple thinnings and final cuts
+that over just mutlipel decades (from 1950) homogenized stands
+structureal diversity, homogenized landscapes and increased forest
+fragmenetations. On the other hand, forest management supporting
+multifunctional landscapes, and promoting non-timber ecosystem services
+requires implementation of the diverse set of management regimes
+(Mönkkönen et al., 2014; Triviño et al., 2017). Furthermore, provision
+of the endangered species habitats and non-woody ecosystem services are
+provided on different scales where the planning scale should match or
+overcome the scale that provided ecosystem (Pohjanmies et al., 2019).
 
-\paragraph{Functionality}\label{functionality}
+Here we explore how the restriction of forest management practices,
+along with the increasing level of harvest levels over the landscape
+affects landscape level damage of wind risk and how much timber value is
+put on risk under alternative regimes and extraction levels. Our study
+for the first time evaluates the landcspeca level wind risk combined
+with the forest growth simulator and long-term consequences of he
+applied forest management practices. Therefore, we first calculate the
+stand level wind risk over alternative landscapes and further explore
+the likely drivers of the wind risk levels. We investigated how
+restriction of forest management regimes combined with levels of
+intensity of timber extraction will affects landscape level wind risk.
 
-The Elsevier article class is based on the standard article class and
-supports almost all of the functionality of that class. In addition, it
-features commands and options to format the
+\begin{figure}
+\centering
+\includegraphics{/MyTemp/myGitLab/windDamage/externalFigs/overview2.png}
+\caption{The study workflow from collecting initial stand conditions
+(2016) throught forest simulation growth under various ranges of forest
+management, and constriuction of teh harvesting intensity gradient using
+optimization to landscape level stand configurations.}
+\end{figure}
 
-\begin{itemize}
-\item
-  document style
-\item
-  baselineskip
-\item
-  front matter
-\item
-  keywords and MSC codes
-\item
-  theorems, definitions and proofs
-\item
-  lables of enumerations
-\item
-  citation style and labeling.
-\end{itemize}
+\section{Methods}\label{methods}
 
-\section{Front matter}\label{front-matter}
+\textbf{Study area}
 
-The author names and affiliations could be formatted in two ways:
+Our study area represents a typical Finnish production forested
+landscape with relatively structurally homogenous forests stands. In
+total we used 1475 forests stands aggregated within a single watershed
+(number 14.534) in Central Finland, covering 2242 ha. Initial stand
+conditions were collected as open source data from the Finnish Forest
+Centre (available on www.metsaan.fi) providing currents stand conditions
+in 2016.
 
-\begin{enumerate}
-\def\labelenumi{(\arabic{enumi})}
-\item
-  Group the authors per affiliation.
-\item
-  Use footnotes to indicate the affiliations.
-\end{enumerate}
+Our input datasets includes initial stand conditions, simulation of the
+forest regimes using forest growth simulator, and stand configurations
+over the range of optimal landscape level forest management, varying
+from over the harvest intensity is based on Eyvindosn et al. (2020)
+study, please refer for more details.
 
-See the front matter of this document for examples. You are recommended
-to conform your choice to the journal you are submitting to.
+\begin{figure}
+\centering
+\includegraphics{/MyTemp/myGitLab/windDamage/externalFigs/studyArea.png}
+\caption{The study are located in Central Finland (watershed 14.534)
+comprising 1475 forest stands.}
+\end{figure}
 
-\section{Bibliography styles}\label{bibliography-styles}
+\textbf{Forest stand development under different regimes}
 
-There are various bibliography styles available. You can select the
-style of your choice in the preamble of this document. These styles are
-Elsevier styles based on standard styles like Harvard and Vancouver.
-Please use BibTeX~to generate your bibliography and include DOIs
-whenever available.
+We simulated the development of the forests stands using SIMO forest
+growth simulator (Rasinmäki et al., 2009) over 100 years, separated into
+20 5-year sequences. Each stand could be managed by up to 58 different
+management regimes (the total number of regimes per stands depended on
+the stand initial conditions), including 17 regimes for rotation
+forestry (RF), 40 variations of continuous cover forest (CCF) and one
+set aside (SA), where no management actions were taken. RF regimes
+different in in timing of final felling, optionali thinning
+(present/absent), and increase in retained green trees after final cut
+(more details in Eyvindson et al., 2018). Basic CCF management follows
+rules from Äijälä et al. (2014). To increase the range of CCF
+managements, we varied two rules defining the timing of harvesting:
+site-specific basal area and timing of the first thining. The
+pre-defined site-specific basal area (m2/ha) requirement (16m2/ha for
+less fertile sites to 22m2/ha for fertile sites) prior to harvesting was
+modified by -3, ±0, +3, +6, and we delayed the timing of the first
+harvest in 5 year increments up to a delay of 45 years.
 
-And here are my references: (long loading from Mendeley:
-export-\textgreater{} bibtext) Feynman and Vernon Jr. (1963)
+\textbf{Optimization}
 
-this was said in Dirac (1953)
+The collection of the optimal management regimes explore the trade-offs
+between between net present income (NPI) and forest multifunctionality.
+NPI represents economic value of the forests estimated by Metsähallitus
+(the Finnish governmental organization managing state owned forests) and
+higher NPI value presents higher timber extraction and oppose the
+proportion of the set-aside forest stands (i.e.~without active
+harvesting). Optimization process over the NPI gradient was run using
+only RF, only CCF management types, or all possible managements (RF and
+CCF) included over the gradient of NPI values, from 0 (representing
+set-aside or no management in all stands) maximal amount of extracted
+timber (leaving up to 5\% of SA stands). The optimization process
+resulted in creating of 63 alternative landscape development paths over
+100 years period in 20 5-years time steps that different in applied
+management types (3) and levels of timber extraction (21), further
+referred as scenarios. Each optimized scenario represents a collection
+of management regimes applied uniquely over every stand. This setup
+allowed us to reconstruct the dynamics landscape development over time
+under combination of management regimes, and harvest extraction
+gradient.
 
-HERE i ADD THE TEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEX
+\textbf{Wind risk calculation}
+
+We have calculated the probability of wind damage based on
+({\textbf{???}}) binomial generalized linear model with logit-link
+function for each stand, under each scenario and at every time step.
+({\textbf{???}}) This model calculates the probability of the wind
+damage considering available relevant open-access datasets, specifically
+dominant tree species, dominant tree height, time since thinning,
+predicted levels on max wind speed (for next 10 years, this remain
+stable in this study), evaluated if stand has open edge, soil type,
+mineral soil depth, site fertility and temperature sum (refer to
+(Suvanto et al., 2019) for all details). As it is difficult to predict
+specific location of the occurrence of strong winds in the future, the
+model outputs show the relative differences between stands, damage can
+be only partial to the stand. To process the datasets, calculate damage
+probability models and visualize results we used (R Development Core
+Team, 2019).
+
+\textbf{Data processing}
+
+We calculated the probability of wind damage based on stand level for
+each stand, scenario and time intervals. First, we evaluated wind damage
+probability on stand level, which we averaged over the scenarios to
+allow comparison over the harvesting gradient, and application of RF,
+CCF and all possible management types. We hypothesized that RF would
+increase wind damage risk dues to increasing number of open edges while
+CCF would lower wind risk over the landscape. Further, we hypothetize
+that higher levels of timber extraction would increase wind risk.
+Lastly, we hypothetized than increasing amount of set-aside stands, over
+the landscape together with CCF management would increase wind damage
+risk due to larger present timber volume, and due to more frequent
+thinning activities. We investigated wind risk in terms of available
+timber volume, specifically saw and log timber volume. Lastly, we
+explored the trends of wind risk relevant to stands height, changes and
+species compositions.
+
+\section{Results}\label{results}
+
+\textbf{Landscape level wind risk under management restriction and
+harvest intensity scenarios}
+
+The set-aside landscape level management resulted at the same mean
+landscape level rsk for the all scenarios (Fig. 2). However,
+intensifying harvesting triggers different response under groups of
+management regimes and intensification of the timber extraction. The RF
+management techniques lowers the wind risk over whole harvest intensity
+gradient, ie.e with increasing economic gain we also lowers the wind
+damage probability. On the other hand, both ALL and CCF scenarios
+increase the wind risk where CCF monotonically increases with increasing
+harvesting rates, while ALL regimes have slightly humpened curve shape,
+culminating at XXX harvest intensity level. Then it slightly lovers. The
+CCF increases monotonically while maximal harvesting increase the wind
+risk by 25\% compared to completely set-aside stands.
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\NormalTok{df }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(scenSimpl2, scenNumb, NPI) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{summarize}\NormalTok{(}\DataTypeTok{mean.m =} \KeywordTok{mean}\NormalTok{(windRisk)) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ NPI}\OperatorTok{/}\NormalTok{tot.area}\OperatorTok{*}\DecValTok{10}\NormalTok{,}
+             \DataTypeTok{y =}\NormalTok{ mean.m,}
+             \DataTypeTok{color =}\NormalTok{ scenSimpl2,}
+             \DataTypeTok{group =}\NormalTok{ scenSimpl2)) }\OperatorTok{+}\StringTok{ }\CommentTok{# ,}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{lwd =} \DecValTok{1}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{color =} \StringTok{"Regimes"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"NPI k € by ha"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\CommentTok{#  }
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"mean wind risk damage (%)"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text.x =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{angle =} \DecValTok{90}\NormalTok{, }\DataTypeTok{hjust =} \DecValTok{1}\NormalTok{),}
+        \DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{""}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# -----------------------------------------}
+\CommentTok{# Visualize volume dynamics over scenarios}
+\CommentTok{# -----------------------------------------}
+\KeywordTok{names}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] "id"                          "year"                       
+##  [3] "Age"                         "cash_flow"                  
+##  [5] "BA"                          "V"                          
+##  [7] "V_stand_log"                 "V_stand_pulp"               
+##  [9] "Harvested_V"                 "Harvested_V_log_under_bark" 
+## [11] "Harvested_V_pulp_under_bark" "Biomass"                    
+## [13] "N"                           "THIN"                       
+## [15] "PEAT"                        "H_dom"                      
+## [17] "D_gm"                        "income_biomass"             
+## [19] "CARBON_STORAGE"              "name_new"                   
+## [21] "branching_new"               "avohaakut"                  
+## [23] "THIN_included"               "mainRegime"                 
+## [25] "scenSimpl2"                  "scenNumb"                   
+## [27] "landscape"                   "difference"                 
+## [29] "time_thinning"               "avoh_Simpl"                 
+## [31] "simpleScen"                  "open_edge"                  
+## [33] "area"                        "siteFertility"              
+## [35] "soilDepthLess30"             "soilType"                   
+## [37] "species"                     "windRisk"                   
+## [39] "twoRegm"                     "NPI"                        
+## [41] "MF"                          "stands_n"                   
+## [43] "SA_prop"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{vol_cols <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"V"}\NormalTok{, }
+              \StringTok{"V_stand_log"}\NormalTok{,}
+              \StringTok{"V_stand_pulp"}\NormalTok{,}
+              \StringTok{"Harvested_V"}\NormalTok{,}
+              \StringTok{"Harvested_V_log_under_bark"}\NormalTok{,}
+              \StringTok{"Harvested_V_pulp_under_bark"}\NormalTok{)}
+
+
+
+
+\CommentTok{# -------------------------------------------}
+\CommentTok{# plot sum of different volumes over x}
+\CommentTok{# -------------------------------------------}
+\CommentTok{# For harvested V - calculate sum, as this is not measured every time,}
+\CommentTok{# otherwise calculate mean or max???}
+
+\NormalTok{V_mean          <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(V }\OperatorTok{~}\StringTok{ }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, mean)}
+\NormalTok{V_st_log_mean   <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(V_stand_log }\OperatorTok{~}\StringTok{ }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, mean)}
+\NormalTok{V_st_pulp_mean  <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(V_stand_pulp }\OperatorTok{~}\StringTok{ }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, mean)}
+
+\NormalTok{V_harv_sum      <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(Harvested_V }\OperatorTok{~}\StringTok{ }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, sum)}
+\NormalTok{V_harv_log_sum  <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(Harvested_V_log_under_bark }\OperatorTok{~}\StringTok{  }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, sum)}
+\NormalTok{V_harv_pupl_sum <-}\StringTok{ }\KeywordTok{aggregate}\NormalTok{(Harvested_V_pulp_under_bark }\OperatorTok{~}\StringTok{  }\NormalTok{scenSimpl2 }\OperatorTok{+}\StringTok{  }\NormalTok{NPI, df, sum)}
+
+
+\CommentTok{# Merge data into one table}
+\NormalTok{all.V <-}\StringTok{ }\NormalTok{V_mean }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{left_join}\NormalTok{(V_st_log_mean) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{left_join}\NormalTok{(V_st_pulp_mean) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{left_join}\NormalTok{(V_harv_sum) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{left_join}\NormalTok{(V_harv_log_sum) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{left_join}\NormalTok{(V_harv_pupl_sum)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Joining, by = c("scenSimpl2", "NPI")
+## Joining, by = c("scenSimpl2", "NPI")
+## Joining, by = c("scenSimpl2", "NPI")
+## Joining, by = c("scenSimpl2", "NPI")
+## Joining, by = c("scenSimpl2", "NPI")
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Try to melt the data???}
+\NormalTok{all.V_melt <-}\StringTok{ }\NormalTok{reshape2}\OperatorTok{::}\KeywordTok{melt}\NormalTok{(all.V, }\DataTypeTok{id.vars =} \KeywordTok{c}\NormalTok{(}\StringTok{'NPI'}\NormalTok{, }\StringTok{'scenSimpl2'}\NormalTok{))}
+
+\CommentTok{# Add new variable: stand or harvested}
+\NormalTok{all.V_melt <-}\StringTok{ }\NormalTok{all.V_melt }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{type =} \KeywordTok{case_when}\NormalTok{(}
+\NormalTok{    stringr}\OperatorTok{::}\KeywordTok{str_detect}\NormalTok{(variable, }\StringTok{"Harvested_V"}\NormalTok{) }\OperatorTok{~}\StringTok{ "harvested"}\NormalTok{,}
+   \OtherTok{TRUE} \OperatorTok{~}\StringTok{ "stand"}\NormalTok{))}
+
+
+
+\CommentTok{# Create two plots, merge later into one}
+\NormalTok{p.stand <-}\StringTok{ }
+\StringTok{  }\NormalTok{all.V_melt }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{filter}\NormalTok{(type }\OperatorTok{==}\StringTok{ "stand"} \OperatorTok{&}\StringTok{ }\NormalTok{variable }\OperatorTok{!=}\StringTok{ "V"}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ NPI,}
+                       \DataTypeTok{y =}\NormalTok{ value,}
+                       \DataTypeTok{group =}\NormalTok{ scenSimpl2,}
+                       \DataTypeTok{color =}\NormalTok{ scenSimpl2)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size =} \DecValTok{1}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"NPI k € by ha"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"mean stand volume"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(.}\OperatorTok{~}\StringTok{ }\NormalTok{variable) }
+
+
+
+\NormalTok{p.harvested <-}\StringTok{ }
+\StringTok{  }\NormalTok{all.V_melt }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{filter}\NormalTok{(type }\OperatorTok{==}\StringTok{ "harvested"} \OperatorTok{&}\StringTok{ }\NormalTok{variable }\OperatorTok{!=}\StringTok{ "Harvested_V"}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ NPI,}
+             \DataTypeTok{y =}\NormalTok{ value}\OperatorTok{/}\DecValTok{10000}\NormalTok{,}
+             \DataTypeTok{group =}\NormalTok{ scenSimpl2,}
+             \DataTypeTok{color =}\NormalTok{ scenSimpl2)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size =} \DecValTok{1}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"NPI k € by ha"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"sum harvested volume (*1000)"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(.}\OperatorTok{~}\StringTok{ }\NormalTok{variable) }
+
+
+
 \KeywordTok{ggarrange}\NormalTok{(p.stand, p.harvested, }\DataTypeTok{ncol =} \DecValTok{1}\NormalTok{, }\DataTypeTok{nrow =} \DecValTok{2}\NormalTok{,}
           \DataTypeTok{common.legend =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{legend=}\StringTok{"bottom"}\NormalTok{)}
 \end{Highlighting}
@@ -232,24 +502,14 @@ HERE i ADD THE TEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEX
 
 \includegraphics{test_manus_files/figure-latex/plot_V_timber-1.pdf}
 
-\section{Close chunk}\label{close-chunk}
+\section{Discussion}\label{discussion}
 
-\section{rESULTS}\label{results}
+Should we discuss about findings?
+
+\section{Close chunk}\label{close-chunk}
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
-
-\hypertarget{refs}{}
-\hypertarget{ref-Dirac1953888}{}
-Dirac, P., 1953. The lorentz transformation and absolute time. Physica
-19, 888--896.
-doi:\href{https://doi.org/10.1016/S0031-8914(53)80099-6}{10.1016/S0031-8914(53)80099-6}
-
-\hypertarget{ref-Feynman1963118}{}
-Feynman, R., Vernon Jr., F., 1963. The theory of a general quantum
-system interacting with a linear dissipative system. Annals of Physics
-24, 118--173.
-doi:\href{https://doi.org/10.1016/0003-4916(63)90068-X}{10.1016/0003-4916(63)90068-X}
 
 
 \end{document}
