@@ -80,33 +80,47 @@ risk}
    \ead{kyle.j.eyvindson@jyu.fi} 
     \author[Department of Biological and Environmental Science]{Clemens Blattert}
    \ead{clemens.c.blattert@jyu.fi} 
+    \author[Department of Biological and Environmental Science]{Daniel Burgas}
+   \ead{daniel.d.burgas-riera@jyu.fi} 
     \author[Department of Biological and Environmental Science]{Mikko Mönkkönen}
    \ead{mikko.monkkonen@jyu.fi} 
       \address[University of Jyvaskyla]{Department of Biological and Environmental Science, University of
 Jyvaskyla, P.O. Box 35, FI-40014 Jyvaskyla, Finland}
+    \address[Wisdom]{This is wisdom address}
     \address[LUKE]{THIS is Luke address Department, Street, City, State, Zip}
       \cortext[1]{Corresponding Author}
     \cortext[]{}
   
   \begin{abstract}
   The current forest management seeks to reconside timber harvesting while
-  aim to improve forest diversity and halt biodiversity loss. Noveal
-  approaches inclusing optimal forest management, increasing proportion of
-  set-aside forest stand or novel management approaches such as continuous
-  forest cover emerges. However, ongoing climate change will challenge
-  stability of forest ecosystem, and test the resilience of stands shaped
-  by management regimes under multiple climatic disruptions, such as
-  windthrows. To understand how does the traditienal (rotation forestry)
-  vs.~novel forest managements techniques (continuous cover forest)
-  alternate the risk of wind damage over the landscape under the
-  increasing harvesting levels, we combined the forest growth simulator,
-  optimal forest management and estimated landscape levels wind damage
-  risks. Specifically, we
-  
-  It consists of two paragraphs.
+  aim to improve forest diversity and halt biodiversity loss. Novel
+  approaches as optimization of forest management, increasing proportion
+  of set-aside forest stands, or novel management approaches such as
+  continuous forest cover emerge. However, the stability of the forests
+  and provision of ecosystem services will be challenged by climate change
+  and appearence of more frequent climatic disruptions, such as
+  windthrows. To understand how will the traditional (rotation forestry,
+  RF) and novel forest managements techniques (continuous cover forest,
+  CCF) alternate the risk of wind damages over the harvest intensity
+  gradient, we combined the forest growth simulator, optimized forest
+  management to calculate landscape levels wind damage risks for
+  alternative forest futures given groups of management regimes (RF, CCF
+  and combined: ALL) over the harvest intensity gradient over the
+  landscape, or proportion of set-aside forests over 100 years. We found
+  that higher harvest intensity in RF lowers wind risk, whereas the wind
+  risk increased under CCF management. Overall, more intensive harvesting
+  levels in RF produced more pulp, whereas production of log wood prevails
+  under CCF. RF slightly increases the number of stands with open edge,
+  and intensive harvesting might change species composition to favour
+  Norway spruce which might further increases wind risk in the future. We
+  conclude that forest managers should consider the target forest species
+  composition to mitigate wind risk and to favorize production of log wood
+  instead of pulp.
   \end{abstract}
   
  \end{frontmatter}
+
+\newpage
 
 \emph{Text based on elsarticle sample manuscript, see
 \url{http://www.elsevier.com/author-schemas/latex-instructions\#elsarticle}}
@@ -191,7 +205,7 @@ intensity of timber extraction will affects landscape level wind risk.
 \caption{The study workflow from collecting initial stand conditions
 (2016) throught forest simulation growth under various ranges of forest
 management, and constriuction of teh harvesting intensity gradient using
-optimization to landscape level stand configurations.}
+optimization to landscape level stand configurations.\label{workflow}}
 \end{figure}
 
 \section{Methods}\label{methods}
@@ -201,22 +215,22 @@ optimization to landscape level stand configurations.}
 Our study area represents a typical Finnish production forested
 landscape with relatively structurally homogenous forests stands. In
 total we used 1475 forests stands aggregated within a single watershed
-(number 14.534) in Central Finland, covering 2242 ha. Initial stand
-conditions were collected as open source data from the Finnish Forest
-Centre (available on www.metsaan.fi) providing currents stand conditions
-in 2016.
+(number 14.534) in Central Finland, covering 2242 ha (Fig.
+\ref{study_area}). Initial stand conditions were collected as open
+source data from the Finnish Forest Centre (available on www.metsaan.fi)
+providing currents stand conditions in 2016.
 
 Our input datasets includes initial stand conditions, simulation of the
 forest regimes using forest growth simulator, and stand configurations
 over the range of optimal landscape level forest management, varying
-from over the harvest intensity is based on Eyvindosn et al. (2020)
-study, please refer for more details.
+from over the harvest intensity is based on Eyvindson et al. (2021)
+study (Fig. \ref{workflow}), please refer for more details).
 
 \begin{figure}
 \centering
 \includegraphics{/MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png}
-\caption{The study are located in Central Finland (watershed 14.534)
-comprising 1475 forest stands.}
+\caption{The study area located in Central Finland (watershed 14.534)
+comprising 1475 forest stands.\label{study_area}}
 \end{figure}
 
 \subsubsection{Forest stand development under different
@@ -264,11 +278,11 @@ gradient.
 
 \subsubsection{Wind risk calculation}\label{wind-risk-calculation}
 
-We have calculated the probability of wind damage based on
-({\textbf{???}}) binomial generalized linear model with logit-link
-function for each stand, under each scenario and at every time step.
-({\textbf{???}}) This model calculates the probability of the wind
-damage considering available relevant open-access datasets, specifically
+We have calculated the probability of wind damage based on Suvanto et
+al. (2019) binomial generalized linear model with logit-link function
+for each stand, under each scenario and at every time step. Suvanto et
+al. (2019) This model calculates the probability of the wind damage
+considering available relevant open-access datasets, specifically
 dominant tree species, dominant tree height, time since thinning,
 predicted levels on max wind speed (for next 10 years, this remain
 stable in this study), evaluated if stand has open edge, soil type,
@@ -277,8 +291,8 @@ mineral soil depth, site fertility and temperature sum (refer to
 specific location of the occurrence of strong winds in the future, the
 model outputs show the relative differences between stands, damage can
 be only partial to the stand. To process the datasets, calculate damage
-probability models and visualize results we used (R Development Core
-Team, 2019).
+probability models and visualize results we used R Development Core Team
+(2019).
 
 \subsubsection{Data processing}\label{data-processing}
 
@@ -336,7 +350,8 @@ between two extremities. The highest mean log timber volume as available
 for the wind damage at lowest harvesting levels. Interestingly, under
 RF, low levels of timber extraction increase levels of the pupl standing
 volume. The highest amount of harvested log wood is produced by CCF
-regimes, while RF dominates in harvesting pulp timber.
+regimes, while RF dominates in harvesting pulp timber (Fig.
+\ref(fig\_4\_plot\_V\_timber)).
 
 \begin{figure}
 \centering
@@ -348,14 +363,10 @@ three types of management regimes over harvest intensity gradient}
 The intensification of the harvesting levels increases the proportion of
 the pulp wood compared to log wood, especially in RF. In CCF, the
 proportion among standing log and pulp volume remains at the same rate
-(65:30) where the production of the log timber dominates See figure
+(65:30) where the production of the log timber dominates. At the highest
+intensity of timber extraction, pulp wood creates up to 50\% of teh
+total standing volume See figure
 @ref(fig:fig\_5\_proportion\_V\_pulp\_log).
-
-\begin{figure}
-\centering
-\includegraphics{test_manus_files/figure-latex/fig_5_proportion_V_pulp_log-1.pdf}
-\caption{Ratio between standing log and pul volume (m\^{}3)}
-\end{figure}
 
 \subsubsection{Open stands frequency}\label{open-stands-frequency}
 
@@ -374,21 +385,58 @@ gradient}
 \subsubsection{Changes in species
 composition}\label{changes-in-species-composition}
 
+The intensification of the harvesting changes the stand species
+composition over time (Fig. \ref{species_change}). Intensification of
+the harvesting favorize the proportion of the Norway spruce and others
+(deciduous) tree species instead of Scots pine, which likely in turn
+increases wind risk over the stands.
+
 \begin{figure}
 \centering
-\includegraphics{test_manus_files/figure-latex/fig_7_species_change-1.pdf}
-\caption{Changes in species composition under different management types
-and harvest intensity}
+\includegraphics{test_manus_files/figure-latex/species_change-1.pdf}
+\caption{Changes in species composition under different management
+groups and harvest intensity. (The ALL scenario leads to highest
+economic gain, tehrefore values for CCF and RF are missing from plot)}
 \end{figure}
 
 \section{Discussion}\label{discussion}
 
-Should we discuss about findings?
+Wind (10 years return level of max wind speed REF) are estimated the
+same over 100 years as well as temperature sums. How does could affects
+the results?
 
-\section{Close chunk}\label{close-chunk}
+In spite of inherent stochasticity of the wind and damage phenomena at
+all spatial scales can be successfully modelled combining spatial
+spatial datasets and ground earth observation data (Suvanto et al.
+2019). Interpret Suvanto's map: there are 3 limitations: use values as
+relative to each other - instead of exact probability valuesm, interpret
+the map as relative differences in damage vulnerability Damage
+probabilities do not refer to complete damage of the stand -- damage can
+be only poartial, in some part of the stand (not spatially expicit) map
+erepresent the forest vulnerability to the wind, but it is impossible to
+predict the exact locations of future wind disturbances, given
+uncertainities in future wind occurences
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
+
+\hypertarget{refs}{}
+\hypertarget{ref-Eyvindson2020}{}
+Eyvindson, K., Duflot, R., Triviño, M., Blattert, C., Potterf, M.,
+Mönkkönen, M., 2021. High boreal forest multifunctionality requires
+continuous cover forestry as a dominant management. Land Use Policy 100,
+1--10.
+doi:\href{https://doi.org/10.1016/j.landusepol.2020.104918}{10.1016/j.landusepol.2020.104918}
+
+\hypertarget{ref-RDevelopmentCoreTeam2019}{}
+R Development Core Team, 2019. R: A language and environment for
+statistical computing.
+
+\hypertarget{ref-Suvanto2019}{}
+Suvanto, S., Peltoniemi, M., Tuominen, S., Strandström, M., Lehtonen,
+A., 2019. High-resolution mapping of forest vulnerability to wind for
+disturbance-aware forestry. Forest Ecology and Management 453, 117619.
+doi:\href{https://doi.org/10.1016/j.foreco.2019.117619}{10.1016/j.foreco.2019.117619}
 
 
 \end{document}

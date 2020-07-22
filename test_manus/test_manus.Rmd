@@ -12,6 +12,9 @@ author:
   - name: Clemens Blattert 
     email: clemens.c.blattert@jyu.fi
     affiliation: Department of Biological and Environmental Science
+  - name: Daniel Burgas 
+    email: daniel.d.burgas-riera@jyu.fi
+    affiliation: Department of Biological and Environmental Science
    # footnote: 2
   - name: Mikko Mönkkönen
     email: mikko.monkkonen@jyu.fi
@@ -20,6 +23,8 @@ author:
 address:
   - code: University of Jyvaskyla
     address: Department of Biological and Environmental Science, University of Jyvaskyla, P.O. Box 35, FI-40014 Jyvaskyla, Finland
+  - code: Wisdom
+    address: This is wisdom address
   - code: LUKE
     address: THIS is Luke address Department, Street, City, State, Zip
 footnote:
@@ -28,10 +33,10 @@ footnote:
   - #code: 2
     #text: "Equal contribution"
 abstract: |
-  The current forest management seeks to reconside timber harvesting while aim to improve forest diversity and halt biodiversity loss. Noveal approaches inclusing optimal forest management, increasing proportion of set-aside forest stand or novel management approaches such as continuous forest cover emerges. However, ongoing climate change will challenge stability of forest ecosystem, and test the resilience of stands shaped by management regimes under multiple climatic disruptions, such as windthrows. To understand how does the traditienal (rotation forestry) vs. novel forest managements techniques (continuous cover forest) alternate the risk of wind damage over the landscape under the increasing harvesting levels, we  combined the forest growth simulator, optimal forest management and estimated landscape levels wind damage risks. Specifically, we 
-  
+  The current forest management seeks to reconside timber harvesting while aim to improve forest diversity and halt biodiversity loss. Novel approaches as optimization of forest management, increasing proportion of set-aside forest stands, or novel management approaches such as continuous forest cover emerge. However, the stability of the forests and provision of ecosystem services will be challenged by climate change and appearence of more frequent climatic disruptions, such as windthrows. To understand how will the traditional (rotation forestry, RF) and novel forest managements techniques (continuous cover forest, CCF) alternate the risk of wind damages over the harvest intensity gradient, we  combined the forest growth simulator, optimized forest management to calculate landscape levels wind damage risks for alternative forest futures given groups of management regimes (RF, CCF and combined: ALL) over the harvest intensity gradient over the landscape, or proportion of set-aside forests over 100 years. 
+  We found that higher harvest intensity in RF lowers wind risk, whereas the wind risk increased under CCF management. Overall, more intensive harvesting levels in RF produced more pulp, whereas production of log wood prevails under CCF. RF slightly increases the number of stands with open edge, and intensive harvesting might change species composition to favour Norway spruce which might further increases wind risk in the future. We conclude that forest managers should consider the target forest species composition to mitigate wind risk and to favorize production of log wood instead of pulp. 
 
-  It consists of two paragraphs.
+ 
 
 journal: "Forest Ecology and Management"
 date: "`r Sys.Date()`"
@@ -44,6 +49,8 @@ csl: elsevier-harvard.csl
 output: rticles::elsevier_article
 #output: word_document
 ---
+
+\newpage
 
 _Text based on elsarticle sample manuscript, see [http://www.elsevier.com/author-schemas/latex-instructions#elsarticle](http://www.elsevier.com/author-schemas/latex-instructions#elsarticle)_
 
@@ -62,7 +69,7 @@ Traditional forest management regimes specialized in promoting timber revenues w
 Here we explore how the restriction of forest management practices, along with the increasing level of harvest levels over the landscape affects landscape level damage of wind risk and how much timber value is put on risk under alternative regimes and extraction levels. Our study for the first time evaluates the landcspeca level wind risk combined with the forest growth simulator and long-term consequences of he applied forest management practices. Therefore, we first calculate the stand level wind risk over alternative landscapes and further explore the likely drivers of the wind risk levels. We investigated how restriction of forest management regimes combined with levels of intensity of timber extraction will affects landscape level wind risk. 
 
 
-![The study workflow from collecting initial stand conditions (2016) throught forest simulation growth under various ranges of forest management, and constriuction of teh harvesting intensity gradient using optimization to landscape level stand configurations.](/MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png)
+![The study workflow from collecting initial stand conditions (2016) throught forest simulation growth under various ranges of forest management, and constriuction of teh harvesting intensity gradient using optimization to landscape level stand configurations.\label{workflow}](/MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png)
 
 # Methods
 
@@ -79,11 +86,11 @@ knitr::opts_chunk$set(echo = FALSE,
 
 ### Study area 
 
-Our study area represents a typical Finnish production forested landscape with relatively structurally homogenous forests stands. In total we used 1475 forests stands aggregated within a single watershed (number 14.534) in Central Finland, covering 2242 ha. Initial stand conditions were collected as open source data from the Finnish Forest Centre (available on www.metsaan.fi) providing currents stand conditions in 2016. 
+Our study area represents a typical Finnish production forested landscape with relatively structurally homogenous forests stands. In total we used 1475 forests stands aggregated within a single watershed (number 14.534) in Central Finland, covering 2242 ha (Fig. \ref{study_area}). Initial stand conditions were collected as open source data from the Finnish Forest Centre (available on www.metsaan.fi) providing currents stand conditions in 2016. 
 
-Our input datasets includes initial stand conditions, simulation of the forest regimes using forest growth simulator, and stand configurations over the range of optimal landscape level forest management, varying from over the harvest intensity is based on Eyvindosn et al. (2020) study, please refer for more details.
+Our input datasets includes initial stand conditions, simulation of the forest regimes using forest growth simulator, and stand configurations over the range of optimal landscape level forest management, varying from over the harvest intensity is based on @Eyvindson2020 study (Fig. \ref{workflow}), please refer for more details).
 
-![The study are located in Central Finland (watershed 14.534) comprising 1475 forest stands.](/MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png)
+![The study area located in Central Finland (watershed 14.534) comprising 1475 forest stands.\label{study_area}](/MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png)
 
 
 
@@ -97,7 +104,7 @@ The collection of the optimal management regimes explore the trade-offs between 
 
 ###Wind risk calculation
 
-We have calculated the probability of wind damage based on @suvanto2019 binomial generalized linear model with logit-link function for each stand, under each scenario and at every time step. @suvanto2019 This model calculates the probability of the wind damage considering available relevant open-access datasets, specifically dominant tree species, dominant tree height, time since thinning, predicted levels on max wind speed (for next 10 years, this remain stable in this study), evaluated if stand has open edge, soil type, mineral soil depth, site fertility and temperature sum (refer to (Suvanto et al., 2019) for all details). As it is difficult to predict specific location of the occurrence of strong winds in the future, the model outputs show the relative differences between stands, damage can be only partial to the stand. To process the datasets, calculate damage probability models and visualize results we used (R Development Core Team, 2019). 
+We have calculated the probability of wind damage based on @Suvanto2019 binomial generalized linear model with logit-link function for each stand, under each scenario and at every time step. @Suvanto2019 This model calculates the probability of the wind damage considering available relevant open-access datasets, specifically dominant tree species, dominant tree height, time since thinning, predicted levels on max wind speed (for next 10 years, this remain stable in this study), evaluated if stand has open edge, soil type, mineral soil depth, site fertility and temperature sum (refer to (Suvanto et al., 2019) for all details). As it is difficult to predict specific location of the occurrence of strong winds in the future, the model outputs show the relative differences between stands, damage can be only partial to the stand. To process the datasets, calculate damage probability models and visualize results we used @RDevelopmentCoreTeam2019. 
 
 ### Data processing
 
@@ -106,9 +113,7 @@ We calculated the probability of wind damage based on stand level for each stand
  
 
 # Results
-
-```{r process_input_data, eval = T, echo = F, warning = F, message = F, include = F}
-# 
+``` {r libs, eval = T, echo = F, warning = F, message = F, include = F}
 rm(list = ls())
 
 # , eval = FALSE
@@ -121,12 +126,21 @@ library(stringr)
 library(gridExtra)
 library(tidyr)
 library(ggpubr)
+library("RColorBrewer")
+```
 
+```{r set-my-theme, eval = T, echo = F, warning = F, message = F, include = F}
 
 theme_set(theme_classic())
+#theme_set(theme_grey())
 theme_update(panel.grid.major = element_line(colour = "grey95",
                                              size = 0.1,
                                              linetype = 2))
+
+```
+
+```{r process_input_data, eval = T, echo = F, warning = F, message = F, include = F}
+# 
 
 # Read datasets:
 # ----------------------------------------
@@ -143,7 +157,6 @@ df.geom <- subset(df.geom, id %in% unique(df$id))
 tot.area = as.numeric(sum(df.geom$area))
 
 
-
 # Complete factors:
 # ---------------------
 # CHaracterize stands extends:
@@ -153,12 +166,6 @@ mean(df.geom$area)
 max(df.geom$area)
 min(df.geom$area)
 
-# hist(df.geom$area/10000)
-
-
-
-
-
 ```
 
 
@@ -167,18 +174,23 @@ min(df.geom$area)
 
 The set-aside landscape level management resulted at the same mean landscape level risk for all management regimes (Fig. 2). However, intensifying harvesting triggers different responses under groups of management regimes and intensification of the timber extraction. Sole use of the RF managements lowered the wind risk with increasing harvest intensity. On the other hand, both ALL and CCF scenarios increased the wind risk where CCF monotonically increased with increasing harvesting rates, while ALL regimes have slightly humpened curve shape, culminating around inteinsity of 7.5K by ha. The CCF increases monotonically while maximal harvesting increase the wind risk by 25% compared to completely set-aside stands.
 
-``` {r fig3_mean_risk_by_intensity_plot, fig.width = 4, fig.height = 3.5, fig.cap = "Mean wind risk damage for three types of management regimes over  harvest intensity gradient"}
+``` {r fig3_mean_risk_by_intensity_plot, fig.width = 3, fig.height = 2.8, fig.cap = "Mean wind risk damage for three types of management regimes over  harvest intensity gradient"}
 
 df %>% 
   group_by(scenSimpl2, scenNumb, NPI) %>% 
-  summarize(mean.m = mean(windRisk)) %>% 
+  mutate(mean.m = mean(windRisk)) %>% 
+ # head()
   ggplot(aes(x = NPI,
              y = mean.m,
-             color = scenSimpl2,
              group = scenSimpl2)) + # ,
-  geom_line(lwd = 1) +
+  geom_line(aes(linetype = scenSimpl2, 
+                color    = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") +
+  #scale_color_grey() +
   ylim(0, 0.04)+
-  labs(color = "Regimes") +
   xlab("NPI k € by ha") + #  
   ylab("mean wind risk damage (%)") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
@@ -190,7 +202,7 @@ df %>%
 
 ### Timber volume at wind risk
 
-Increasing harvesting levels lowers the amount of the available timber at any time step to be lost due to windthrows. Interestingly, the CCF regimes produces higher logs volumes, while RF has higher production of the pulp wood, which is in high demand by cheaper then log wood. The same trends are visible for harvested log and pulp volumes. For ALL management regimes, using all available management regimes, is located between two extremities. The highest mean log timber volume as available for the wind damage at lowest harvesting levels. Interestingly, under RF, low levels of timber extraction increase levels of the pupl  standing volume. The highest amount of harvested log wood is produced by CCF regimes, while RF dominates in harvesting pulp timber. 
+Increasing harvesting levels lowers the amount of the available timber at any time step to be lost due to windthrows. Interestingly, the CCF regimes produces higher logs volumes, while RF has higher production of the pulp wood, which is in high demand by cheaper then log wood. The same trends are visible for harvested log and pulp volumes. For ALL management regimes, using all available management regimes, is located between two extremities. The highest mean log timber volume as available for the wind damage at lowest harvesting levels. Interestingly, under RF, low levels of timber extraction increase levels of the pupl  standing volume. The highest amount of harvested log wood is produced by CCF regimes, while RF dominates in harvesting pulp timber (Fig. \ref(fig_4_plot_V_timber)). 
 
 
 ```{r fig_4_plot_V_timber, fig.width = 7, fig.height = 5.7, fig.cap = "A. Mean standing and B. harvested pulp and log timber under three types of management regimes over harvest intensity gradient"}
@@ -251,10 +263,14 @@ p.stand <-
                        y = value,
                        group = scenSimpl2,
                        color = scenSimpl2)) +
-  geom_line(size = 1) + 
+ geom_line(aes(linetype = scenSimpl2, 
+                color    = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") + # geom_line(size = 1) + 
   xlab("NPI k € by ha") +
   ylab("mean stand volume (m3)") +
-   labs(color = "Regimes") +
   facet_wrap(.~ variable) + 
   ggtitle("A") 
 
@@ -267,9 +283,13 @@ p.harvested <-
              y = value/10000,
              group = scenSimpl2,
              color = scenSimpl2)) +
-  geom_line(size = 1) + 
+    geom_line(aes(linetype = scenSimpl2, 
+                color    = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") +
   xlab("NPI k € by ha") +
-   labs(color = "Regimes") +
   ylab("sum harvested volume (*1000)") +
   facet_wrap(.~ variable) +
   ggtitle("B")
@@ -279,48 +299,48 @@ ggarrange(p.stand, p.harvested, ncol = 1, nrow = 2,
           common.legend = TRUE, legend="bottom")
 ```
 
-The intensification of the harvesting levels increases the proportion of the pulp wood compared to log wood, especially in RF. In CCF, the proportion among standing log and pulp volume remains at the same rate (65:30) where the production of the log timber dominates See figure  \@ref(fig:fig_5_proportion_V_pulp_log).
+The intensification of the harvesting levels increases the proportion of the pulp wood compared to log wood, especially in RF. In CCF, the proportion among standing log and pulp volume remains at the same rate (65:30) where the production of the log timber dominates. At the highest intensity of timber extraction, pulp wood creates up to 50% of teh total standing volume See figure  \@ref(fig:fig_5_proportion_V_pulp_log).
 
 ```{r fig_5_proportion_V_pulp_log, eval = T, echo = F, warning = F, message = F, fig.width = 4, fig.height = 2, fig.cap = "Ratio between standing log and pul volume (m^3)"}
 # Here is te question: does the harvest intensification changes the proportion between log and pulp wood???
 
-V_sum          <- aggregate(V ~ scenSimpl2 +  scenNumb, df, sum)
-V_st_log_sum   <- aggregate(V_stand_log ~ scenSimpl2 +  scenNumb, df, sum)
-V_st_pulp_sum  <- aggregate(V_stand_pulp ~ scenSimpl2 +  scenNumb, df, sum)
-
-
-# Merge two sum of the pulp and log 
-# tables and calculate the proprtions:
-
-V.prop <- 
-  V_st_log_sum %>% 
-  left_join(V_st_pulp_sum) %>% 
-  mutate(V_total     = V_stand_log + V_stand_pulp) %>% 
-  mutate(V_log_prop  = V_stand_log/V_total * 100) %>% 
-  mutate(V_pulp_prop = V_stand_pulp/V_total * 100) %>% 
-  dplyr::select(-c(V_stand_log, V_stand_pulp, V_total)) 
-
-
-
-# Convert data from long to wide format
-V.prop.l <- reshape2::melt(V.prop, id.vars = c("scenSimpl2", 
-                                              # "NPI", 
-                                               "scenNumb"))
+# V_sum          <- aggregate(V ~ scenSimpl2 +  scenNumb, df, sum)
+# V_st_log_sum   <- aggregate(V_stand_log ~ scenSimpl2 +  scenNumb, df, sum)
+# V_st_pulp_sum  <- aggregate(V_stand_pulp ~ scenSimpl2 +  scenNumb, df, sum)
+# 
+# 
+# # Merge two sum of the pulp and log 
+# # tables and calculate the proprtions:
+# 
+# V.prop <- 
+#   V_st_log_sum %>% 
+#   left_join(V_st_pulp_sum) %>% 
+#   mutate(V_total     = V_stand_log + V_stand_pulp) %>% 
+#   mutate(V_log_prop  = V_stand_log/V_total * 100) %>% 
+#   mutate(V_pulp_prop = V_stand_pulp/V_total * 100) %>% 
+#   dplyr::select(-c(V_stand_log, V_stand_pulp, V_total)) 
+# 
+# 
+# 
+# # Convert data from long to wide format
+# V.prop.l <- reshape2::melt(V.prop, id.vars = c("scenSimpl2", 
+#                                               # "NPI", 
+#                                                "scenNumb"))
 
 # Plot proportion of teh timber volume based on type
 
-V.prop.l %>% 
-  ggplot(aes(x = scenNumb,
-             y = value,
-             fill = variable)) +
-  geom_bar(position="stack", 
-           stat="identity",
-           width = 0.5) +
-  facet_grid(.~ scenSimpl2) +
-  scale_fill_grey(start = 0.8, end = 0.2) +
-  ylab("Ratio standing\nlog:pulp timber volume") + 
-  xlab("Harvest intensity") +
-   labs(fill = "Timber volume type") 
+# V.prop.l %>% 
+#   ggplot(aes(x = scenNumb,
+#              y = value,
+#              fill = variable)) +
+#   geom_bar(position="stack", 
+#            stat="identity",
+#            width = 0.5) +
+#   facet_grid(.~ scenSimpl2) +
+#   scale_fill_grey(start = 0.8, end = 0.2) +
+#   ylab("Ratio standing\nlog:pulp timber volume") + 
+#   xlab("Harvest intensity") +
+#    labs(fill = "Timber volume type") 
   
 
 ```
@@ -330,7 +350,7 @@ V.prop.l %>%
 RF regimes increase the amount of stands with open edge with increasing harvest intensity  while CCF regimes maintain the same amount of open stands over the harvest intensity gradient. Intensive RF increases number of stands with open edge by 5%.    
 
 
-```{r fig_6_count_open_edge, eval = T, echo = F, warning = F, message = F, fig.width = 4, fig.height = 2, fig.cap = "Yearly count of stands with open edge over the intensity gradient"}
+```{r fig_6_count_open_edge, eval = T, echo = F, warning = F, message = F, fig.width = 3, fig.height = 2.8, fig.cap = "Yearly count of stands with open edge over the intensity gradient"}
 
 # Plot open_edge FALSE = (closed stand) over SA %
 # ---------------------
@@ -338,75 +358,40 @@ df %>%
   group_by(scenSimpl2, scenNumb, NPI, open_edge) %>% 
   filter(open_edge == TRUE) %>% 
   tally() %>% 
-  #group_by(scenSimpl2, scenNumb, NPI)# %>% 
- # summarize(mean.m = mean(n)) #%>% 
   ggplot(aes(x = NPI, #factor(scenNumb),
              y = n/20,  # number of stands by one year
              color = scenSimpl2,
              group = scenSimpl2)) + # ,
-  geom_line(lwd = 1) +
+   geom_line(aes(linetype = scenSimpl2, 
+                color    = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") +
+  ylim(1000, 1400) +
+ # geom_line(lwd = 1) +
   xlab("Income") + 
-  ylab("# of stand with open edge (mean)") +
+  ylab("# of stand\nwith open edge (mean)") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         legend.position = "bottom") +
-  ggtitle("") +
-  labs(color = "Regimes group") 
+  ggtitle("") 
 
 ```
 
 ### Changes in species composition
 
-```{r fig_7_species_change, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 3, fig.cap = "Changes in species composition under different management types and harvest intensity"}
+The intensification of the harvesting changes the stand species composition over time (Fig. \ref{species_change}). Intensification of the harvesting favorize the proportion of the Norway spruce and others (deciduous) tree species instead of Scots pine, which likely in turn increases wind risk over the stands.    
 
+```{r species_change, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "Changes in species composition under different management groups and harvest intensity. (The ALL scenario leads to highest economic gain, tehrefore values for CCF and RF are missing from plot)"}
 
-
-# Species composition in 2016
-#p.sp.2016 <- 
-  df %>%
-  filter(year == 2016) %>%
-  group_by(simpleScen, scenNumb, species) %>% 
-  dplyr::summarize(counts = n()) %>% 
-  ggplot(aes(x = scenNumb,
-             y = counts,
-             color = species)) +
-  geom_line()
-  
-
-ggplot(aes(x = scenNumb,
-             fill = species)) +
- 
-  #geom_histogram(stat = "count") +
-  geom_area(position="fill", stat="count")+
-  facet_grid(scenSimpl2 ~ .) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
-  ggtitle("Species composition: 2016")
-
-# Species composition at the end
-
-p.sp.2111 <- 
-  df %>%
-  filter(year == 2111) %>%
-  ggplot(aes(x = scenNumb,
-             fill = species)) +
-  #geom_histogram(stat = "count") +
-  geom_area(position="fill", stat="count")+
-  facet_grid(scenSimpl2 ~ .) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
-  ggtitle("Species composition: 2111")
-
-
-```
-
-
-```{r}
 # Species composition in 2016
 p.sp.2016 <- 
   df %>%
   filter(year == 2016) %>%
-  ggplot(aes(x = scenNumb,
+  ggplot(aes(x = NPI,
              fill = species)) +
   #geom_histogram(stat = "count") +
-  geom_area(position="fill", stat="count")+
+  geom_bar(position="fill", stat="count", width = 0.9)+
   facet_grid(scenSimpl2 ~ .) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   ggtitle("Species composition: 2016")
@@ -416,10 +401,11 @@ p.sp.2016 <-
 p.sp.2111 <- 
   df %>%
   filter(year == 2111) %>%
-  ggplot(aes(x = scenNumb,
+  ggplot(aes(x = NPI,
              fill = species)) +
   #geom_histogram(stat = "count") +
-  geom_area(position="fill", stat="count")+
+  #geom_area(position="fill", stat="count")+
+  geom_bar(position="fill", stat="count", width = 0.9)+
   facet_grid(scenSimpl2 ~ .) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
   ggtitle("Species composition: 2111")
@@ -430,17 +416,29 @@ ggarrange(p.sp.2016, p.sp.2111,
           common.legend = TRUE, 
           legend="bottom")
 
+
 ```
+
+
 
 
 
 # Discussion
 
 
-Should we discuss about findings?
 
 
-# Close chunk
+Wind (10 years return level of max wind speed REF) are estimated the same over 100 years as well as temperature sums. How does could affects the results?
+
+In spite of inherent stochasticity of the wind and damage phenomena at all spatial scales can be successfully modelled combining spatial spatial datasets and ground earth observation data (Suvanto et al. 2019).
+Interpret Suvanto’s map: there are 3 limitations: 
+use values as relative to each other  - instead of exact probability valuesm, interpret the map as relative differences in damage vulnerability
+Damage probabilities do not refer to complete damage of the stand – damage can be only poartial, in some part of the stand (not spatially expicit)
+map erepresent the forest vulnerability to the wind, but it is impossible to predict the exact locations of future wind disturbances, given uncertainities in future wind occurences
+
+
+
+
 
 References {#references .unnumbered}
 ==========
