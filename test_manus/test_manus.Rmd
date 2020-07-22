@@ -371,6 +371,7 @@ df %>%
        linetype = "Scenario") + # geom_line(size = 1) + 
   xlab("NPI k € by ha") +
   ylab("stands (%)") +
+  ylim(0, 55) +
   facet_wrap(.~ species) + 
   theme(legend.position = "bottom") +
   ggtitle("") 
@@ -383,12 +384,12 @@ df %>%
 
 The intensification of the harvesting changes the stand species composition over time (Fig. \ref{species_change}). Intensification of the harvesting favorize the proportion of the Norway spruce and others (deciduous) tree species instead of Scots pine, which likely in turn increases wind risk over the stands.    
 
-```{r species_change, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "Changes in species composition under different management groups and harvest intensity. (The ALL scenario leads to highest economic gain, tehrefore values for CCF and RF are missing from plot)"}
+```{r res_D_tree_height, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "Mean dominant tree height under different management groups and harvest intensity."}
 
 # get mean count for each species over SA gradient - plot over SA gradient
 
 df %>%
-  group_by(NPI, scenSimpl2) %>% 
+  group_by(NPI, scenSimpl2, species) %>% 
   mutate(H_mean = mean(H_dom)) %>% 
   ggplot(aes(x = NPI,
              y = H_mean/10,
@@ -402,16 +403,12 @@ df %>%
        linetype = "Scenario") + # geom_line(size = 1) + 
   xlab("NPI k € by ha") +
   ylab("tree height (m)") +
+  ylim(0, 25) +
   facet_wrap(.~ species) + 
   theme(legend.position = "bottom") +
   ggtitle("") 
 
 ```
-
-
-
-
-
 
 
 #### Frequency of open stands
@@ -420,12 +417,12 @@ df %>%
 RF regimes increase the amount of stands with open edge with increasing harvest intensity  while CCF regimes maintain the same amount of open stands over the harvest intensity gradient. Intensive RF increases number of stands with open edge by 5%.    
 
 
-```{r fig_6_count_open_edge, eval = T, echo = F, warning = F, message = F, fig.width = 3, fig.height = 2.8, fig.cap = "Yearly count of stands with open edge over the intensity gradient"}
+```{r fig_6_count_open_edge, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "Yearly count of stands with open edge over the intensity gradient"}
 
 # Plot open_edge FALSE = (closed stand) over SA %
 # ---------------------
 df %>% 
-  group_by(scenSimpl2, scenNumb, NPI, open_edge) %>% 
+  group_by(scenSimpl2, scenNumb, NPI, open_edge, species) %>% 
   filter(open_edge == TRUE) %>% 
   tally() %>% 
   ggplot(aes(x = NPI, #factor(scenNumb),
@@ -438,10 +435,10 @@ df %>%
   scale_color_brewer(palette="Greens") +
   labs(color = "Scenario",
        linetype = "Scenario") +
-  ylim(1000, 1400) +
- # geom_line(lwd = 1) +
+  ylim(0, 700) +
   xlab("Income") + 
-  ylab("# of stand\nwith open edge (mean)") +
+  facet_grid(.~species) +
+  ylab("# of open edge\nstands ") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         legend.position = "bottom") +
   ggtitle("") 
@@ -450,6 +447,48 @@ df %>%
 
 
 #### Thinning frequency
+
+```{r fig_thin_frequency, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "THe frequency of the thinnings by management groups, species and harvest intensity gradient"}
+
+#head(df)
+
+# HOw many times there is a record in THIN???
+df$THIN2 <- df$THIN
+
+df$THIN2[df$THIN2==""]<-NA
+
+
+#unique(df$THIN2)
+
+# Replace empty characters by NA
+df %>% mutate_if(is.character, list(~na_if(.,""))) 
+
+
+# Calculate the number of non NA values by groups
+df %>% 
+  group_by(scenSimpl2, NPI, species) %>% 
+  summarise(non_na_count = sum(!is.na(THIN2))) %>% 
+  ggplot(aes(x = NPI, #factor(scenNumb),
+             y = non_na_count/20,  # number of stands by one year
+             color = scenSimpl2,
+             group = scenSimpl2)) + # ,
+   geom_line(aes(linetype = scenSimpl2, 
+                color    = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color    = "Scenario",
+       linetype = "Scenario") +
+  #ylim(0, 700) +
+  xlab("Income") + 
+  facet_grid(.~species) +
+  ylab("thinning frequency") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom") +
+  ggtitle("") 
+  
+# count non-na values
+
+```
 
 
 
