@@ -111,7 +111,7 @@ We have calculated the probability of wind damage based on @Suvanto2019 binomial
 
 #### Data processing
 
-We calculated the probability of wind damage for each stand, scenario and time intervals. Further, we averaged the wind risk values over the scenarios to allow comparison between RF, CCF and ALL management regimes groups over the harvesting gradient. We explored the mean wind risk (%) given the management groups and over harvest gradient (from set-aside to maximal harvest levels). In addition, we investigated the mean levels of the standing log and pulp timber volumes (m3) for scenarios, and total sum of harvested pulp and log timber over simulation run (XXX). We further investigated the means of dynamic parameters (tree species, tree heights, open edges and time since thinning) over the harvest intensity gradient to understand how they contributed to predicted wind risk values.   
+We calculated the probability of wind damage for each stand, scenario and time intervals. Further, we averaged the wind risk values over the scenarios to allow comparison between RF, CCF and ALL management regimes groups over the harvesting gradient. We explored the mean wind risk (%) given the management groups and over harvest gradient (from set-aside to maximal harvest levels). In addition, we investigated the mean levels of the standing log and pulp timber volumes (m3) for scenarios, and total sum of harvested pulp and log timber over simulation run (XXX). We further investigated the means of dynamic parameters (tree species, dominant tree height, frequency of open edges and time since thinning) over the harvest intensity gradient to understand how they contributed to predicted wind risk values.   
 
 # Results
 ``` {r libs, eval = T, echo = F, warning = F, message = F, include = F}
@@ -346,7 +346,76 @@ The intensification of the harvesting levels increases the proportion of the pul
 
 ```
 
-#### Open stands frequency
+### Dynamic parameters contributing to wind risk
+
+#### Species composition
+
+The intensification of the harvesting changes the stand species composition over time (Fig. \ref{species_change}). Intensification of the harvesting favorize the proportion of the Norway spruce and others (deciduous) tree species instead of Scots pine, which likely in turn increases wind risk over the stands.    
+
+```{r species_change, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "Changes in species composition under different management groups and harvest intensity. (The ALL scenario leads to highest economic gain, tehrefore values for CCF and RF are missing from plot)"}
+
+# get mean count for each species over SA gradient - plot over SA gradient
+
+df %>%
+  group_by(NPI, scenSimpl2, species) %>% 
+  tally() %>% 
+  ggplot(aes(x = NPI,
+             y = n/29400*100,
+             group = scenSimpl2,
+                       color = scenSimpl2)) +
+ geom_line(aes(linetype = scenSimpl2, 
+                color    = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("stands (%)") +
+  facet_wrap(.~ species) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+  
+
+
+```
+
+#### Dominant tree heights 
+
+The intensification of the harvesting changes the stand species composition over time (Fig. \ref{species_change}). Intensification of the harvesting favorize the proportion of the Norway spruce and others (deciduous) tree species instead of Scots pine, which likely in turn increases wind risk over the stands.    
+
+```{r species_change, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "Changes in species composition under different management groups and harvest intensity. (The ALL scenario leads to highest economic gain, tehrefore values for CCF and RF are missing from plot)"}
+
+# get mean count for each species over SA gradient - plot over SA gradient
+
+df %>%
+  group_by(NPI, scenSimpl2) %>% 
+  mutate(H_mean = mean(H_dom)) %>% 
+  ggplot(aes(x = NPI,
+             y = H_mean/10,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+ geom_line(aes(linetype = scenSimpl2, 
+                color   = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("tree height (m)") +
+  facet_wrap(.~ species) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+```
+
+
+
+
+
+
+
+#### Frequency of open stands
+
 
 RF regimes increase the amount of stands with open edge with increasing harvest intensity  while CCF regimes maintain the same amount of open stands over the harvest intensity gradient. Intensive RF increases number of stands with open edge by 5%.    
 
@@ -379,47 +448,8 @@ df %>%
 
 ```
 
-#### Changes in species composition
 
-The intensification of the harvesting changes the stand species composition over time (Fig. \ref{species_change}). Intensification of the harvesting favorize the proportion of the Norway spruce and others (deciduous) tree species instead of Scots pine, which likely in turn increases wind risk over the stands.    
-
-```{r species_change, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "Changes in species composition under different management groups and harvest intensity. (The ALL scenario leads to highest economic gain, tehrefore values for CCF and RF are missing from plot)"}
-
-# Species composition in 2016
-p.sp.2016 <- 
-  df %>%
-  filter(year == 2016) %>%
-  ggplot(aes(x = NPI,
-             fill = species)) +
-  #geom_histogram(stat = "count") +
-  geom_bar(position="fill", stat="count", width = 0.9)+
-  facet_grid(scenSimpl2 ~ .) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
-  ggtitle("Species composition: 2016")
-
-# Species composition at the end
-
-p.sp.2111 <- 
-  df %>%
-  filter(year == 2111) %>%
-  ggplot(aes(x = NPI,
-             fill = species)) +
-  #geom_histogram(stat = "count") +
-  #geom_area(position="fill", stat="count")+
-  geom_bar(position="fill", stat="count", width = 0.9)+
-  facet_grid(scenSimpl2 ~ .) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
-  ggtitle("Species composition: 2111")
-
- 
-ggarrange(p.sp.2016, p.sp.2111, 
-          ncol = 2, nrow = 1,
-          common.legend = TRUE, 
-          legend="bottom")
-
-
-```
-
+#### Thinning frequency
 
 
 
