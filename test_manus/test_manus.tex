@@ -53,7 +53,7 @@
 \hypersetup{breaklinks=true,
             bookmarks=true,
             pdfauthor={},
-            pdftitle={How restrictions of forest management affect landscape level wind damage risk},
+            pdftitle={Effects of forest management and harvest intensity on landscape level wind damage risk},
             colorlinks=false,
             urlcolor=blue,
             linkcolor=magenta,
@@ -72,8 +72,8 @@
 \begin{document}
 \begin{frontmatter}
 
-  \title{How restrictions of forest management affect landscape level wind damage
-risk}
+  \title{Effects of forest management and harvest intensity on landscape level
+wind damage risk}
     \author[Department of Biological and Environmental Science]{Mária Potterf\corref{1}}
    \ead{mpotterf@jyu.fi} 
     \author[Department of Biological and Environmental Science]{Kyle Eyvindson}
@@ -92,33 +92,36 @@ Jyvaskyla, P.O. Box 35, FI-40014 Jyvaskyla, Finland}
     \cortext[]{}
   
   \begin{abstract}
-  Current forest management seeks to reconside timber harvesting while
-  aims to improve forest diversity and halt biodiversity loss. Novel
-  approaches as optimization of forest management regimes, increasing
-  proportion of set-aside forest stands, or novel management approaches
-  such as continuous forest cover emerge. However, novel ways of forest
-  management shape structures of the forest stands over the landscape
-  which will in turn affect the vulnerability to resist to more frequent
-  climatic disruptions, such as windthrows. To understand how will the
-  traditional (rotation forestry, RF) and novel forest managements
-  techniques (continuous cover forest, CCF) alternate the risk of wind
-  damages over the harvest intensity gradient (ranging from completely
-  setaside to highest harvesting rates), we combined the forest growth
-  simulator under ranges of management regimes (RF, CCF and combined:
-  ALL), optimized over the range of harvesting levels to calculate stand
-  and landscape level wind damage risk for alternative paths of the forest
-  management and harvesting levles over 100 years. We found that higher
-  harvest intensity in RF lowers wind risk, whereas the wind risk
-  increased under CCF and ALL scenarios. More intensive harvesting using
-  RF produced more pulp, while CCF provided higher volumes of the standing
-  and harvested log wood, which likely explains higher values of wind risk
-  probability. RF slightly increased the number of stands with open edge,
-  which remained stable under CCF and ALL regimes. Intensive harvesting
-  may change species composition to favour Norway spruce which will
-  further increase probability of wind damage in the future. Therefore, we
-  suggest that forest managers should consider the target forest species
-  composition to mitigate wind risk if aimed to support production of log
-  wood over the pulp.
+  Future forest management needs to balance between sustainable timber,
+  supporting non-woody ecosystem services and shelter biodiversity. Novel
+  approaches as optimization of forest management to certain goals,
+  increasing proportion of set-aside forest stands, or novel management
+  approaches such as continuous forest cover emerge. However, novel ways
+  of forest management shape forest stands structures over the landscape
+  and will define the stand vulnerability to more frequent climatic
+  disruptions, such as windthrows under hardening climate change. To
+  understand how will the traditional (rotation forestry, RF) and novel
+  forest managements techniques (continuous cover forest, CCF) combined
+  using optimal management alternate the risk of wind damages over the
+  harvest intensity gradient (ranging from completely setaside to highest
+  harvesting rates), we combined the forest growth simulator under ranges
+  of management regimes (RF, CCF and combined: ALL), optimized over the
+  range of harvesting levels to calculate stand and landscape level wind
+  damage risk for alternative paths of the forest management and
+  harvesting levles over 100 years. We found that higher harvest intensity
+  in RF lowers wind risk, whereas the wind risk increased under CCF and
+  ALL scenarios. More intensive harvesting using RF produced more pulp,
+  while CCF provided higher volumes of the standing and harvested log
+  wood, which likely explains higher values of wind risk probability. RF
+  slightly increased the number of stands with open edge, which remained
+  stable under CCF and ALL regimes. Intensive harvesting may change
+  species composition to favour Norway spruce which will further increase
+  probability of wind damage in the future. Therefore, we suggest that
+  forest managers should consider the target forest species composition to
+  mitigate wind risk if aimed to support production of log wood over the
+  pulp.
+  
+  add to 4A = that it starts from 80
   \end{abstract}
   
  \end{frontmatter}
@@ -127,23 +130,28 @@ Jyvaskyla, P.O. Box 35, FI-40014 Jyvaskyla, Finland}
 
 \section{Introduction}\label{introduction}
 
-Adaptive forest management aims to balance between forest productivity,
-provision of non-woody ecosystem services, and biodiversity. Existance
-of biodiversity, mostly attached to existence of deadwood, is limited by
-harvesting levels. Intensive logging activities fragment forested
-landspaces. To balance between biodiversity and economic gain from
-timber, the propostion of set=aside forests within commercial forests
-emerges, and new forest management approaches are explored, such as
-continuous forest cover (Eyvindson et al., 2021) and traditional
-harvesting regimes are becoming controversial or requested to ban
-(\ldots{}). The increase of the set aside forests within the commercial
-forests, as well as development of the new management techniques affect
-landscape level structural diversity, timing of the thinning, presence
-of absence of the final cuts in rotation forestry or development of the
-larger trees within continuous cover forestry or in set-aside forestry.
-The fundamental is the carefull landscape level planning of the
-management actions balancing between set-aside (unmanaged forests),
-intensive management and continuously present forest cover.
+Large question
+
+Future forest ecosystems need to simultaneously provide timber,
+non-woody ecosystem services such as carbon storage or human recreation,
+and shelter biodiversity. Adaptive forest management strives to balance
+between timber production, provision of non-woody ecosystem services,
+and biodiversity. Existance of biodiversity, mostly attached to
+existence of deadwood, is limited by harvesting levels. Intensive
+logging activities fragment forested landspaces. To balance between
+biodiversity and economic gain from timber, the propostion of set=aside
+forests within commercial forests emerges, and new forest management
+approaches are explored, such as continuous forest cover (Eyvindson et
+al., 2021) and traditional harvesting regimes are becoming controversial
+or requested to ban (\ldots{}). The increase of the set aside forests
+within the commercial forests, as well as development of the new
+management techniques affect landscape level structural diversity,
+timing of the thinning, presence of absence of the final cuts in
+rotation forestry or development of the larger trees within continuous
+cover forestry or in set-aside forestry. The fundamental is the carefull
+landscape level planning of the management actions balancing between
+set-aside (unmanaged forests), intensive management and continuously
+present forest cover.
 
 Optimal management scenarios fullfil the specific objectives of the
 society of forest owners to provide certain timber value, improve
@@ -391,6 +399,8 @@ total standing volume See figure
 @ref(fig:fig\_5\_proportion\_V\_pulp\_log) NEW FIG
 @ref(fig\_5\_proportion\_V\_pulp\_log).
 
+\subsubsection{Changes in wind risk}\label{changes-in-wind-risk}
+
 \subsection{Dynamic parameters contributing to wind
 risk}\label{dynamic-parameters-contributing-to-wind-risk}
 
@@ -453,6 +463,8 @@ ALL, and strongly increases at high harvest intensity (from 3K for pine
 and from 5K for spruce). The frequency of thinnings in CCF increases 3-4
 times in CCF comparing to RF.
 
+\includegraphics{test_manus_files/figure-latex/unnamed-chunk-2-1.pdf}
+
 \section{Discussion}\label{discussion}
 
 Wind (10 years return level of max wind speed REF) are estimated the
@@ -472,7 +484,6 @@ predict the exact locations of future wind disturbances, given
 uncertainities in future wind occurences
 
 \begin{itemize}
-\tightlist
 \item
   the glm takes into account the dominant tree species but neglects the
   stand structure. WE neglected the stand structure in applying the
@@ -497,7 +508,13 @@ uncertainities in future wind occurences
   servoices and destroyng habitats for endangered species should be
   largely replaced over the landscapes by managements fulfillings
   multiple benefits Eyvindson et al. (2021).
+\item
 \end{itemize}
+
+The shortening of the rotation period in Norway spruce forets might
+slightly lower the wind and subsetquent bark beetle distudrabnces but
+has limited efficiencies and decreses under climate change (Zimová et
+al., 2020)
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
@@ -530,6 +547,11 @@ Suvanto, S., Peltoniemi, M., Tuominen, S., Strandström, M., Lehtonen,
 A., 2019. High-resolution mapping of forest vulnerability to wind for
 disturbance-aware forestry. Forest Ecology and Management 453, 117619.
 doi:\href{https://doi.org/10.1016/j.foreco.2019.117619}{10.1016/j.foreco.2019.117619}
+
+\hypertarget{ref-Zimova2020}{}
+Zimová, S., Dobor, L., Hlásny, T., Rammer, W., Seidl, R., 2020. Reducing
+rotation age to address increasing disturbances in Central Europe :
+Potential and limitations. Forest Ecology and Management 1--50.
 
 
 \end{document}

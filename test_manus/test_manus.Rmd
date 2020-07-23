@@ -313,6 +313,73 @@ ggarrange(p.stand, p.harvested, ncol = 1, nrow = 2,
 
 The intensification of the harvesting levels increases the proportion of the pulp wood compared to log wood, especially in RF. In CCF, the proportion among standing log and pulp volume remains at the same rate (65:30) where the production of the log timber dominates. At the highest intensity of timber extraction, pulp wood creates up to 50% of teh total standing volume See figure  \@ref(fig:fig_5_proportion_V_pulp_log) NEW FIG \@ref(fig_5_proportion_V_pulp_log).
 
+
+### Changes in wind risk
+
+```{r fig_windRisk_time_change, fig.width = 7, fig.height = 6, fig.cap = "Temporal changes in wind risk over time"}
+
+# How does the wind risk vary over time? can vary over the stands, over the landscapes
+# calculate mean wind risk by landscape, get differences in wind risk
+# over years, plot those differences as means by scenarios - over harvest gradient
+
+df_l_mean <- df %>%
+  group_by(NPI, scenSimpl2, year) %>%
+  summarize(mean_risk_landscape = mean(windRisk)) %>% 
+  mutate(windRisk_diff = mean_risk_landscape - lag(mean_risk_landscape))
+
+
+# Plot using boxplots to show all variability between years
+ggplot(df_l_mean, 
+       aes(x = as.factor(NPI),
+           y = windRisk_diff,
+           group = as.factor(NPI))) +
+  geom_boxplot() + 
+# geom_line(aes(linetype = scenSimpl2, 
+#              color    = scenSimpl2),
+ #          lwd = 0.8) +
+#  scale_color_brewer(palette="Greens") +
+#  labs(color = "Scenario",
+#       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("mean yearly differences") +
+  #ylim(0, 55) +
+  facet_wrap(.~ scenSimpl2) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+
+
+
+# get the mean values of differences between scenarios
+
+df_scen_mean <- aggregate(windRisk_diff ~ NPI + scenSimpl2, 
+                          df_l_mean, mean)
+
+# plot the mean differences in yearly changes
+
+ggplot(df_scen_mean, 
+       aes(x = NPI,
+           y = windRisk_diff,
+           group = scenSimpl2,
+           color = scenSimpl2)) +
+ geom_line(aes(linetype = scenSimpl2, 
+              color    = scenSimpl2),
+           lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("mean yearly differences") +
+  #ylim(0, 55) +
+  #facet_wrap(.~ species) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+
+
+```
+
+
 ```{r fig_5_proportion_V_pulp_log, eval = T, echo = F, warning = F, message = F, fig.width = 4, fig.height = 2, fig.cap = "Ratio between standing log and pul volume (m^3)"}
 # Here is te question: does the harvest intensification changes the proportion between log and pulp wood???
 
