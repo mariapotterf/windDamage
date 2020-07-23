@@ -1,5 +1,5 @@
 ---
-title: How restrictions of forest management affect landscape level wind damage risk
+title: Effects of forest management and harvest intensity on landscape level wind damage risk
 
 author:
   - name: 'Mária Potterf'
@@ -33,9 +33,13 @@ footnote:
   - #code: 2
     #text: "Equal contribution"
 abstract: |
-  Current forest management seeks to reconside timber harvesting while aims to improve forest diversity and halt biodiversity loss. Novel approaches as optimization of forest management regimes, increasing proportion of set-aside forest stands, or novel management approaches such as continuous forest cover emerge. However, novel ways of forest management shape structures of the forest stands over the landscape which will in turn affect the vulnerability to resist to more frequent climatic disruptions, such as windthrows. 
-  To understand how will the traditional (rotation forestry, RF) and novel forest managements techniques (continuous cover forest, CCF) alternate the risk of wind damages over the harvest intensity gradient (ranging from completely setaside to highest harvesting rates), we  combined the forest growth simulator under ranges of management regimes (RF, CCF and combined: ALL), optimized over the range of harvesting levels to calculate stand and landscape level wind damage risk for alternative paths of the forest management and harvesting levles over 100 years. 
+  Future forest management needs to balance between sustainable timber, supporting non-woody ecosystem services and shelter biodiversity. Novel approaches as optimization of forest management to certain goals, increasing proportion of set-aside forest stands, or novel management approaches such as continuous forest cover emerge. However, novel ways of forest management shape forest stands structures over the landscape and will define the stand vulnerability to more frequent climatic disruptions, such as windthrows under hardening climate change. 
+  To understand how will the traditional (rotation forestry, RF) and novel forest managements techniques (continuous cover forest, CCF) combined using optimal management alternate the risk of wind damages over the harvest intensity gradient (ranging from completely setaside to highest harvesting rates), we  combined the forest growth simulator under ranges of management regimes (RF, CCF and combined: ALL), optimized over the range of harvesting levels to calculate stand and landscape level wind damage risk for alternative paths of the forest management and harvesting levles over 100 years. 
   We found that higher harvest intensity in RF lowers wind risk, whereas the wind risk increased under CCF and ALL scenarios. More intensive harvesting using RF produced more pulp, while CCF provided higher volumes of the standing and harvested log wood, which likely explains higher values of wind risk probability. RF slightly increased the number of stands with open edge, which remained stable under CCF and ALL regimes. Intensive harvesting may change species composition to favour Norway spruce which will further increase probability of wind damage in the future. Therefore, we suggest that forest managers should consider the target forest species composition to mitigate wind risk if aimed to support production of log wood over the pulp. 
+  
+  
+  
+  add to 4A = that it starts from 80
 
 journal: "Forest Ecology and Management"
 date: "`r Sys.Date()`"
@@ -57,7 +61,9 @@ output: rticles::elsevier_article
 Introduction
 ==========================
 
-Adaptive forest management aims to balance between forest productivity, provision of non-woody ecosystem services, and biodiversity. Existance of biodiversity, mostly attached to existence of deadwood, is limited by harvesting levels. Intensive logging activities fragment forested landspaces. 
+Large question
+
+Future forest ecosystems need to simultaneously provide timber, non-woody ecosystem services such as carbon storage or human recreation, and shelter biodiversity.  Adaptive forest management strives to balance between timber production, provision of non-woody ecosystem services, and biodiversity. Existance of biodiversity, mostly attached to existence of deadwood, is limited by harvesting levels. Intensive logging activities fragment forested landspaces. 
 To balance between biodiversity and economic gain from timber, the propostion of set=aside forests within commercial forests emerges, and new forest management approaches are explored, such as continuous forest cover [@Eyvindson2020] and traditional harvesting regimes are becoming controversial or requested to ban (…). The increase of the set aside forests within the commercial forests, as well as development of the new management techniques affect landscape level structural diversity, timing of the thinning, presence of absence of the final cuts in rotation forestry or development of the larger trees within continuous cover forestry or in set-aside forestry. The fundamental is the carefull landscape level planning of the management actions balancing between set-aside (unmanaged forests), intensive management and continuously present forest cover.
 
 Optimal management scenarios fullfil the specific objectives of the society of forest owners to provide certain timber value, improve provision of timber and non-timber ecosystem services, or improve overall forest multifunctionality of the landscape. As such, optimization provides the combination of the specific forest management regimes on stand level. Althought the optimization process does not necessary involve the spatial configuration of the stands, it specifically assigns the particular regimes to individual stands and therefore allows to recreate alternative dynamics landscapes shaped by forest managements aggregated by optimal scenarios. As such, the spatial configuration of the management regimes allows to estimate the subsequent characteristics such as landscape level risk of wind damage. 
@@ -71,8 +77,8 @@ Here we explore how the restriction of forest management practices, along with t
 
 We hypothesized that RF would increase wind damage risk dues to increasing number of open edges while CCF would lower wind risk over the landscape. Further, we hypothetize that higher levels of timber extraction would increase wind risk. Lastly, we hypothetized than increasing amount of set-aside stands, over the landscape together with CCF management would increase wind damage risk due to larger present timber volume, and due to more frequent thinning activities. We investigated wind risk in terms of available timber volume, specifically saw and log timber volume. Lastly, we explored the trends of wind risk relevant to stands height, changes and species compositions. 
 
-# Methods
-
+Methods
+==========================
 
 ```{r libraries, include = F}
 
@@ -84,36 +90,37 @@ knitr::opts_chunk$set(echo = FALSE,
 
 ```
 
-#### Study area 
+### Study area 
 
 Our study area represents a typical Finnish production forested landscape with relatively structurally homogenous forests stands. In total, we used 1475 forests stands aggregated within a single watershed (number 14.534) in Central Finland, covering 2242 ha (Fig. \ref{study_area}). Initial stand conditions were collected as open source data from the Finnish Forest Centre (available on www.metsaan.fi) providing currents stand conditions in 2016. 
 
-Our input dataset includes initial stand conditions (2016), alternative forest growth under the range of forest managemnet regimes over 100 years and a set of optimal solutions balancing between intensifying harvest levels and multifunctionnality (from completely set-aside, i.e. no management to maximal harvest gains). From the set of optimal solutions we have calculated stand-level probability of wind damage (for full details, please refer to @Eyvindson2020 study (Fig. \ref{workflow})). 
-
 ![The study area located in Central Finland (watershed 14.534) comprising 1475 forest stands.\label{study_area}](/MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png)
+
+Our input dataset includes initial stand conditions (2016), alternative forest growth under the range of forest managemnet regimes over 100 years and a set of optimal solutions balancing between intensifying harvest levels and multifunctionnality (from completely set-aside, i.e. no management to maximal harvest gains). From the set of optimal solutions we have calculated stand-level probability of wind damage (for full details, please refer to @Eyvindson2020 study. Fig. \ref{workflow}) represents study workflow. 
 
 
 ![The study workflow from collecting initial stand conditions (2016) throught forest simulation growth under various ranges of forest management, and constriuction of teh harvesting intensity gradient using optimization to landscape level stand configurations.\label{workflow}](/MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png)
 
 
 
-#### Forest stand development under different regimes
+### Forest stand development under different regimes
 
 We simulated the development of the forests stands using SIMO forest growth simulator [@rasinmaki2009] over 100 years, separated into 20 5-year sequences. Each stand could be managed by up to 58 different management regimes (the total number of regimes per stands depended on the initial stand conditions), including 17 regimes for rotation forestry (RF), 40 variations of continuous cover forest (CCF) and one set-aside (SA), where no management actions were taken. RF regimes differed in timing of final felling, optional thinning (present/absent), and increase in number of retained green trees after final cut (more details in @Eyvindson2018). Basic CCF management follows rules from @Aijala2014a. To increase the range of CCF managements, we varied two rules defining the timing of harvest: (i) site-specific basal area and (ii) timing of the first thinning. We modified the pre-defined site-specific basal area requirement (16m2/ha for less fertile sites to 22m2/ha for fertile sites) prior to harvesting by -3, ±0, +3, +6,  and delayed the timing of the first harvest in 5 year increments up to a delay of 45 years. 
 
-#### Optimization
+### Optimization
 
 The optimal forest management explores the trade-offs between net present income (NPI) and forest multifunctionality. NPI represents economic value of the forests estimated by Metsähallitus (the Finnish governmental organization managing state owned forests). Higher NPI presents higher timber extraction and opposes the proportion of the set-aside forest stands (i.e. without active harvesting) over the landscape. Optimization process over the NPI gradient was run using only RF, only CCF management types, or all possible managements (RF and CCF, further reffered as ALL) included over the gradient of NPI values, from 0 (representing completely set-aside or no management in all stands) to maximal amount of extracted timber (leaving up to 5% of SA stands). The optimization balances between harvest intensity and landscape-level multifunctionnality, including non-woody ecosystem services (climate change mitigation), recreational activities and vertebrate and non-vertebrate endangered species. The optimization resulted in 63 alternative collections of RF, CCF and ALL manamement regimes. We converted the optimal solutions back to the development paths for every stand under alternative management given group of management allowed (CCF, RF, ALL) and levels of timber extraction (21). Each stand has only one management regime by scenario. This allowed to reconstruct stand structure on particular stand under given management regime at specific time. 
 
-#### Wind risk calculation
+### Wind risk calculation
 
 We have calculated the probability of wind damage based on @Suvanto2019 binomial generalized linear model with logit-link function for each stand for every time step at each scenario. @Suvanto2019 model calculates the probability of the wind damage considering available relevant open-access datasets including dominant tree species, dominant tree height, time since thinning, predicted levels on maximal wind speed, temperature sums, evaluated if stand has open edge, soil type, mineral soil depth, site fertility and temperature sum (see @Suvanto2019 for all details). The final probability of wind damage shows relative differences between stands, whereas the damage can be only partial to the stand, but neglects the explicit spatial locations of the future strongs winds. The parameters of the dominant tree species, tree height, open edge and time since thinning were dynamics under simulated management regimes. Parameters of maximal predicted wind speed and temperature sums, as well as soil characteristics, remained stable during our 100 years simulation. We processed the datasets, calculated damage probability models, and visualized results using @RDevelopmentCoreTeam2019. 
 
-#### Data processing
+### Data processing
 
-We calculated the probability of wind damage for each stand, scenario and time intervals. Further, we averaged the wind risk values over the scenarios to allow comparison between RF, CCF and ALL management regimes groups over the harvesting gradient. We explored the mean wind risk (%) given the management groups and over harvest gradient (from set-aside to maximal harvest levels). In addition, we investigated the mean levels of the standing log and pulp timber volumes (m3) for scenarios, and total sum of harvested pulp and log timber over simulation run (XXX). We further investigated the means of dynamic parameters (tree species, dominant tree height, frequency of open edges and time since thinning) over the harvest intensity gradient to understand how they contributed to predicted wind risk values.   
+We calculated the probability of wind damage for each stand, scenario and time intervals. Further, we averaged the wind risk values over the scenarios to allow comparison between RF, CCF and ALL management regimes groups over the harvesting gradient. We explored the mean wind risk (%) given the management groups and over harvest gradient (from set-aside to maximal harvest levels). In addition, we investigated the mean levels of the standing log and pulp timber volumes (m3) for scenarios, and total sum of harvested pulp and log timber over simulation run (XXX). We further investigated the changes in dynamics parameters (tree species, dominant tree height, frequency of open edges and time since thinning) over the harvest intensity gradient to understand how they contributed to predicted wind risk values. As different tree species varied in wind risk probability, we further groupped this variable by species to understand differences between species, Specifically, we calculated mean proportion of individual tree species (%),  mean tree heights (m), proportion of the stands with open edge from total amount of stands by species and mean thinning frequencies by year.  
 
-# Results
+Results
+==========================
 ``` {r libs, eval = T, echo = F, warning = F, message = F, include = F}
 rm(list = ls())
 
@@ -136,7 +143,11 @@ theme_set(theme_classic())
 #theme_set(theme_grey())
 theme_update(panel.grid.major = element_line(colour = "grey95",
                                              size = 0.1,
-                                             linetype = 2))
+                                             linetype = 2),
+             strip.background = element_rect(color="grey95", 
+                                             fill="grey95",
+                                             size=0.1, 
+                                             linetype="solid"))
 
 ```
 
@@ -171,7 +182,7 @@ min(df.geom$area)
 
 
 
-#### Landscape level wind risk under management restriction and harvest intensity scenarios
+### Landscape level wind risk under management restriction and harvest intensity scenarios
 
 The set-aside landscape level management resulted at the same mean landscape level risk for all management regimes (Fig. 2). However, intensifying harvesting triggers different responses under groups of management regimes and intensification of the timber extraction. Sole use of the RF managements lowered the wind risk with increasing harvest intensity. On the other hand, both ALL and CCF scenarios increased the wind risk where CCF monotonically increased with increasing harvesting rates, while ALL regimes have slightly humpened curve shape, culminating around inteinsity of 7.5K by ha. The CCF increases monotonically while maximal harvesting increase the wind risk by 25% compared to completely set-aside stands.
 
@@ -201,12 +212,12 @@ df %>%
 
 ```
 
-#### Timber volume at wind risk
+### Timber volume at wind risk
 
 Increasing harvesting levels lowers the amount of the available timber at any time step to be lost due to windthrows. Interestingly, the CCF regimes produces higher logs volumes, while RF has higher production of the pulp wood, which is in high demand by cheaper then log wood. The same trends are visible for harvested log and pulp volumes. For ALL management regimes, using all available management regimes, is located between two extremities. The highest mean log timber volume as available for the wind damage at lowest harvesting levels. Interestingly, under RF, low levels of timber extraction increase levels of the pupl  standing volume. The highest amount of harvested log wood is produced by CCF regimes, while RF dominates in harvesting pulp timber \@ref(fig:fig_4_plot_V_timber). 
 
 
-```{r fig_4_plot_V_timber, fig.width = 7, fig.height = 5.7, fig.cap = "A. Mean standing and B. harvested pulp and log timber under three types of management regimes over harvest intensity gradient"}
+```{r fig_4_plot_V_timber, fig.width = 7, fig.height = 6, fig.cap = "A. Mean standing and B. harvested pulp and log timber under three types of management regimes over harvest intensity gradient"}
 
 # -----------------------------------------
 # Visualize volume dynamics over scenarios
@@ -346,13 +357,13 @@ The intensification of the harvesting levels increases the proportion of the pul
 
 ```
 
-### Dynamic parameters contributing to wind risk
+## Dynamic parameters contributing to wind risk
 
-#### Species composition
+### Species composition
 
-The intensification of the harvesting changes the stand species composition over time (Fig. \ref{species_change}). Intensification of the harvesting favorize the proportion of the Norway spruce and others (deciduous) tree species instead of Scots pine, which likely in turn increases wind risk over the stands.    
+The intensification of the harvesting changes the stand species composition over time (Fig. \ref{species_change}). Intensification of the harvesting favorize the proportion of the Norway spruce and others (deciduous) tree species instead of Scots pine, which likely in turn increases wind risk over the stands. Proportion of the pine lowers with higher harvest intensities.     
 
-```{r species_change, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "Changes in species composition under different management groups and harvest intensity. (The ALL scenario leads to highest economic gain, tehrefore values for CCF and RF are missing from plot)"}
+```{r species_change, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 3.5, fig.cap = "Changes in species composition under different management groups and harvest intensity."}
 
 # get mean count for each species over SA gradient - plot over SA gradient
 
@@ -380,11 +391,11 @@ df %>%
 
 ```
 
-#### Dominant tree heights 
+### Dominant tree heights 
 
-The intensification of the harvesting changes the stand species composition over time (Fig. \ref{species_change}). Intensification of the harvesting favorize the proportion of the Norway spruce and others (deciduous) tree species instead of Scots pine, which likely in turn increases wind risk over the stands.    
+The intensification of the harvest reduce mean tree height for other species to half (from 20 m  to 10 m) in RF, while CCF slightly increases mean tree heights.For pine and spruce trees, harvest intensification maintain the mean tree height of the stand to 20 m(other) to 22 m (spruce). Spruce is higher then pine and other stree species.   
 
-```{r res_D_tree_height, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "Mean dominant tree height under different management groups and harvest intensity."}
+```{r res_D_tree_height, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 3.5, fig.cap = "Mean dominant tree height under different management groups and harvest intensity."}
 
 # get mean count for each species over SA gradient - plot over SA gradient
 
@@ -411,22 +422,33 @@ df %>%
 ```
 
 
-#### Frequency of open stands
+### Frequency of open stands
 
+The proportion of the open edge stands remains very high over whole simulation run, which is likely due to the fragmeneted landscape (85-95% of stands by species, Fig. 2, Fig. XX). However, increasing harvest intensity lowers number of stands with open edge when dominated by other species, whereas increases those numbers for pine and spruce dominated spatnd, especially under RF. The CCF and ALL management groups maintain the number of the open edge stands similar to completely set aside stands.   
+   
 
-RF regimes increase the amount of stands with open edge with increasing harvest intensity  while CCF regimes maintain the same amount of open stands over the harvest intensity gradient. Intensive RF increases number of stands with open edge by 5%.    
+```{r fig_6_count_open_edge, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 3.5, fig.cap = "Yearly proportion stands with open edge by species, management group and over the harvest intensity gradient. Note y axis starts at 80."}
 
+# calculate this as a proportion of teh open edge stands from teh number of available stands for particular species????
 
-```{r fig_6_count_open_edge, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "Yearly count of stands with open edge over the intensity gradient"}
+# Ca;culate how many stand have which species
+df_n_species <-
+  df %>% 
+  group_by(scenSimpl2, NPI, species) %>% 
+  #filter(open_edge == TRUE) %>% 
+  tally() %>% 
+  rename(species_n = n)
 
 # Plot open_edge FALSE = (closed stand) over SA %
 # ---------------------
 df %>% 
-  group_by(scenSimpl2, scenNumb, NPI, open_edge, species) %>% 
+  group_by(scenSimpl2, NPI, open_edge, species) %>% 
   filter(open_edge == TRUE) %>% 
   tally() %>% 
-  ggplot(aes(x = NPI, #factor(scenNumb),
-             y = n/20,  # number of stands by one year
+  left_join(df_n_species) %>% 
+  mutate(prop_spec = n/species_n*100) %>% 
+   ggplot(aes(x = NPI, #factor(scenNumb),
+             y = prop_spec,  # number of stands by one year
              color = scenSimpl2,
              group = scenSimpl2)) + # ,
    geom_line(aes(linetype = scenSimpl2, 
@@ -435,34 +457,69 @@ df %>%
   scale_color_brewer(palette="Greens") +
   labs(color = "Scenario",
        linetype = "Scenario") +
-  ylim(0, 700) +
-  xlab("Income") + 
+  ylim(80, 100) +
+  xlab("NPI k € by ha") + 
   facet_grid(.~species) +
-  ylab("# of open edge\nstands ") +
+  ylab("open edge stands (%)") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         legend.position = "bottom") +
   ggtitle("") 
 
+
+
+
+
+
+
 ```
 
 
-#### Thinning frequency
 
-```{r fig_thin_frequency, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "THe frequency of the thinnings by management groups, species and harvest intensity gradient"}
+### Thinning frequency
+
+the highest frequency of thinnings is under CCF management regimes, which lineraly increase with harvesting intensity for all tree species. Numbers of thinnings in RF remains relatively low comparing to CCF and ALL, and strongly increases at high harvest intensity (from 3K for pine and from 5K for spruce). The frequency of thinnings in CCF increases 3-4 times in CCF comparing to RF. 
+
+```{r, eval = F}
+
+mydf <- data.frame('col_1'=c('A','A','B','B', 'B'), 
+                   'col_2'=c(100,NA, 90,30, 100))
+
+mydf %>% 
+  group_by(col_1) %>% 
+  summarise(non_na_count = sum(!is.na(col_2)))
+
+```
+
+
+
+```{r fig_thin_frequency, eval = T, echo = F, warning = F, message = F, fig.width = 7, fig.height = 4, fig.cap = "The frequency of the thinnings by management groups, species and harvest intensity gradient"}
+
+# Identify the number of the non NA record of teh thinning actuons
+# if thinning occurs, it is represented by the non-na string
+# works on dummy datasets, try on specidic id
+# calculate frequency of thinnings by scenarios, devide by 20 to have mean over 20 years
 
 #head(df)
 
 # HOw many times there is a record in THIN???
+# how to recscale it? to stand, to landscape??
+
+
 df$THIN2 <- df$THIN
 
 df$THIN2[df$THIN2==""]<-NA
 
 
-#unique(df$THIN2)
+# Calculate the number of non NA values by groups
+#df %>% 
+#  filter(avohaakut == "LRT5" & id == "12541249" &scenSimpl2 == "ALL" & scenNumb == "10") %>% 
+  #distinct(landscape)
+#  dplyr::select(id, year, THIN, THIN2, landscape) %>% 
+#   summarise(non_na_count = sum(!is.na(THIN2)))
 
-# Replace empty characters by NA
-df %>% mutate_if(is.character, list(~na_if(.,""))) 
+```
 
+```{r, eval = T}
 
 # Calculate the number of non NA values by groups
 df %>% 
@@ -479,9 +536,9 @@ df %>%
   labs(color    = "Scenario",
        linetype = "Scenario") +
   #ylim(0, 700) +
-  xlab("Income") + 
+  xlab("NPI k € by ha") + 
   facet_grid(.~species) +
-  ylab("thinning frequency") +
+  ylab("Mean # of thinned stands (year/landscape)") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         legend.position = "bottom") +
   ggtitle("") 
@@ -493,10 +550,8 @@ df %>%
 
 
 
-# Discussion
-
-
-
+Discussion
+======================
 
 Wind (10 years return level of max wind speed REF) are estimated the same over 100 years as well as temperature sums. How does could affects the results?
 
@@ -505,6 +560,15 @@ Interpret Suvanto’s map: there are 3 limitations:
 use values as relative to each other  - instead of exact probability valuesm, interpret the map as relative differences in damage vulnerability
 Damage probabilities do not refer to complete damage of the stand – damage can be only poartial, in some part of the stand (not spatially expicit)
 map erepresent the forest vulnerability to the wind, but it is impossible to predict the exact locations of future wind disturbances, given uncertainities in future wind occurences
+
+- the glm takes into account the dominant tree species but neglects the stand structure. WE neglected the stand structure in applying the raster level based glm model to stand level information
+- difficult to link the predicted wind risk to explicit wind damage volume as windthrows are unpredictanvle events in time and explicit locations.
+- We need to understand what risks about current management decisions involves and if they bring another challenges, such as increasing risk of wind damage. On the other hand, the set-aside stands, if protected, teh wind damage there should not be regarded as lost timber volume due to windthrow, as was not supposed to be logged anyway. Howvere, if windthrow happen in SA stands, the risk of subsequent disturbances such as *Ips typographus*  might increase the cost of the effective stand protection in following years.
+- SA forests have clearly higher wind risk than intensively managemed forests under RF. However, RF as highly specialized in provision of teh single benefit - timber - while deterioration non-woody ecosystem servoices and destroyng habitats for endangered species should be largely replaced over the landscapes by managements fulfillings multiple benefits @Eyvindson2020. 
+- 
+
+The shortening of the rotation period in Norway spruce forets  might slightly lower the wind and subsetquent bark beetle distudrabnces but has limited efficiencies and decreses under climate change [@Zimova2020]
+
 
 
 

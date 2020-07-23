@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7140 64-bit) (preloaded format=pdflatex 2020.7.15)  22 JUL 2020 23:23
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7140 64-bit) (preloaded format=pdflatex 2020.7.15)  23 JUL 2020 10:39
 entering extended mode
 **./test_manus.tex
 (test_manus.tex
@@ -654,15 +654,19 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 
 
 {C:/Users/mpotterf/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2]
-</MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png, id=53, 430.2474pt
+
+Package hyperref Warning: Difference (2) between bookmark levels is greater 
+(hyperref)                than one, level fixed on input line 215.
+
+</MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png, id=96, 430.2474pt
  x 397.9668pt>
 File: /MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png Graphic file 
 (type png)
 <use /MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png>
 Package pdftex.def Info: /MyTemp/myGitLab/windDamage/externalFigs/studyArea_cro
-p.png  used on input line 236.
+p.png  used on input line 227.
 (pdftex.def)             Requested size: 345.0pt x 319.13292pt.
-</MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png, id=54, 773.
+</MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png, id=98, 773.
 89125pt x 258.9675pt>
 File: /MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png Graphic
  file (type png)
@@ -676,578 +680,105 @@ LaTeX Font Info:    Try loading font information for TS1+lmr on input line 268.
 File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 ) [3] [4 </MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png> </MyTemp
 /myGitLab/windDamage/externalFigs/overview2_horizontal.png (PNG copy)>] [5]
-<test_manus_files/figure-latex/fig3_mean_risk_by_intensity_plot-1.pdf, id=75, 2
-16.81pt x 201.75375pt>
+
+Package hyperref Warning: Difference (2) between bookmark levels is greater 
+(hyperref)                than one, level fixed on input line 341.
+
+<test_manus_files/figure-latex/fig3_mean_risk_by_intensity_plot-1.pdf, id=115, 
+216.81pt x 201.75375pt>
 File: test_manus_files/figure-latex/fig3_mean_risk_by_intensity_plot-1.pdf Grap
 hic file (type pdf)
 <use test_manus_files/figure-latex/fig3_mean_risk_by_intensity_plot-1.pdf>
 Package pdftex.def Info: test_manus_files/figure-latex/fig3_mean_risk_by_intens
-ity_plot-1.pdf  used on input line 352.
+ity_plot-1.pdf  used on input line 357.
 (pdftex.def)             Requested size: 216.80946pt x 201.76248pt.
-<test_manus_files/figure-latex/fig_4_plot_V_timber-1.pdf, id=76, 505.89pt x 411
-.5375pt>
+[6]
+<test_manus_files/figure-latex/fig_4_plot_V_timber-1.pdf, id=120, 505.89pt x 43
+3.62pt>
 File: test_manus_files/figure-latex/fig_4_plot_V_timber-1.pdf Graphic file (typ
 e pdf)
 <use test_manus_files/figure-latex/fig_4_plot_V_timber-1.pdf>
 Package pdftex.def Info: test_manus_files/figure-latex/fig_4_plot_V_timber-1.pd
-f  used on input line 374.
-(pdftex.def)             Requested size: 345.0pt x 280.65814pt.
+f  used on input line 380.
+(pdftex.def)             Requested size: 345.0pt x 295.71785pt.
 
-Overfull \hbox (42.59364pt too wide) in paragraph at lines 379--387
+Overfull \hbox (42.59364pt too wide) in paragraph at lines 385--393
 \T1/lmr/m/n/10 (-20) @ref(fig:fig_5_proportion_V_pulp_log) NEW FIG @ref(fig_5_p
 roportion_V_pulp_log). 
  []
 
 
-Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 389.
-
-
-LaTeX Warning: Reference `species_change' on page 6 undefined on input line 394
+LaTeX Warning: Reference `species_change' on page 7 undefined on input line 400
 .
 
-[6]
-<test_manus_files/figure-latex/species_change-1.pdf, id=84, 505.89pt x 289.08pt
->
+<test_manus_files/figure-latex/species_change-1.pdf, id=121, 505.89pt x 252.945
+pt>
 File: test_manus_files/figure-latex/species_change-1.pdf Graphic file (type pdf
 )
 <use test_manus_files/figure-latex/species_change-1.pdf>
 Package pdftex.def Info: test_manus_files/figure-latex/species_change-1.pdf  us
-ed on input line 401.
-(pdftex.def)             Requested size: 345.0pt x 197.14522pt.
+ed on input line 408.
+(pdftex.def)             Requested size: 345.0pt x 172.50208pt.
+[7 <./test_manus_files/figure-latex/fig3_mean_risk_by_intensity_plot-1.pdf>] [8
+ <./test_manus_files/figure-latex/fig_4_plot_V_timber-1.pdf> <./test_manus_file
+s/figure-latex/species_change-1.pdf
 
-LaTeX Warning: Reference `species_change' on page 7 undefined on input line 410
-.
-
-<test_manus_files/figure-latex/res_D_tree_height-1.pdf, id=85, 505.89pt x 289.0
-8pt>
+pdfTeX warning: pdflatex.exe (file ./test_manus_files/figure-latex/species_chan
+ge-1.pdf): PDF inclusion: multiple pdfs with page group included in a single pa
+ge
+>]
+<test_manus_files/figure-latex/res_D_tree_height-1.pdf, id=157, 505.89pt x 252.
+945pt>
 File: test_manus_files/figure-latex/res_D_tree_height-1.pdf Graphic file (type 
 pdf)
 <use test_manus_files/figure-latex/res_D_tree_height-1.pdf>
 Package pdftex.def Info: test_manus_files/figure-latex/res_D_tree_height-1.pdf 
- used on input line 417.
-(pdftex.def)             Requested size: 345.0pt x 197.14522pt.
-<test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf, id=86, 505.89pt x 2
-89.08pt>
+ used on input line 423.
+(pdftex.def)             Requested size: 345.0pt x 172.50208pt.
+<test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf, id=158, 505.89pt x 
+252.945pt>
 File: test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf Graphic file (t
 ype pdf)
 <use test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf>
 Package pdftex.def Info: test_manus_files/figure-latex/fig_6_count_open_edge-1.
-pdf  used on input line 431.
-(pdftex.def)             Requested size: 345.0pt x 197.14522pt.
-
-Overfull \hbox (85.49875pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##                id year Age cash_flow       BA        V V_s
-tand_log V_stand_pulp[] 
- []
-
-
-Overfull \hbox (85.49875pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       1: 12515084 2016  51         0 15.92991 121.9846    
-50.43912     69.03075[] 
- []
-
-
-Overfull \hbox (85.49875pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       2: 12515084 2021  56         0 15.97570 122.4578    
-50.81278     69.09368[] 
- []
-
-
-Overfull \hbox (85.23625pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       3: 12515084 2026  61         0 16.02149 122.9315    
-50.94787     69.39531[] 
- []
-
-
-Overfull \hbox (85.49875pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       4: 12515084 2031  66         0 16.06730 123.4057    
-51.08273     69.69723[] 
- []
-
-
-Overfull \hbox (85.49875pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       5: 12515084 2036  71         0 16.11311 123.8802    
-51.21737     70.11885[] 
- []
-
-
-Overfull \hbox (85.49875pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852196:  6691970 2091 165         0 14.02046 149.2695   1
-26.53544     21.80980[] 
- []
-
-
-Overfull \hbox (85.23625pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852197:  6691970 2096 170         0 13.75152 146.9029   1
-26.40365     19.62537[] 
- []
-
-[7 <./test_manus_files/figure-latex/fig3_mean_risk_by_intensity_plot-1.pdf>] [8
- <./test_manus_files/figure-latex/fig_4_plot_V_timber-1.pdf>] [9 <./test_manus_
-files/figure-latex/species_change-1.pdf> <./test_manus_files/figure-latex/res_D
-_tree_height-1.pdf
-
-pdfTeX warning: pdflatex.exe (file ./test_manus_files/figure-latex/res_D_tree_h
-eight-1.pdf): PDF inclusion: multiple pdfs with page group included in a single
- page
->]
-Overfull \hbox (85.23625pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852198:  6691970 2101 175         0 13.57640 145.4288   1
-25.87290     18.73834[] 
- []
-
-
-Overfull \hbox (85.49875pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852199:  6691970 2106 180         0 13.47255 144.6260   1
-25.76314     18.08305[] 
- []
-
-
-Overfull \hbox (85.23625pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852200:  6691970 2111 185         0 13.42110 144.3109   1
-26.50326     17.01734[] 
- []
-
-
-Overfull \hbox (64.23631pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##          Harvested_V Harvested_V_log_under_bark Harvested_
-V_pulp_under_bark[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       1:           0                          0           
-                0[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       2:           0                          0           
-                0[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       3:           0                          0           
-                0[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       4:           0                          0           
-                0[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       5:           0                          0           
-                0[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852196:           0                          0           
-                0[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852197:           0                          0           
-                0[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852198:           0                          0           
-                0[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852199:           0                          0           
-                0[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852200:           0                          0           
-                0[] 
- []
-
-
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##          Biomass        N THIN PEAT    H_dom     D_gm inco
-me_biomass[] 
- []
-
-
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       1:       0 697.8802 <NA>    1 167.9335 18.70460     
-         0[] 
- []
-
-
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       2:       0 696.3087 <NA>    1 168.1394 18.73898     
-         0[] 
- []
-
-
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       3:       0 694.7542 <NA>    1 168.3448 18.77329     
-         0[] 
- []
-
-
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       4:       0 693.2163 <NA>    1 168.5497 18.80752     
-         0[] 
- []
-
-
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       5:       0 691.6946 <NA>    1 168.7540 18.84168     
-         0[] 
- []
-
-
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852196:       0 251.7209 <NA>    0 260.0189 29.40783     
-         0[] 
- []
-
-
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852197:       0 241.5970 <NA>    0 260.4277 29.55030     
-         0[] 
- []
-
-
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852198:       0 233.8745 <NA>    0 260.8226 29.69387     
-         0[] 
- []
-
-
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852199:       0 228.0484 <NA>    0 261.2026 29.83591     
-         0[] 
- []
-
-[10 <./test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf>]
-Overfull \hbox (27.74892pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852200:       0 223.6549 <NA>    0 261.5679 29.97626     
-         0[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##          CARBON_STORAGE name_new branching_new avohaakut T
-HIN_included[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       1:             NA       SA          <NA>        SA  
-       FALSE[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       2:             NA       SA          <NA>        SA  
-       FALSE[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       3:             NA       SA          <NA>        SA  
-       FALSE[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       4:             NA       SA          <NA>        SA  
-       FALSE[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       5:             NA       SA          <NA>        SA  
-       FALSE[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852196:       267558.7       SA          <NA>        SA  
-       FALSE[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852197:       262147.2       SA          <NA>        SA  
-       FALSE[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852198:       256662.0       SA          <NA>        SA  
-       FALSE[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852199:       251972.7       SA          <NA>        SA  
-       FALSE[] 
- []
-
-
-Overfull \hbox (38.24889pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852200:       247921.1       SA          <NA>        SA  
-       FALSE[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##          mainRegime scenSimpl2 scenNumb landscape differen
-ce time_thinning[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       1:         SA        ALL        0 2016_ALL0         
-NA           >10[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       2:         SA        ALL        0 2021_ALL0         
-NA           >10[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       3:         SA        ALL        0 2026_ALL0         
-NA           >10[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       4:         SA        ALL        0 2031_ALL0         
-NA           >10[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       5:         SA        ALL        0 2036_ALL0         
-NA           >10[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852196:         SA         RF        9  2091_RF9         
-NA           >10[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852197:         SA         RF        9  2096_RF9         
-NA           >10[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852198:         SA         RF        9  2101_RF9         
-NA           >10[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852199:         SA         RF        9  2106_RF9         
-NA           >10[] 
- []
-
-
-Overfull \hbox (59.24883pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852200:         SA         RF        9  2111_RF9         
-NA           >10[] 
- []
-
-
-Overfull \hbox (6.48648pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##          avoh_Simpl simpleScen open_edge      area siteFer
-tility[] 
- []
-
-
-Overfull \hbox (6.48648pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       1:         SA        ALL      TRUE 10218.091        
-  poor[] 
- []
-
-
-Overfull \hbox (6.48648pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       2:         SA        ALL      TRUE 10218.091        
-  poor[] 
- []
-
-
-Overfull \hbox (6.48648pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       3:         SA        ALL      TRUE 10218.091        
-  poor[] 
- []
-
-
-Overfull \hbox (6.48648pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       4:         SA        ALL      TRUE 10218.091        
-  poor[] 
- []
-
-
-Overfull \hbox (6.48648pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       5:         SA        ALL      TRUE 10218.091        
-  poor[] 
- []
-
-
-Overfull \hbox (6.74898pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852196:         SA         RF      TRUE  2479.115       f
-ertile[] 
- []
-
-
-Overfull \hbox (6.74898pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852197:         SA         RF      TRUE  2479.115       f
-ertile[] 
- []
-
-
-Overfull \hbox (6.74898pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852198:         SA         RF      TRUE  2479.115       f
-ertile[] 
- []
-
-
-Overfull \hbox (6.74898pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852199:         SA         RF      TRUE  2479.115       f
-ertile[] 
- []
-
-
-Overfull \hbox (6.74898pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852200:         SA         RF      TRUE  2479.115       f
-ertile[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##          soilDepthLess30       soilType species   windRisk
- twoRegm      NPI[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       1:           FALSE        organic    pine 0.02327795
-      SA 0.000000[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       2:           FALSE        organic    pine 0.02332427
-      SA 0.000000[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       3:           FALSE        organic    pine 0.02337051
-      SA 0.000000[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       4:           FALSE        organic    pine 0.02341666
-      SA 0.000000[] 
- []
-
-
-Overfull \hbox (64.49881pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ##       5:           FALSE        organic    pine 0.02346272
-      SA 0.000000[] 
- []
-
-
-Overfull \hbox (64.23631pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852196:           FALSE mineral coarse  spruce 0.05105826
-      SA 3.622254[] 
- []
-
-
-Overfull \hbox (64.23631pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852197:           FALSE mineral coarse  spruce 0.05130966
-      SA 3.622254[] 
- []
-
-[11]
-Overfull \hbox (64.23631pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852198:           FALSE mineral coarse  spruce 0.05155323
-      SA 3.622254[] 
- []
-
-
-Overfull \hbox (64.23631pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852199:           FALSE mineral coarse  spruce 0.05178835
-      SA 3.622254[] 
- []
-
-
-Overfull \hbox (64.23631pt too wide) in paragraph at lines 535--535
-[]\T1/lmtt/m/n/10 ## 1852200:           FALSE mineral coarse  spruce 0.05201497
-      SA 3.622254[] 
- []
-
-<test_manus_files/figure-latex/fig_thin_frequency-1.pdf, id=157, 505.89pt x 289
-.08pt>
-File: test_manus_files/figure-latex/fig_thin_frequency-1.pdf Graphic file (type
- pdf)
-<use test_manus_files/figure-latex/fig_thin_frequency-1.pdf>
-Package pdftex.def Info: test_manus_files/figure-latex/fig_thin_frequency-1.pdf
-  used on input line 539.
-(pdftex.def)             Requested size: 345.0pt x 197.14522pt.
-[12 <./test_manus_files/figure-latex/fig_thin_frequency-1.pdf>]
-Overfull \hbox (51.77104pt too wide) in paragraph at lines 572--577
+pdf  used on input line 441.
+(pdftex.def)             Requested size: 345.0pt x 172.50208pt.
+[9 <./test_manus_files/figure-latex/res_D_tree_height-1.pdf>] [10 <./test_manus
+_files/figure-latex/fig_6_count_open_edge-1.pdf>]
+Overfull \hbox (51.77104pt too wide) in paragraph at lines 512--517
 \T1/lmr/m/n/10 (-20) as a dom-i-nant man-age-ment. Land Use Pol-icy 100, 1--10.
  doi:[]10.1016/j.landusepol.2020.104918[] 
  []
 
 
-Overfull \hbox (54.22119pt too wide) in paragraph at lines 589--593
+Overfull \hbox (54.22119pt too wide) in paragraph at lines 529--533
 \T1/lmr/m/n/10 (-20) aware forestry. For-est Ecol-ogy and Man-age-ment 453, 117
 619. doi:[]10.1016/j.foreco.2019.117619[] 
  []
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 595.
-[13]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 595.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 535.
+[11]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 535.
 (test_manus.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 595.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 595.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 535.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 535.
 Package rerunfilecheck Info: File `test_manus.out' has not changed.
-(rerunfilecheck)             Checksum: 3699B75D2886FD658A12189D87E9EC95;748.
+(rerunfilecheck)             Checksum: 51F48055ED2991B38C6D40C8B6B01C4F;2960.
 
 LaTeX Warning: There were undefined references.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 595.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 535.
  ) 
 Here is how much of TeX's memory you used:
- 12481 strings out of 492891
- 181513 string characters out of 3133339
- 294564 words of memory out of 3000000
- 16052 multiletter control sequences out of 15000+200000
- 62243 words of font info for 111 fonts, out of 3000000 for 9000
+ 12474 strings out of 492891
+ 181218 string characters out of 3133339
+ 284563 words of memory out of 3000000
+ 16058 multiletter control sequences out of 15000+200000
+ 61405 words of font info for 106 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 40i,9n,38p,409b,476s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ec.enc}{C:/Program Files/M
-iKTeX 2.9/fonts/enc/dvips/lm/lm-ts1.enc}{C:/Program Files/MiKTeX 2.9/fonts/enc/
+ 40i,9n,38p,562b,408s stack positions out of 5000i,500n,10000p,200000b,50000s
+{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ts1.enc}{C:/Program Files/
+MiKTeX 2.9/fonts/enc/dvips/lm/lm-ec.enc}{C:/Program Files/MiKTeX 2.9/fonts/enc/
 dvips/lm/lm-mathsy.enc}<C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmbx1
 0.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr10.pfb><C:/Program 
 Files/MiKTeX 2.9/fonts/type1/public/lm/lmr12.pfb><C:/Program Files/MiKTeX 2.9/f
@@ -1256,11 +787,10 @@ m/lmr8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmri10.pfb><C:/Pr
 ogram Files/MiKTeX 2.9/fonts/type1/public/lm/lmri7.pfb><C:/Program Files/MiKTeX
  2.9/fonts/type1/public/lm/lmri8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/p
 ublic/lm/lmsy6.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy7.pfb
-><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb><C:/Program File
-s/MiKTeX 2.9/fonts/type1/public/lm/lmtt8.pfb>
-Output written on test_manus.pdf (13 pages, 541102 bytes).
+><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt8.pfb>
+Output written on test_manus.pdf (11 pages, 495655 bytes).
 PDF statistics:
- 241 PDF objects out of 1000 (max. 8388607)
- 50 named destinations out of 1000 (max. 500000)
- 18009 words of extra memory for PDF output out of 20736 (max. 10000000)
+ 250 PDF objects out of 1000 (max. 8388607)
+ 47 named destinations out of 1000 (max. 500000)
+ 17580 words of extra memory for PDF output out of 20736 (max. 10000000)
 
