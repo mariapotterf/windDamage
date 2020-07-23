@@ -328,6 +328,8 @@ df_l_mean <- df %>%
   mutate(windRisk_diff = mean_risk_landscape - lag(mean_risk_landscape))
 
 
+
+
 # Plot using boxplots to show all variability between years
 ggplot(df_l_mean, 
        aes(x = as.factor(NPI),
@@ -346,6 +348,57 @@ ggplot(df_l_mean,
   facet_wrap(.~ scenSimpl2) + 
   theme(legend.position = "bottom") +
   ggtitle("") 
+
+```
+
+
+```{r}
+# Calculate temporal change in wind risk on stand level
+# ------------------
+df %>%
+  arrange(id, scenSimpl2, NPI) %>% 
+  #group_by(NPI, scenSimpl2, year, id) %>%
+  dplyr::select(id, year, NPI, scenSimpl2, windRisk) %>% 
+  mutate(risk_diff = windRisk - lag(windRisk)) %>% 
+  ggplot( 
+       aes(x = as.factor(NPI),
+           y = risk_diff,
+           group = as.factor(NPI))) +
+  geom_boxplot() + 
+  xlab("NPI k € by ha") +
+  ylab("yearly differences") +
+  #ylim(0, 55) +
+  facet_wrap(.~ scenSimpl2) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+
+
+
+```
+
+# Plot using boxplots to show all variability between years
+ggplot(df_l_mean, 
+       aes(x = as.factor(NPI),
+           y = windRisk_diff,
+           group = as.factor(NPI))) +
+  geom_boxplot() + 
+# geom_line(aes(linetype = scenSimpl2, 
+#              color    = scenSimpl2),
+ #          lwd = 0.8) +
+#  scale_color_brewer(palette="Greens") +
+#  labs(color = "Scenario",
+#       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("mean yearly differences") +
+  #ylim(0, 55) +
+  facet_wrap(.~ scenSimpl2) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+
+
+
 
 
 
