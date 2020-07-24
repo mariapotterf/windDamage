@@ -105,7 +105,7 @@ Our input dataset includes initial stand conditions (2016), alternative forest g
 
 ### Forest stand development under different regimes
 
-We simulated the development of the forests stands using SIMO forest growth simulator [@rasinmaki2009] over 100 years, separated into 20 5-year sequences. Each stand could be managed by up to 58 different management regimes (the total number of regimes per stands depended on the initial stand conditions), including 17 regimes for rotation forestry (RF), 40 variations of continuous cover forest (CCF) and one set-aside (SA), where no management actions were taken. RF regimes differed in timing of final felling, optional thinning (present/absent), and increase in number of retained green trees after final cut (more details in @Eyvindson2018). Basic CCF management follows rules from @Aijala2014a. To increase the range of CCF managements, we varied two rules defining the timing of harvest: (i) site-specific basal area and (ii) timing of the first thinning. We modified the pre-defined site-specific basal area requirement (16m2/ha for less fertile sites to 22m2/ha for fertile sites) prior to harvesting by -3, ±0, +3, +6,  and delayed the timing of the first harvest in 5 year increments up to a delay of 45 years. 
+We simulated the development of the forests stands using SIMO forest growth simulator [@Rasinmaki2009] over 100 years, separated into 20 5-year sequences. Each stand could be managed by up to 58 different management regimes (the total number of regimes per stands depended on the initial stand conditions), including 17 regimes for rotation forestry (RF), 40 variations of continuous cover forest (CCF) and one set-aside (SA), where no management actions were taken. RF regimes differed in timing of final felling, optional thinning (present/absent), and increase in number of retained green trees after final cut (more details in @Eyvindson2018). Basic CCF management follows rules from @Aijala2014a. To increase the range of CCF managements, we varied two rules defining the timing of harvest: (i) site-specific basal area and (ii) timing of the first thinning. We modified the pre-defined site-specific basal area requirement (16m2/ha for less fertile sites to 22m2/ha for fertile sites) prior to harvesting by -3, ±0, +3, +6,  and delayed the timing of the first harvest in 5 year increments up to a delay of 45 years. 
 
 ### Optimization
 
@@ -361,9 +361,9 @@ The intensification of the harvesting levels increases the proportion of the pul
 
 
 
-### Changes in wind risk
+### Temporal changes in wind risk over the landscape
 
-```{r fig_windRisk_time_change, fig.width = 4, fig.height = 3, fig.cap = "Temporal changes in wind risk over time"}
+```{r fig_windRisk_time_change, fig.width = 4, fig.height = 3, fig.cap = "Temporal changes in wind risk over time by management groups and harvest intensity."}
 
 # How does the wind risk vary over time? can vary over the stands, over the landscapes
 # calculate mean wind risk by landscape, get differences in wind risk
@@ -556,6 +556,7 @@ df %>%
 
 
 ```
+
 ### Tree count
 
 ```{r mean_tree_n, eval = T}
@@ -580,17 +581,10 @@ df %>%
   theme(legend.position = "bottom") +
   ggtitle("") 
 
-
-range(df$N)
-hist(df$N)
-
-
-
-
 ```
 
 
-```{r sample_data}
+```{r sample_data, eval = T}
 
 # Sample  random rows:
 set.seed(1)
@@ -599,19 +593,19 @@ df.sample <- df[sample_row,]
 
 # how does age changes with tree numbers???
 
-ggplot(df.sample, aes(x = N,
-                      y = Age,
-                      group = scenSimpl2,
-                      color = scenSimpl2)) +
-  geom_point() + 
-  facet_grid(.~scenSimpl2)
+#ggplot(df.sample, aes(x = N,
+ #                     y = Age,
+#                      group = scenSimpl2,
+#                      color = scenSimpl2)) +
+#  geom_point() + 
+#  facet_grid(.~scenSimpl2)
   
 
 
 
 ```
 
-```{r age_geom_density}
+```{r age_geom_density, eval = F}
 library(ggridges)
 
 ggplot(df.sample, 
@@ -622,8 +616,18 @@ ggplot(df.sample,
 
 ```
 
+```{r scatter_risk_by_volume_year, eval = F} 
 
+# who does the wind risk changes by volume among the regimes??
+ 
+df %>% 
+  filter(scenNumb == "10") %>% 
+ ggplot(aes(x = V,
+            y = windRisk)) +
+  geom_point(size = 0.5, alpha = 0.5) + 
+  facet_grid(scenSimpl2 ~ year)
 
+```
 
 
 ### Frequency of open stands
@@ -670,11 +674,6 @@ df %>%
   ggtitle("") 
 
 
-
-
-
-
-
 ```
 
 
@@ -685,6 +684,7 @@ the highest frequency of thinnings is under CCF management regimes, which linera
 
 ```{r, eval = F}
 
+# Dummy example to chcek how does identifucation iof teh non NA values work
 mydf <- data.frame('col_1'=c('A','A','B','B', 'B'), 
                    'col_2'=c(100,NA, 90,30, 100))
 
@@ -771,7 +771,20 @@ map erepresent the forest vulnerability to the wind, but it is impossible to pre
 - SA forests have clearly higher wind risk than intensively managemed forests under RF. However, RF as highly specialized in provision of teh single benefit - timber - while deterioration non-woody ecosystem servoices and destroyng habitats for endangered species should be largely replaced over the landscapes by managements fulfillings multiple benefits @Eyvindson2020. 
 - 
 
+#### Limitation of the study
+
+Our study design have multiple limitation, inhereted from application of teh pixel (30x30m) resolution to stand level (mean: 1.5 ha). This likely overestimated the volume under risk due to larger computational unit. However, Finnish forests stands are relatively homogenous in terms of species composition, tree height and age composition. Further, scarce windthrown damage or tree breakage due to wind or snow occurs annualy, while rare extreme winds could decimate all mature trees available on stands. As such, the expectation of the rate of wind damage vary.   
+
+
+
 The shortening of the rotation period in Norway spruce forets  might slightly lower the wind and subsetquent bark beetle distudrabnces but has limited efficiencies and decreses under climate change [@Zimova2020]
+
+
+
+
+### Notes
+
+recalculate teh datasets from the highest stratum, and supposed that this stratum will be the most affected if damaged?? Proportion between the V of tallest stratum and and total volume of the stand could shed light on the how much timber volume is at risk at certain time.
 
 
 

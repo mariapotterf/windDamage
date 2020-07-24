@@ -259,8 +259,8 @@ optimization to landscape level stand configurations.\label{workflow}}
 regimes}\label{forest-stand-development-under-different-regimes}
 
 We simulated the development of the forests stands using SIMO forest
-growth simulator ({\textbf{???}}) over 100 years, separated into 20
-5-year sequences. Each stand could be managed by up to 58 different
+growth simulator (Rasinmäki et al., 2009) over 100 years, separated into
+20 5-year sequences. Each stand could be managed by up to 58 different
 management regimes (the total number of regimes per stands depended on
 the initial stand conditions), including 17 regimes for rotation
 forestry (RF), 40 variations of continuous cover forest (CCF) and one
@@ -381,11 +381,11 @@ for the wind damage at lowest harvesting levels. Interestingly, under
 RF, low levels of timber extraction increase levels of the pupl standing
 volume. The highest amount of harvested log wood is produced by CCF
 regimes, while RF dominates in harvesting pulp timber
-@ref(fig:fig\_4\_plot\_V\_timber).
+@ref(fig:plot\_V\_timber).
 
 \begin{figure}
 \centering
-\includegraphics{test_manus_files/figure-latex/fig_4_plot_V_timber-1.pdf}
+\includegraphics{test_manus_files/figure-latex/plot_V_timber-1.pdf}
 \caption{A. Mean standing and B. harvested pulp and log timber under
 three types of management regimes over harvest intensity gradient.
 Please note the range of y axis}
@@ -396,9 +396,8 @@ the pulp wood compared to log wood, especially in RF. In CCF, the
 proportion among standing log and pulp volume remains at the same rate
 (65:30) where the production of the log timber dominates. At the highest
 intensity of timber extraction, pulp wood creates up to 50\% of teh
-total standing volume See figure
-@ref(fig:fig\_5\_proportion\_V\_pulp\_log) NEW FIG
-@ref(fig\_5\_proportion\_V\_pulp\_log).
+total standing volume See figure @ref(fig:proportion\_V\_pulp\_log) NEW
+FIG @ref(proportion\_V\_pulp\_log).
 
 \subsubsection{Changes in wind risk}\label{changes-in-wind-risk}
 
@@ -441,6 +440,11 @@ maintain the mean tree height of the stand to 20 m(other) to 22 m
 \caption{Mean dominant tree height under different management groups and
 harvest intensity.}
 \end{figure}
+
+\includegraphics{test_manus_files/figure-latex/mean_stand_age-1.pdf}
+\#\#\# Tree count
+
+\includegraphics{test_manus_files/figure-latex/mean_tree_n-1.pdf}
 
 \subsubsection{Frequency of open stands}\label{frequency-of-open-stands}
 
@@ -518,10 +522,28 @@ uncertainities in future wind occurences
 \item
 \end{itemize}
 
+\paragraph{Limitation of the study}\label{limitation-of-the-study}
+
+Our study design have multiple limitation, inhereted from application of
+teh pixel (30x30m) resolution to stand level (mean: 1.5 ha). This likely
+overestimated the volume under risk due to larger computational unit.
+However, Finnish forests stands are relatively homogenous in terms of
+species composition, tree height and age composition. Further, scarce
+windthrown damage or tree breakage due to wind or snow occurs annualy,
+while rare extreme winds could decimate all mature trees available on
+stands. As such, the expectation of the rate of wind damage vary.
+
 The shortening of the rotation period in Norway spruce forets might
 slightly lower the wind and subsetquent bark beetle distudrabnces but
 has limited efficiencies and decreses under climate change (Zimová et
 al., 2020)
+
+\subsubsection{Notes}\label{notes}
+
+recalculate teh datasets from the highest stratum, and supposed that
+this stratum will be the most affected if damaged?? Proportion between
+the V of tallest stratum and and total volume of the stand could shed
+light on the how much timber volume is at risk at certain time.
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
@@ -548,6 +570,12 @@ doi:\href{https://doi.org/10.1139/cjfr-2017-0251}{10.1139/cjfr-2017-0251}
 \hypertarget{ref-RDevelopmentCoreTeam2019}{}
 R Development Core Team, 2019. R: A language and environment for
 statistical computing.
+
+\hypertarget{ref-Rasinmaki2009}{}
+Rasinmäki, J., Mäkinen, A., Kalliovirta, J., 2009. SIMO: An adaptable
+simulation framework for multiscale forest resource data. Computers and
+Electronics in Agriculture 66, 76--84.
+doi:\href{https://doi.org/10.1016/j.compag.2008.12.007}{10.1016/j.compag.2008.12.007}
 
 \hypertarget{ref-Suvanto2019}{}
 Suvanto, S., Peltoniemi, M., Tuominen, S., Strandström, M., Lehtonen,
