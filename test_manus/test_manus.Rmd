@@ -214,10 +214,10 @@ df %>%
 
 ### Timber volume at wind risk
 
-Increasing harvesting levels lowers the amount of the available timber at any time step to be lost due to windthrows. Interestingly, the CCF regimes produces higher logs volumes, while RF has higher production of the pulp wood, which is in high demand by cheaper then log wood. The same trends are visible for harvested log and pulp volumes. For ALL management regimes, using all available management regimes, is located between two extremities. The highest mean log timber volume as available for the wind damage at lowest harvesting levels. Interestingly, under RF, low levels of timber extraction increase levels of the pupl  standing volume. The highest amount of harvested log wood is produced by CCF regimes, while RF dominates in harvesting pulp timber \@ref(fig:fig_4_plot_V_timber). 
+Increasing harvesting levels lowers the amount of the available timber at any time step to be lost due to windthrows. Interestingly, the CCF regimes produces higher logs volumes, while RF has higher production of the pulp wood, which is in high demand by cheaper then log wood. The same trends are visible for harvested log and pulp volumes. For ALL management regimes, using all available management regimes, is located between two extremities. The highest mean log timber volume as available for the wind damage at lowest harvesting levels. Interestingly, under RF, low levels of timber extraction increase levels of the pupl  standing volume. The highest amount of harvested log wood is produced by CCF regimes, while RF dominates in harvesting pulp timber \@ref(fig:plot_V_timber). 
 
 
-```{r fig_4_plot_V_timber, fig.width = 7, fig.height = 6, fig.cap = "A. Mean standing and B. harvested pulp and log timber under three types of management regimes over harvest intensity gradient"}
+```{r plot_V_timber, fig.width = 6, fig.height = 6, fig.cap = "A. Mean standing and B. harvested pulp and log timber under three types of management regimes over harvest intensity gradient. Please note the range of y axis"}
 
 # -----------------------------------------
 # Visualize volume dynamics over scenarios
@@ -311,129 +311,10 @@ ggarrange(p.stand, p.harvested, ncol = 1, nrow = 2,
           common.legend = TRUE, legend="bottom")
 ```
 
-The intensification of the harvesting levels increases the proportion of the pulp wood compared to log wood, especially in RF. In CCF, the proportion among standing log and pulp volume remains at the same rate (65:30) where the production of the log timber dominates. At the highest intensity of timber extraction, pulp wood creates up to 50% of teh total standing volume See figure  \@ref(fig:fig_5_proportion_V_pulp_log) NEW FIG \@ref(fig_5_proportion_V_pulp_log).
+The intensification of the harvesting levels increases the proportion of the pulp wood compared to log wood, especially in RF. In CCF, the proportion among standing log and pulp volume remains at the same rate (65:30) where the production of the log timber dominates. At the highest intensity of timber extraction, pulp wood creates up to 50% of teh total standing volume See figure  \@ref(fig:proportion_V_pulp_log) NEW FIG \@ref(proportion_V_pulp_log).
 
 
-### Changes in wind risk
-
-```{r fig_windRisk_time_change, fig.width = 7, fig.height = 6, fig.cap = "Temporal changes in wind risk over time"}
-
-# How does the wind risk vary over time? can vary over the stands, over the landscapes
-# calculate mean wind risk by landscape, get differences in wind risk
-# over years, plot those differences as means by scenarios - over harvest gradient
-
-df_l_mean <- df %>%
-  group_by(NPI, scenSimpl2, year) %>%
-  summarize(mean_risk_landscape = mean(windRisk)) %>% 
-  mutate(windRisk_diff = mean_risk_landscape - lag(mean_risk_landscape))
-
-
-
-
-# Plot using boxplots to show all variability between years
-ggplot(df_l_mean, 
-       aes(x = as.factor(NPI),
-           y = windRisk_diff,
-           group = as.factor(NPI))) +
-  geom_boxplot() + 
-# geom_line(aes(linetype = scenSimpl2, 
-#              color    = scenSimpl2),
- #          lwd = 0.8) +
-#  scale_color_brewer(palette="Greens") +
-#  labs(color = "Scenario",
-#       linetype = "Scenario") + # geom_line(size = 1) + 
-  xlab("NPI k € by ha") +
-  ylab("mean yearly differences") +
-  #ylim(0, 55) +
-  facet_wrap(.~ scenSimpl2) + 
-  theme(legend.position = "bottom") +
-  ggtitle("") 
-
-```
-
-
-```{r}
-# Calculate temporal change in wind risk on stand level
-# ------------------
-df %>%
-  arrange(id, scenSimpl2, NPI) %>% 
-  #group_by(NPI, scenSimpl2, year, id) %>%
-  dplyr::select(id, year, NPI, scenSimpl2, windRisk) %>% 
-  mutate(risk_diff = windRisk - lag(windRisk)) %>% 
-  ggplot( 
-       aes(x = as.factor(NPI),
-           y = risk_diff,
-           group = as.factor(NPI))) +
-  geom_boxplot() + 
-  xlab("NPI k € by ha") +
-  ylab("yearly differences") +
-  #ylim(0, 55) +
-  facet_wrap(.~ scenSimpl2) + 
-  theme(legend.position = "bottom") +
-  ggtitle("") 
-
-
-
-
-```
-
-# Plot using boxplots to show all variability between years
-ggplot(df_l_mean, 
-       aes(x = as.factor(NPI),
-           y = windRisk_diff,
-           group = as.factor(NPI))) +
-  geom_boxplot() + 
-# geom_line(aes(linetype = scenSimpl2, 
-#              color    = scenSimpl2),
- #          lwd = 0.8) +
-#  scale_color_brewer(palette="Greens") +
-#  labs(color = "Scenario",
-#       linetype = "Scenario") + # geom_line(size = 1) + 
-  xlab("NPI k € by ha") +
-  ylab("mean yearly differences") +
-  #ylim(0, 55) +
-  facet_wrap(.~ scenSimpl2) + 
-  theme(legend.position = "bottom") +
-  ggtitle("") 
-
-
-
-
-
-
-
-
-# get the mean values of differences between scenarios
-
-df_scen_mean <- aggregate(windRisk_diff ~ NPI + scenSimpl2, 
-                          df_l_mean, mean)
-
-# plot the mean differences in yearly changes
-
-ggplot(df_scen_mean, 
-       aes(x = NPI,
-           y = windRisk_diff,
-           group = scenSimpl2,
-           color = scenSimpl2)) +
- geom_line(aes(linetype = scenSimpl2, 
-              color    = scenSimpl2),
-           lwd = 0.8) +
-  scale_color_brewer(palette="Greens") +
-  labs(color = "Scenario",
-       linetype = "Scenario") + # geom_line(size = 1) + 
-  xlab("NPI k € by ha") +
-  ylab("mean yearly differences") +
-  #ylim(0, 55) +
-  #facet_wrap(.~ species) + 
-  theme(legend.position = "bottom") +
-  ggtitle("") 
-
-
-
-```
-
-
-```{r fig_5_proportion_V_pulp_log, eval = T, echo = F, warning = F, message = F, fig.width = 4, fig.height = 2, fig.cap = "Ratio between standing log and pul volume (m^3)"}
+```{r proportion_V_pulp_log, eval = T, echo = F, warning = F, message = F, fig.width = 4, fig.height = 2, fig.cap = "Ratio between standing log and pul volume (m^3)"}
 # Here is te question: does the harvest intensification changes the proportion between log and pulp wood???
 
 # V_sum          <- aggregate(V ~ scenSimpl2 +  scenNumb, df, sum)
@@ -476,6 +357,116 @@ ggplot(df_scen_mean,
   
 
 ```
+
+
+
+
+### Changes in wind risk
+
+```{r fig_windRisk_time_change, fig.width = 4, fig.height = 3, fig.cap = "Temporal changes in wind risk over time"}
+
+# How does the wind risk vary over time? can vary over the stands, over the landscapes
+# calculate mean wind risk by landscape, get differences in wind risk
+# over years, plot those differences as means by scenarios - over harvest gradient
+
+df_l_mean <- df %>%
+  group_by(NPI, scenSimpl2, year) %>%
+  summarize(mean_risk_landscape = mean(windRisk)) %>% 
+  mutate(windRisk_diff = mean_risk_landscape - lag(mean_risk_landscape))
+
+
+# Plot using boxplots to show all variability between years
+ggplot(df_l_mean, 
+       aes(x = as.factor(NPI),
+           y = windRisk_diff,
+           group = as.factor(NPI))) +
+  geom_boxplot() + 
+  xlab("NPI k € by ha") +
+  ylab("between years changes in\nwind risk") +
+  facet_wrap(.~ scenSimpl2) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+```
+
+
+```{r, windRisk_temporal_landscape, eval = F}
+# Calculate temporal change in wind risk on stand level
+# ------------------
+df %>%
+  arrange(id, scenSimpl2, NPI) %>% 
+  #group_by(NPI, scenSimpl2, year, id) %>%
+  dplyr::select(id, year, NPI, scenSimpl2, windRisk) %>% 
+  mutate(risk_diff = windRisk - lag(windRisk)) %>% 
+  ggplot( 
+       aes(x = as.factor(NPI),
+           y = risk_diff,
+           group = as.factor(NPI))) +
+  geom_boxplot() + 
+  xlab("NPI k € by ha") +
+  ylab("yearly differences") +
+  #ylim(0, 55) +
+  facet_wrap(.~ scenSimpl2) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+
+
+
+```
+
+```{r, windRisk_temporal_stand, eval = F}
+# Plot using boxplots to show all variability between years
+ggplot(df_l_mean, 
+       aes(x = as.factor(NPI),
+           y = windRisk_diff,
+           group = as.factor(NPI))) +
+  geom_boxplot() + 
+# geom_line(aes(linetype = scenSimpl2, 
+#              color    = scenSimpl2),
+ #          lwd = 0.8) +
+#  scale_color_brewer(palette="Greens") +
+#  labs(color = "Scenario",
+#       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("mean yearly differences") +
+  #ylim(0, 55) +
+  facet_wrap(.~ scenSimpl2) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+
+
+
+# get the mean values of differences between scenarios
+
+df_scen_mean <- aggregate(windRisk_diff ~ NPI + scenSimpl2, 
+                          df_l_mean, mean)
+
+# plot the mean differences in yearly changes
+
+ggplot(df_scen_mean, 
+       aes(x = NPI,
+           y = windRisk_diff,
+           group = scenSimpl2,
+           color = scenSimpl2)) +
+ geom_line(aes(linetype = scenSimpl2, 
+              color    = scenSimpl2),
+           lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("mean yearly differences") +
+  #ylim(0, 55) +
+  #facet_wrap(.~ species) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+
+
+```
+
 
 ## Dynamic parameters contributing to wind risk
 
@@ -540,6 +531,99 @@ df %>%
   ggtitle("") 
 
 ```
+
+```{r mean_stand_age, eval = T}
+
+df %>%
+  group_by(NPI, scenSimpl2, species) %>% 
+  mutate(age_mean = mean(Age)) %>% 
+  ggplot(aes(x = NPI,
+             y = age_mean,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+ geom_line(aes(linetype = scenSimpl2, 
+                color   = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("Mean stand age") +
+  ylim(0, 105) +
+  facet_wrap(.~ species) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+
+```
+### Tree count
+
+```{r mean_tree_n, eval = T}
+
+df %>%
+  group_by(NPI, scenSimpl2, species) %>% 
+  mutate(tree_n = mean(N)) %>% 
+  ggplot(aes(x = NPI,
+             y = tree_n,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+ geom_line(aes(linetype = scenSimpl2, 
+                color   = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("Mean # tree by stand") +
+  #ylim(0, 105) +
+  facet_wrap(.~ species) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+
+range(df$N)
+hist(df$N)
+
+
+
+
+```
+
+
+```{r sample_data}
+
+# Sample  random rows:
+set.seed(1)
+sample_row <- sample(1:nrow(df), 100000, replace=F)
+df.sample <- df[sample_row,]
+
+# how does age changes with tree numbers???
+
+ggplot(df.sample, aes(x = N,
+                      y = Age,
+                      group = scenSimpl2,
+                      color = scenSimpl2)) +
+  geom_point() + 
+  facet_grid(.~scenSimpl2)
+  
+
+
+
+```
+
+```{r age_geom_density}
+library(ggridges)
+
+ggplot(df.sample, 
+       aes(x = N,
+           y = as.factor(scenNumb))) +
+  geom_density_ridges(rel_min_height = 0.01) + # remove tails (repcent cutoff)
+  facet_grid(.~ scenSimpl2 )
+
+```
+
+
+
 
 
 ### Frequency of open stands
