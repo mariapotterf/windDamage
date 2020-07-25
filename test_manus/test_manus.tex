@@ -120,8 +120,6 @@ Jyvaskyla, P.O. Box 35, FI-40014 Jyvaskyla, Finland}
   forest managers should consider the target forest species composition to
   mitigate wind risk if aimed to support production of log wood over the
   pulp.
-  
-  add to 4A = that it starts from 80
   \end{abstract}
   
  \end{frontmatter}
@@ -259,8 +257,8 @@ optimization to landscape level stand configurations.\label{workflow}}
 regimes}\label{forest-stand-development-under-different-regimes}
 
 We simulated the development of the forests stands using SIMO forest
-growth simulator (Rasinmäki et al., 2009) over 100 years, separated into
-20 5-year sequences. Each stand could be managed by up to 58 different
+growth simulator ({\textbf{???}}) over 100 years, separated into 20
+5-year sequences. Each stand could be managed by up to 58 different
 management regimes (the total number of regimes per stands depended on
 the initial stand conditions), including 17 regimes for rotation
 forestry (RF), 40 variations of continuous cover forest (CCF) and one
@@ -446,6 +444,21 @@ harvest intensity.}
 
 \includegraphics{test_manus_files/figure-latex/mean_tree_n-1.pdf}
 
+\begin{verbatim}
+## [1]     0.00 12046.49
+\end{verbatim}
+
+\includegraphics{test_manus_files/figure-latex/mean_tree_n-2.pdf}
+
+\includegraphics{test_manus_files/figure-latex/sample_data-1.pdf}
+
+\includegraphics{test_manus_files/figure-latex/age_geom_density-1.pdf}
+\includegraphics{test_manus_files/figure-latex/age_geom_density-2.pdf}
+\includegraphics{test_manus_files/figure-latex/age_geom_density-3.pdf}
+\includegraphics{test_manus_files/figure-latex/age_geom_density-4.pdf}
+\includegraphics{test_manus_files/figure-latex/age_geom_density-5.pdf}
+\includegraphics{test_manus_files/figure-latex/age_geom_density-6.pdf}
+
 \subsubsection{Frequency of open stands}\label{frequency-of-open-stands}
 
 The proportion of the open edge stands remains very high over whole
@@ -477,6 +490,24 @@ times in CCF comparing to RF.
 \includegraphics{test_manus_files/figure-latex/unnamed-chunk-2-1.pdf}
 
 \section{Discussion}\label{discussion}
+
+\subsubsection{Wind risk dynamics}\label{wind-risk-dynamics}
+
+\subsubsection{Wind risk drivers}\label{wind-risk-drivers}
+
+\subsubsection{Future questions to
+answer}\label{future-questions-to-answer}
+
+\subsubsection{Recommendation for future
+management}\label{recommendation-for-future-management}
+
+\begin{itemize}
+\tightlist
+\item
+  SA vs.~intensification of management
+\item
+  management types: CCF, RF or ALL or something else???
+\end{itemize}
 
 Wind (10 years return level of max wind speed REF) are estimated the
 same over 100 years as well as temperature sums. How does could affects
@@ -522,31 +553,16 @@ uncertainities in future wind occurences
 \item
 \end{itemize}
 
-\paragraph{Limitation of the study}\label{limitation-of-the-study}
-
-Our study design have multiple limitation, inhereted from application of
-teh pixel (30x30m) resolution to stand level (mean: 1.5 ha). This likely
-overestimated the volume under risk due to larger computational unit.
-However, Finnish forests stands are relatively homogenous in terms of
-species composition, tree height and age composition. Further, scarce
-windthrown damage or tree breakage due to wind or snow occurs annualy,
-while rare extreme winds could decimate all mature trees available on
-stands. As such, the expectation of the rate of wind damage vary.
-
 The shortening of the rotation period in Norway spruce forets might
 slightly lower the wind and subsetquent bark beetle distudrabnces but
 has limited efficiencies and decreses under climate change (Zimová et
 al., 2020)
 
-\subsubsection{Notes}\label{notes}
-
-recalculate teh datasets from the highest stratum, and supposed that
-this stratum will be the most affected if damaged?? Proportion between
-the V of tallest stratum and and total volume of the stand could shed
-light on the how much timber volume is at risk at certain time.
-
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
+
+\section*{Conclusion}\label{conclusion}
+\addcontentsline{toc}{section}{Conclusion}
 
 \hypertarget{refs}{}
 \hypertarget{ref-Aijala2014a}{}
@@ -570,12 +586,6 @@ doi:\href{https://doi.org/10.1139/cjfr-2017-0251}{10.1139/cjfr-2017-0251}
 \hypertarget{ref-RDevelopmentCoreTeam2019}{}
 R Development Core Team, 2019. R: A language and environment for
 statistical computing.
-
-\hypertarget{ref-Rasinmaki2009}{}
-Rasinmäki, J., Mäkinen, A., Kalliovirta, J., 2009. SIMO: An adaptable
-simulation framework for multiscale forest resource data. Computers and
-Electronics in Agriculture 66, 76--84.
-doi:\href{https://doi.org/10.1016/j.compag.2008.12.007}{10.1016/j.compag.2008.12.007}
 
 \hypertarget{ref-Suvanto2019}{}
 Suvanto, S., Peltoniemi, M., Tuominen, S., Strandström, M., Lehtonen,

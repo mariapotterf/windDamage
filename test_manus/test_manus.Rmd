@@ -37,9 +37,6 @@ abstract: |
   To understand how will the traditional (rotation forestry, RF) and novel forest managements techniques (continuous cover forest, CCF) combined using optimal management alternate the risk of wind damages over the harvest intensity gradient (ranging from completely setaside to highest harvesting rates), we  combined the forest growth simulator under ranges of management regimes (RF, CCF and combined: ALL), optimized over the range of harvesting levels to calculate stand and landscape level wind damage risk for alternative paths of the forest management and harvesting levles over 100 years. 
   We found that higher harvest intensity in RF lowers wind risk, whereas the wind risk increased under CCF and ALL scenarios. More intensive harvesting using RF produced more pulp, while CCF provided higher volumes of the standing and harvested log wood, which likely explains higher values of wind risk probability. RF slightly increased the number of stands with open edge, which remained stable under CCF and ALL regimes. Intensive harvesting may change species composition to favour Norway spruce which will further increase probability of wind damage in the future. Therefore, we suggest that forest managers should consider the target forest species composition to mitigate wind risk if aimed to support production of log wood over the pulp. 
   
-  
-  
-  add to 4A = that it starts from 80
 
 journal: "Forest Ecology and Management"
 date: "`r Sys.Date()`"
@@ -75,7 +72,10 @@ Traditional forest management regimes specialized in promoting timber revenues w
 Here we explore how the restriction of forest management practices, along with the increasing level of harvest levels over the landscape affects landscape level damage of wind risk and how much timber value is put on risk under alternative regimes and extraction levels. Our study for the first time evaluates the landcspeca level wind risk combined with the forest growth simulator and long-term consequences of he applied forest management practices. Therefore, we first calculate the stand level wind risk over alternative landscapes and further explore the likely drivers of the wind risk levels. We investigated how restriction of forest management regimes combined with levels of intensity of timber extraction will affects landscape level wind risk. 
 
 
-We hypothesized that RF would increase wind damage risk dues to increasing number of open edges while CCF would lower wind risk over the landscape. Further, we hypothetize that higher levels of timber extraction would increase wind risk. Lastly, we hypothetized than increasing amount of set-aside stands, over the landscape together with CCF management would increase wind damage risk due to larger present timber volume, and due to more frequent thinning activities. We investigated wind risk in terms of available timber volume, specifically saw and log timber volume. Lastly, we explored the trends of wind risk relevant to stands height, changes and species compositions. 
+Our study aims to understand how types of forest management and harvesting intensity affect stand and landcape level wind risk over time, and how much timber volume is at the risk.  WE hypothetized that RF will increase stand level wind risk due accumulated V before the final cut, and increase wind risk in landscape dur to increasing stands with open edges after the final cut whereas the CCF would homogenize wind risk over stand and landscape over time. However, increasing harvesting rates might on one hand increase wind risk due to higher frequency of thinnings in CCF and RF, but also lower wind risk in RF due to shorter rotation lenghts.  
+
+
+
 
 Methods
 ==========================
@@ -105,7 +105,7 @@ Our input dataset includes initial stand conditions (2016), alternative forest g
 
 ### Forest stand development under different regimes
 
-We simulated the development of the forests stands using SIMO forest growth simulator [@Rasinmaki2009] over 100 years, separated into 20 5-year sequences. Each stand could be managed by up to 58 different management regimes (the total number of regimes per stands depended on the initial stand conditions), including 17 regimes for rotation forestry (RF), 40 variations of continuous cover forest (CCF) and one set-aside (SA), where no management actions were taken. RF regimes differed in timing of final felling, optional thinning (present/absent), and increase in number of retained green trees after final cut (more details in @Eyvindson2018). Basic CCF management follows rules from @Aijala2014a. To increase the range of CCF managements, we varied two rules defining the timing of harvest: (i) site-specific basal area and (ii) timing of the first thinning. We modified the pre-defined site-specific basal area requirement (16m2/ha for less fertile sites to 22m2/ha for fertile sites) prior to harvesting by -3, ±0, +3, +6,  and delayed the timing of the first harvest in 5 year increments up to a delay of 45 years. 
+We simulated the development of the forests stands using SIMO forest growth simulator [@rasinmaki2009] over 100 years, separated into 20 5-year sequences. Each stand could be managed by up to 58 different management regimes (the total number of regimes per stands depended on the initial stand conditions), including 17 regimes for rotation forestry (RF), 40 variations of continuous cover forest (CCF) and one set-aside (SA), where no management actions were taken. RF regimes differed in timing of final felling, optional thinning (present/absent), and increase in number of retained green trees after final cut (more details in @Eyvindson2018). Basic CCF management follows rules from @Aijala2014a. To increase the range of CCF managements, we varied two rules defining the timing of harvest: (i) site-specific basal area and (ii) timing of the first thinning. We modified the pre-defined site-specific basal area requirement (16m2/ha for less fertile sites to 22m2/ha for fertile sites) prior to harvesting by -3, ±0, +3, +6,  and delayed the timing of the first harvest in 5 year increments up to a delay of 45 years. 
 
 ### Optimization
 
@@ -361,9 +361,9 @@ The intensification of the harvesting levels increases the proportion of the pul
 
 
 
-### Temporal changes in wind risk over the landscape
+### Changes in wind risk
 
-```{r fig_windRisk_time_change, fig.width = 4, fig.height = 3, fig.cap = "Temporal changes in wind risk over time by management groups and harvest intensity."}
+```{r fig_windRisk_time_change, fig.width = 4, fig.height = 3, fig.cap = "Temporal changes in wind risk over time"}
 
 # How does the wind risk vary over time? can vary over the stands, over the landscapes
 # calculate mean wind risk by landscape, get differences in wind risk
@@ -556,7 +556,6 @@ df %>%
 
 
 ```
-
 ### Tree count
 
 ```{r mean_tree_n, eval = T}
@@ -581,10 +580,17 @@ df %>%
   theme(legend.position = "bottom") +
   ggtitle("") 
 
+
+range(df$N)
+hist(df$N)
+
+
+
+
 ```
 
 
-```{r sample_data, eval = T}
+```{r sample_data}
 
 # Sample  random rows:
 set.seed(1)
@@ -593,19 +599,19 @@ df.sample <- df[sample_row,]
 
 # how does age changes with tree numbers???
 
-#ggplot(df.sample, aes(x = N,
- #                     y = Age,
-#                      group = scenSimpl2,
-#                      color = scenSimpl2)) +
-#  geom_point() + 
-#  facet_grid(.~scenSimpl2)
+ggplot(df.sample, aes(x = N,
+                      y = Age,
+                      group = scenSimpl2,
+                      color = scenSimpl2)) +
+  geom_point() + 
+  facet_grid(.~scenSimpl2)
   
 
 
 
 ```
 
-```{r age_geom_density, eval = F}
+```{r age_geom_density}
 library(ggridges)
 
 ggplot(df.sample, 
@@ -614,20 +620,64 @@ ggplot(df.sample,
   geom_density_ridges(rel_min_height = 0.01) + # remove tails (repcent cutoff)
   facet_grid(.~ scenSimpl2 )
 
-```
 
-```{r scatter_risk_by_volume_year, eval = F} 
+# Try for volume
+ggplot(df.sample, 
+       aes(x = V,
+           y = as.factor(scenNumb))) +
+  geom_density_ridges(rel_min_height = 0.01) + # remove tails (repcent cutoff)
+  facet_grid(.~ scenSimpl2 )
 
-# who does the wind risk changes by volume among the regimes??
- 
-df %>% 
+
+# Check changes in volume over time
+ggplot(df.sample, 
+       aes(x = V,
+           y = as.factor(year))) +
+  geom_density_ridges(rel_min_height = 0.01) + # remove tails (repcent cutoff)
+  facet_grid(.~ scenSimpl2 )
+
+
+# Try density of the wind risk over time
+
+# Check changes in volume over time
+ggplot(df.sample, 
+       aes(x = windRisk,
+           y = as.factor(year))) +
+  geom_density_ridges(rel_min_height = 0.01) + # remove tails (repcent cutoff)
+  facet_grid(.~ scenSimpl2 )
+
+
+
+
+# Wind risk over SA scenarios
+
+# Check changes in volume over time
+ggplot(df.sample, 
+       aes(x = windRisk,
+           y = as.factor(scenNumb))) +
+  geom_density_ridges(rel_min_height = 0.01) + # remove tails (repcent cutoff)
+  facet_grid(.~ scenSimpl2 )
+
+
+
+# get a scatter plot of teh wind risk X volume by groups:
+# how to show that RF has lower risk, because it just simply does not have trees????
+df.sample %>% 
   filter(scenNumb == "10") %>% 
- ggplot(aes(x = V,
-            y = windRisk)) +
-  geom_point(size = 0.5, alpha = 0.5) + 
-  facet_grid(scenSimpl2 ~ year)
+  ggplot(#df.sample, 
+       aes(x = V,
+           y = windRisk, color = species)) +
+  geom_point(size = 0.1, alpha = 0.2) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  #geom_density_ridges(rel_min_height = 0.01) + # remove tails (repcent cutoff)
+  facet_grid(scenSimpl2 ~ scenNumb)
+
+
 
 ```
+
+
+
 
 
 ### Frequency of open stands
@@ -674,6 +724,11 @@ df %>%
   ggtitle("") 
 
 
+
+
+
+
+
 ```
 
 
@@ -684,7 +739,6 @@ the highest frequency of thinnings is under CCF management regimes, which linera
 
 ```{r, eval = F}
 
-# Dummy example to chcek how does identifucation iof teh non NA values work
 mydf <- data.frame('col_1'=c('A','A','B','B', 'B'), 
                    'col_2'=c(100,NA, 90,30, 100))
 
@@ -755,7 +809,25 @@ df %>%
 
 
 Discussion
-======================
+==========================
+
+
+### Wind risk dynamics
+
+We found that intensification of the harvesting regimes have different conseuqences of resulting wind risk: where CCF management increases wind risk, and RF lowers wind risk with increasing intensity.  
+
+### Wind risk drivers
+
+### Future questions to answer
+
+
+### Recommendation for future management
+
+- SA vs. intensification of management
+- management types: CCF, RF or ALL or something else???
+
+
+
 
 Wind (10 years return level of max wind speed REF) are estimated the same over 100 years as well as temperature sums. How does could affects the results?
 
@@ -771,20 +843,7 @@ map erepresent the forest vulnerability to the wind, but it is impossible to pre
 - SA forests have clearly higher wind risk than intensively managemed forests under RF. However, RF as highly specialized in provision of teh single benefit - timber - while deterioration non-woody ecosystem servoices and destroyng habitats for endangered species should be largely replaced over the landscapes by managements fulfillings multiple benefits @Eyvindson2020. 
 - 
 
-#### Limitation of the study
-
-Our study design have multiple limitation, inhereted from application of teh pixel (30x30m) resolution to stand level (mean: 1.5 ha). This likely overestimated the volume under risk due to larger computational unit. However, Finnish forests stands are relatively homogenous in terms of species composition, tree height and age composition. Further, scarce windthrown damage or tree breakage due to wind or snow occurs annualy, while rare extreme winds could decimate all mature trees available on stands. As such, the expectation of the rate of wind damage vary.   
-
-
-
 The shortening of the rotation period in Norway spruce forets  might slightly lower the wind and subsetquent bark beetle distudrabnces but has limited efficiencies and decreses under climate change [@Zimova2020]
-
-
-
-
-### Notes
-
-recalculate teh datasets from the highest stratum, and supposed that this stratum will be the most affected if damaged?? Proportion between the V of tallest stratum and and total volume of the stand could shed light on the how much timber volume is at risk at certain time.
 
 
 
@@ -792,4 +851,10 @@ recalculate teh datasets from the highest stratum, and supposed that this stratu
 
 
 # References {#references .unnumbered}
+
+
+
+
+Conclusion
+==========================
 

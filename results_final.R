@@ -48,7 +48,7 @@ mean(df.geom$area)
 max(df.geom$area)
 min(df.geom$area)
 
-hist(df.geom$area/10000)
+#hist(df.geom$area/10000)
 
 
 # -----------------------------------------
