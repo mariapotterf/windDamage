@@ -238,20 +238,44 @@ vol_cols <- c("V",
 # For harvested V - calculate sum, as this is not measured every time,
 # otherwise calculate mean or max???
 
-V_mean          <- aggregate(V ~ scenSimpl2 +  NPI, df, mean)
-V_st_log_mean   <- aggregate(V_stand_log ~ scenSimpl2 +  NPI, df, mean)
-V_st_pulp_mean  <- aggregate(V_stand_pulp ~ scenSimpl2 +  NPI, df, mean)
 
-V_harv_sum      <- aggregate(Harvested_V ~ scenSimpl2 +  NPI, df, sum)
-V_harv_log_sum  <- aggregate(Harvested_V_log_under_bark ~  scenSimpl2 +  NPI, df, sum)
-V_harv_pupl_sum <- aggregate(Harvested_V_pulp_under_bark ~  scenSimpl2 +  NPI, df, sum)
+# Calculate means& sum volumes using summarize: faster then 'aggregate()'
+V_st_log_mean   <- df %>% 
+                      group_by(scenSimpl2, NPI) %>%
+                            summarize(V_st_log_mean = 
+                                        mean(V_stand_log, na.rm = T))
+
+V_st_pulp_mean  <- df %>% 
+                      group_by(scenSimpl2, NPI) %>%
+                            summarize(V_st_log_mean = 
+                                        mean(V_stand_pulp, na.rm = T))
+
+V_harv_log_sum  <- df %>% 
+                      group_by(scenSimpl2, NPI) %>%
+                            summarize(V_harv_log_sum =
+                                        sum(Harvested_V_log_under_bark, na.rm = T))
+
+V_harv_pupl_sum <- df %>% 
+                      group_by(scenSimpl2, NPI) %>%
+                            summarize(V_harv_pupl_sum =
+                                        sum(Harvested_V_pulp_under_bark, na.rm = T))
+
+
+# Calculate mean& sum volumes using aggregate: slow
+# ---------------------------------
+#V_st_log_mean   <- aggregate(V_stand_log ~ scenSimpl2 +  NPI, df, mean)
+#V_st_pulp_mean  <- aggregate(V_stand_pulp ~ scenSimpl2 +  NPI, df, mean)
+
+#V_harv_sum      <- aggregate(Harvested_V ~ scenSimpl2 +  NPI, df, sum)
+#V_harv_log_sum  <- aggregate(Harvested_V_log_under_bark ~  scenSimpl2 +  NPI, df, sum)
+#V_harv_pupl_sum <- aggregate(Harvested_V_pulp_under_bark ~  scenSimpl2 +  NPI, df, sum)
 
 
 # Merge data into one table
-all.V <- V_mean %>% 
-  left_join(V_st_log_mean) %>% 
+all.V <-# V_mean %>% 
+  V_st_log_mean %>% 
   left_join(V_st_pulp_mean) %>% 
-  left_join(V_harv_sum) %>% 
+ # left_join(V_harv_sum) %>% 
   left_join(V_harv_log_sum) %>% 
   left_join(V_harv_pupl_sum)
 
@@ -312,6 +336,20 @@ ggarrange(p.stand, p.harvested, ncol = 1, nrow = 2,
 ```
 
 The intensification of the harvesting levels increases the proportion of the pulp wood compared to log wood, especially in RF. In CCF, the proportion among standing log and pulp volume remains at the same rate (65:30) where the production of the log timber dominates. At the highest intensity of timber extraction, pulp wood creates up to 50% of teh total standing volume See figure  \@ref(fig:proportion_V_pulp_log) NEW FIG \@ref(proportion_V_pulp_log).
+
+
+``` {r V-stand-stratum }
+
+# plot the % of the stratum volume from the 
+
+
+
+
+```
+
+
+
+
 
 
 ```{r proportion_V_pulp_log, eval = T, echo = F, warning = F, message = F, fig.width = 4, fig.height = 2, fig.cap = "Ratio between standing log and pul volume (m^3)"}
@@ -843,7 +881,7 @@ map erepresent the forest vulnerability to the wind, but it is impossible to pre
 - SA forests have clearly higher wind risk than intensively managemed forests under RF. However, RF as highly specialized in provision of teh single benefit - timber - while deterioration non-woody ecosystem servoices and destroyng habitats for endangered species should be largely replaced over the landscapes by managements fulfillings multiple benefits @Eyvindson2020. 
 - 
 
-The shortening of the rotation period in Norway spruce forets  might slightly lower the wind and subsetquent bark beetle distudrabnces but has limited efficiencies and decreses under climate change [@Zimova2020]
+The shortening of the rotation period in Norway spruce forets  might slightly lower the wind and subsequent bark beetle distudrabnces but has limited efficiencies and decreses under climate change [@Zimova2020]
 
 
 
