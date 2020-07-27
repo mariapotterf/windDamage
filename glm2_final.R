@@ -43,7 +43,8 @@ df.open <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_landscape_
 df.open <- subset(df.open, select = -c(H_dom))  # remove H+_dom because have different number of decimals than other one and causes problems later
 
 # Read raster derived input variables: average wind, temperature, ...
-df.rst <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm_raster.csv", data.table=FALSE)
+df.rst <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_glm_raster.csv", 
+                            data.table=FALSE)
 
 
 # ---------------------------------
