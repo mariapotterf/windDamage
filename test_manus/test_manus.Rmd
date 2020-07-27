@@ -222,14 +222,6 @@ Increasing harvesting levels lowers the amount of the available timber at any ti
 # -----------------------------------------
 # Visualize volume dynamics over scenarios
 # -----------------------------------------
-#names(df)
-
-vol_cols <- c("V", 
-              "V_stand_log",
-              "V_stand_pulp",
-              "Harvested_V",
-              "Harvested_V_log_under_bark",
-              "Harvested_V_pulp_under_bark")
 
 
 # -------------------------------------------
@@ -247,7 +239,7 @@ V_st_log_mean   <- df %>%
 
 V_st_pulp_mean  <- df %>% 
                       group_by(scenSimpl2, NPI) %>%
-                            summarize(V_st_log_mean = 
+                            summarize(V_st_pulp_mean = 
                                         mean(V_stand_pulp, na.rm = T))
 
 V_harv_log_sum  <- df %>% 
@@ -286,7 +278,7 @@ all.V_melt <- reshape2::melt(all.V, id.vars = c('NPI', 'scenSimpl2'))
 # Add new variable: stand or harvested
 all.V_melt <- all.V_melt %>% 
   mutate(type = case_when(
-    stringr::str_detect(variable, "Harvested_V") ~ "harvested",
+    stringr::str_detect(variable, "V_harv_") ~ "harvested",
    TRUE ~ "stand"))
 
 
@@ -294,7 +286,7 @@ all.V_melt <- all.V_melt %>%
 # Create two plots, merge later into one
 p.stand <- 
   all.V_melt %>% 
-  filter(type == "stand" & variable != "V") %>% 
+  filter(type == "stand" ) %>% # & variable != "V" 
   ggplot(aes(x = NPI,
                        y = value,
                        group = scenSimpl2,
@@ -314,7 +306,7 @@ p.stand <-
 
 p.harvested <- 
   all.V_melt %>% 
-  filter(type == "harvested" & variable != "Harvested_V") %>% 
+  filter(type == "harvested" ) %>%  # & variable != "Harvested_V"
   ggplot(aes(x = NPI,
              y = value/10000,
              group = scenSimpl2,
@@ -338,17 +330,170 @@ ggarrange(p.stand, p.harvested, ncol = 1, nrow = 2,
 The intensification of the harvesting levels increases the proportion of the pulp wood compared to log wood, especially in RF. In CCF, the proportion among standing log and pulp volume remains at the same rate (65:30) where the production of the log timber dominates. At the highest intensity of timber extraction, pulp wood creates up to 50% of teh total standing volume See figure  \@ref(fig:proportion_V_pulp_log) NEW FIG \@ref(proportion_V_pulp_log).
 
 
-``` {r V-stand-stratum }
+``` {r replace-na, eval = F}
 
-# plot the % of the stratum volume from the 
+# replace all NA in volume by 0 - because not volume is available there
+df<- 
+  df %>% 
+  dplyr::mutate(V_stand_log = replace_na(V_stand_log, 0)) %>% 
+  dplyr::mutate(V_stand_pulp = replace_na(V_stand_pulp, 0)) %>% 
+  dplyr::mutate(V_strat_max = replace_na(V_strat_max, 0)) %>% 
+  dplyr::mutate(V_strat_max_log = replace_na(V_strat_max_log, 0)) %>% 
+  dplyr::mutate(V_strat_max_pulp = replace_na(V_strat_max_pulp, 0)) %>% 
+  dplyr::mutate(Harvested_V_log_under_bark = replace_na(Harvested_V_log_under_bark, 0)) %>% 
+  dplyr::mutate(Harvested_V_pulp_under_bark = replace_na(Harvested_V_pulp_under_bark, 0)) 
+  
+```
+
+In spruce dominated forests, the proportion of the log wood from top stratum lowers by 50% with increasing harvesting rate in all management regimes applied. Interestingly, RF maintains the high production of the pulp wood with increasing harvest intensity. For all species, the proportion of the stand and top stratum volumes lowers by `r round(80/170*100)`% (spruce, RF), while pulp lowers in CCF and ALL management (`r round(40/97*100)`) and remained the same (mean 100 m3/ha)in RF with increasing harvesting rates.    
+
+```{r V-stand-stratum, fig.width= 7, fig.height = 6, fig.cap="Mean pulp and log volume of the top tree layer in the stand over management groups and harvesting intensity gradient"}
+# CReate a function to store all small details of teh plots
+
+plot_details <- function() {
+  list( 
+    geom_line(aes(linetype = scenSimpl2, 
+                  color = scenSimpl2),
+            lwd = 0.8),
+    scale_color_brewer(palette="Greens"),
+    labs(color = "Scenario",
+        linetype = "Scenario"), # geom_line(size = 1) + 
+    xlab("NPI k € by ha"), # +
+  #  ylab("stand V (m3)"), #+
+    ylim(0, 220),
+    facet_wrap(.~ species), # + 
+    theme(legend.position = "bottom"),# +
+    ggtitle("") )
+}
 
 
+# plot the % of the stratum volume from the total volume 
+
+# The highest stratum volume
+V.strat.df <- 
+  df %>%
+  group_by(NPI, scenSimpl2, species) %>% 
+  summarize(V_mean = mean(V_strat_max, na.rm = T)) #%>% 
+
+V.strat <-  
+  ggplot(V.strat.df, 
+         aes(x = NPI,
+             y = V_mean, #/10,             group = scenSimpl2,
+             color = scenSimpl2)) + 
+  plot_details()
+
+
+# The highest stratum volume: LOG
+V.strat.log <- df %>%
+  group_by(NPI, scenSimpl2, species) %>% 
+ summarize(V_mean = mean(V_strat_max_log, na.rm = T)) %>% 
+  ggplot(aes(x = NPI,
+             y = V_mean, #/10,             group = scenSimpl2,
+             color = scenSimpl2)) +
+  ylab("Top stratum log V (m3)") +
+  plot_details()
+
+
+
+# The highest stratum volume: LOG
+V.strat.pulp <-
+  df %>%
+  group_by(NPI, scenSimpl2, species) %>% 
+  summarize(V_mean = mean(V_strat_max_pulp, na.rm = T)) %>% 
+  ggplot(aes(x = NPI,
+             y = V_mean, #/10,             group = scenSimpl2,
+             color = scenSimpl2)) +
+  ylab("Top stratum pulp V (m3)") +
+  plot_details()
+
+
+
+# Total stand volume
+# ----------------------------
+
+V.stand.log <- 
+  df %>%
+  group_by(NPI, scenSimpl2, species) %>% 
+  summarize(V_mean = mean(V_stand_log, na.rm = T)) %>% 
+  ggplot(aes(x = NPI,
+             y = V_mean, #/10,             group = scenSimpl2,
+             color = scenSimpl2)) +
+  ylab("stand V log (m3)") +
+  plot_details()
+
+
+# Total stand volume
+V.stand.pulp <- 
+  df %>%
+  group_by(NPI, scenSimpl2, species) %>% 
+  summarize(V_mean = mean(V_stand_pulp, na.rm = T)) %>% 
+  ggplot(aes(x = NPI,
+             y = V_mean, #/10,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+  ylab("stand V pulp (m3)") +
+  plot_details()
+
+
+# Total stand volume
+V.stand.df <- 
+  df %>%
+  group_by(NPI, scenSimpl2, species) %>% 
+  summarize(V_mean = mean(V, na.rm = T)) #%>% 
+
+V.stand <-
+  ggplot(V.stand.df,
+         aes(x = NPI,
+             y = V_mean, #/10,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+   plot_details()
+
+
+# For 'other' species, there are no 'other' as main species for RF and CCF?
+# No, there are not
+
+# Plot both plots: stand volume and highest stratum volume
+# ---------------------
+ggarrange(V.stand.log, V.stand.pulp, #V.stand, 
+          V.strat.log, V.strat.pulp, #V.strat, 
+          ncol = 2, nrow = 2,
+          common.legend = TRUE, legend="bottom")
+
+# why there are sometimes NA values in 'other' = shouwl it be 0??
+#filter(df, is.na(V_strat_max))
+
+
+# how much top stratum V is from the total volume in RF, CCF and ALL?
 
 
 ```
 
 
+```{r proportion_V_stand_strat, fig.width = 4, fig.height=3, fig.cap = "Mean proportion of the top stratum volume from the totatl stand volume by management groups and harvest intensity." }
 
+df.V <- 
+  V.stand.df %>% 
+  left_join(V.strat.df, 
+            by = c("NPI", "scenSimpl2", "species")) %>% 
+  mutate(propV = V_mean.y/V_mean.x * 100)
+
+
+# How does the % between the top layer and stand volume changes with 
+# increasing harvest intensity and management regimes???
+
+ggplot(df.V,
+         aes(x = NPI,
+             y = propV, #/10,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+   plot_details() +
+     ylim(0,100) +
+  ylab("mean % top V from\ntotal stand V")
+
+
+
+```
 
 
 
@@ -401,7 +546,7 @@ The intensification of the harvesting levels increases the proportion of the pul
 
 ### Changes in wind risk
 
-```{r fig_windRisk_time_change, fig.width = 4, fig.height = 3, fig.cap = "Temporal changes in wind risk over time"}
+```{r fig_windRisk_time_change, fig.width = 4, fig.height = 2.5, fig.cap = "Landscape level changes in wind risk over time"}
 
 # How does the wind risk vary over time? can vary over the stands, over the landscapes
 # calculate mean wind risk by landscape, get differences in wind risk
@@ -570,7 +715,7 @@ df %>%
 
 ```
 
-```{r mean_stand_age, eval = T}
+```{r mean_stand_age, eval = F}
 
 df %>%
   group_by(NPI, scenSimpl2, species) %>% 
@@ -613,14 +758,120 @@ df %>%
        linetype = "Scenario") + # geom_line(size = 1) + 
   xlab("NPI k € by ha") +
   ylab("Mean # tree by stand") +
-  #ylim(0, 105) +
+  ylim(0, 4000) +
   facet_wrap(.~ species) + 
   theme(legend.position = "bottom") +
   ggtitle("") 
 
 
-range(df$N)
-hist(df$N)
+#range(df$N)
+#hist(df$N)
+
+```
+
+
+
+```{r wind_risk_SA}
+
+# Calculate teh mean wind risk between SA/no_SA regimes over RF, CCF, ALL and harvest int
+
+p.risk.NPI <- df %>%
+  group_by(NPI, scenSimpl2, twoRegm) %>% 
+  summarize(wRisk_mean_SA = mean(windRisk, na.rm = T)) %>% 
+  ggplot(aes(x = NPI,
+             y = wRisk_mean_SA,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+ geom_line(aes(linetype = scenSimpl2, 
+                color   = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("NPI k € by ha") +
+  ylab("Mean wind risk") +
+  ylim(0, 0.05) +
+  facet_wrap(.~ twoRegm) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") 
+
+
+# Get wind risk over years
+p.risk.year <- df %>%
+  group_by(year, scenSimpl2, twoRegm) %>% 
+  summarize(wRisk_mean_SA = mean(windRisk, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = wRisk_mean_SA,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+ geom_line(aes(linetype = scenSimpl2, 
+                color   = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("Years") +
+  ylab("wind risk\n(%, mean)") +
+  ylim(0, 0.07) +
+  facet_wrap(.~ twoRegm) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+
+
+
+# CHeck the age/volume over years
+
+# p.age.years <- df %>%
+#   group_by(year, scenSimpl2, twoRegm) %>% 
+#   summarize(wRisk_mean_SA = mean(Age, na.rm = T)) %>% 
+#   ggplot(aes(x = year,
+#              y = wRisk_mean_SA,
+#              group = scenSimpl2,
+#              color = scenSimpl2)) +
+#  geom_line(aes(linetype = scenSimpl2, 
+#                 color   = scenSimpl2),
+#             lwd = 0.8) +
+#   scale_color_brewer(palette="Greens") +
+#   labs(color = "Scenario",
+#        linetype = "Scenario") + # geom_line(size = 1) + 
+#   xlab("Years") +
+#   ylab("Mean wind risk") +
+# #  ylim(0, 4000) +
+#   facet_wrap(.~ twoRegm) + 
+#   theme(legend.position = "bottom") +
+#   ggtitle("") 
+
+
+
+# check the development of the volume
+p.V.years <- 
+  df %>%
+  group_by(year, scenSimpl2, twoRegm) %>% 
+  summarize(wRisk_mean_SA = mean(V_strat_max, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = wRisk_mean_SA,
+             group = scenSimpl2,
+             color = scenSimpl2)) +
+ geom_line(aes(linetype = scenSimpl2, 
+                color   = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") + # geom_line(size = 1) + 
+  xlab("Years") +
+  ylab("top stratum volume\n(m3, mean)") +
+ ylim(0, 290) +
+  facet_wrap(.~ twoRegm) + 
+  theme(legend.position = "bottom") +
+  ggtitle("") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+
+
+ggarrange(#p.risk.NPI, 
+          p.risk.year, p.V.years,
+          nrow = 2, ncol = 1,
+          common.legend = TRUE, legend="bottom")
 
 
 
@@ -628,7 +879,8 @@ hist(df$N)
 ```
 
 
-```{r sample_data}
+
+```{r sample_data, eval = F}
 
 # Sample  random rows:
 set.seed(1)
@@ -649,7 +901,7 @@ ggplot(df.sample, aes(x = N,
 
 ```
 
-```{r age_geom_density}
+```{r age_geom_density, eval = F}
 library(ggridges)
 
 ggplot(df.sample, 
@@ -695,6 +947,17 @@ ggplot(df.sample,
            y = as.factor(scenNumb))) +
   geom_density_ridges(rel_min_height = 0.01) + # remove tails (repcent cutoff)
   facet_grid(.~ scenSimpl2 )
+
+
+# DOes the increasing volume increase wind risk?? e
+ggplot(df.sample, 
+       aes(x = windRisk,
+           y = V_strat_max,
+           group = scenSimpl2)) +
+  geom_point() + # remove tails (repcent cutoff)
+  facet_grid(.~ scenSimpl2 )
+
+
 
 
 
