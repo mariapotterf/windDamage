@@ -46,10 +46,10 @@ bibliography: manual.bib
 #linenumbers: true
 #numbersections: true
 csl: elsevier-harvard.csl
-#output:
- # bookdown::pdf_book:
-  #  base_format: rticles::elsevier_article
-output: rticles::elsevier_article
+output:
+  bookdown::pdf_book:
+    base_format: rticles::elsevier_article
+#output: rticles::elsevier_article
 #output: word_document
 ---
 
@@ -58,10 +58,8 @@ output: rticles::elsevier_article
 Introduction
 ==========================
 
-Large question
-
-Future forest ecosystems need to simultaneously provide timber, non-woody ecosystem services such as carbon storage or human recreation, and shelter biodiversity.  Adaptive forest management strives to balance between timber production, provision of non-woody ecosystem services, and biodiversity. Existance of biodiversity, mostly attached to existence of deadwood, is limited by harvesting levels. Intensive logging activities fragment forested landspaces. 
-To balance between biodiversity and economic gain from timber, the propostion of set=aside forests within commercial forests emerges, and new forest management approaches are explored, such as continuous forest cover [@Eyvindson2020] and traditional harvesting regimes are becoming controversial or requested to ban (…). The increase of the set aside forests within the commercial forests, as well as development of the new management techniques affect landscape level structural diversity, timing of the thinning, presence of absence of the final cuts in rotation forestry or development of the larger trees within continuous cover forestry or in set-aside forestry. The fundamental is the carefull landscape level planning of the management actions balancing between set-aside (unmanaged forests), intensive management and continuously present forest cover.
+Future forest ecosystems need to simultaneously provide timber, non-woody ecosystem services such as carbon storage or human recreation, and shelter biodiversity.  Adaptive forest management strives to balance between timber production, provision of non-woody ecosystem services, and biodiversity. Existance of biodiversity, mostly attached to existence of deadwood, is limited by harvesting intensity. Intensive logging activities fragment forested landscapes. 
+To balance between biodiversity and timber economic gains, the proportion of set-aside forests within commercial forests emerges, and new forest management approaches are explored, such as continuous forest cover [@Eyvindson2020] and traditional harvesting regimes are becoming controversial or requested to ban (…). The increase of the set aside forests within the commercial forests, as well as development of the new management techniques affect landscape level structural diversity, timing of the thinning, presence of absence of the final cuts in rotation forestry or development of the larger trees within continuous cover forestry or in set-aside forestry. The fundamental is the carefull landscape level planning of the management actions balancing between set-aside (unmanaged forests), intensive management and continuously present forest cover.
 
 Optimal management scenarios fullfil the specific objectives of the society of forest owners to provide certain timber value, improve provision of timber and non-timber ecosystem services, or improve overall forest multifunctionality of the landscape. As such, optimization provides the combination of the specific forest management regimes on stand level. Althought the optimization process does not necessary involve the spatial configuration of the stands, it specifically assigns the particular regimes to individual stands and therefore allows to recreate alternative dynamics landscapes shaped by forest managements aggregated by optimal scenarios. As such, the spatial configuration of the management regimes allows to estimate the subsequent characteristics such as landscape level risk of wind damage. 
 
@@ -72,7 +70,9 @@ Traditional forest management regimes specialized in promoting timber revenues w
 Here we explore how the restriction of forest management practices, along with the increasing level of harvest levels over the landscape affects landscape level damage of wind risk and how much timber value is put on risk under alternative regimes and extraction levels. Our study for the first time evaluates the landcspeca level wind risk combined with the forest growth simulator and long-term consequences of he applied forest management practices. Therefore, we first calculate the stand level wind risk over alternative landscapes and further explore the likely drivers of the wind risk levels. We investigated how restriction of forest management regimes combined with levels of intensity of timber extraction will affects landscape level wind risk. 
 
 
-Our study aims to understand how types of forest management and harvesting intensity affect stand and landcape level wind risk over time, and how much timber volume is at the risk.  WE hypothetized that RF will increase stand level wind risk due accumulated V before the final cut, and increase wind risk in landscape dur to increasing stands with open edges after the final cut whereas the CCF would homogenize wind risk over stand and landscape over time. However, increasing harvesting rates might on one hand increase wind risk due to higher frequency of thinnings in CCF and RF, but also lower wind risk in RF due to shorter rotation lenghts.  
+
+
+Our study aims to understand how types of forest management and harvesting intensity affect stand and landcape level wind risk over time, and how much timber volume is at the risk at time.  We hypothetized that RF will increase stand level wind risk due accumulated timber volume before the final cut, and increase wind risk in landscape due to increasing number of stands with open edges after the final cuts. On the other hand, the CCF will likely homogenize the amount of timber volume over landscape; therefore at any given time, the exposed timber volume to wind damage will be lower in CCF compared to RF management. We wil consider the pulp and log volume of the standing volume. We futher investigate the dynamics of simulated stand characteristics as stand dominant height, dominant tree speciecs by stand, age, number of trees by stand, frequency of opend edge stands and thinning frequency over the landscape over the harvest intensity gradient and time. We further differentiate between the dynamics of the volume and wind risk in managed and set-aside forests.
 
 
 
@@ -134,7 +134,7 @@ library(stringr)
 library(gridExtra)
 library(tidyr)
 library(ggpubr)
-library("RColorBrewer")
+library(RColorBrewer)
 ```
 
 ```{r set-my-theme, eval = T, echo = F, warning = F, message = F, include = F}
@@ -168,30 +168,21 @@ df.geom <- subset(df.geom, id %in% unique(df$id))
 # Total area of watershed:
 tot.area = as.numeric(sum(df.geom$area))
 
-
-# Complete factors:
-# ---------------------
-# CHaracterize stands extends:
-# ---------------------
-length(unique(df.geom$area))
-mean(df.geom$area)
-max(df.geom$area)
-min(df.geom$area)
-
 ```
 
 
 
-### Landscape level wind risk under management restriction and harvest intensity scenarios
+### Wind damage probability 
 
-The set-aside landscape level management resulted at the same mean landscape level risk for all management regimes (Fig. 2). However, intensifying harvesting triggers different responses under groups of management regimes and intensification of the timber extraction. Sole use of the RF managements lowered the wind risk with increasing harvest intensity. On the other hand, both ALL and CCF scenarios increased the wind risk where CCF monotonically increased with increasing harvesting rates, while ALL regimes have slightly humpened curve shape, culminating around inteinsity of 7.5K by ha. The CCF increases monotonically while maximal harvesting increase the wind risk by 25% compared to completely set-aside stands.
+The level of wind risk remain the same with increasing harvest intensity, while it is two time higher in CCF then in RF (Fig.3). In set-aside stands is stabel until 5K EUR by ha, while afterwards increases. This might be because of the selection of the less profitalne stands as set-aside forests while increasing timber profits. Over time, the probability of wind risk increases in CCF and RF management and culminates towards the end of the simulation period, and in RF it sharply decreases (FIG). the wind risdk in ciompletely set-aside forests almost double over time.  \@ref{fig_meanRisk_time_NPI}
 
-``` {r fig3_mean_risk_by_intensity_plot, fig.width = 3, fig.height = 2.8, fig.cap = "Mean wind risk damage for three types of management regimes over  harvest intensity gradient"}
+``` {r fig_meanRisk_time_NPI, fig.width = 7, fig.height = 3, fig.cap = "\\label{fig:fig_meanRisk_time_NPI} Mean wind risk damage for three types of management regimes over A: harvest intensity gradient and B: over time."}
 
-df %>% 
-  group_by(scenSimpl2, scenNumb, NPI) %>% 
-  mutate(mean.m = mean(windRisk)) %>% 
- # head()
+# Wind risk over NPI
+p.mean.risk.npi <- 
+  df %>% 
+  group_by(scenSimpl2, scenNumb, NPI, twoRegm) %>% 
+  summarize(mean.m = mean(windRisk)) %>% 
   ggplot(aes(x = NPI,
              y = mean.m,
              group = scenSimpl2)) + # ,
@@ -202,22 +193,53 @@ df %>%
   labs(color = "Scenario",
        linetype = "Scenario") +
   #scale_color_grey() +
-  ylim(0, 0.04)+
+  ylim(0, 0.06)+
   xlab("NPI k € by ha") + #  
   ylab("mean wind risk damage (%)") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
         legend.position = "bottom") +
-  ggtitle("")
+  ggtitle("A") +
+  facet_grid(.~ twoRegm)
+
+
+p.mean.risk.time <- 
+  df %>% 
+  group_by(scenSimpl2,year, twoRegm) %>% #  scenNumb,
+  summarize(mean.m = mean(windRisk)) %>% 
+  ggplot(aes(x = year,
+             y = mean.m,
+             group = scenSimpl2)) + # ,
+  geom_line(aes(linetype = scenSimpl2, 
+                color    = scenSimpl2),
+            lwd = 0.8) +
+  scale_color_brewer(palette="Greens") +
+  labs(color = "Scenario",
+       linetype = "Scenario") +
+  ylim(0, 0.06)+
+  xlab("Time") + #  
+  ylab("mean wind risk damage (%)") +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   vjust = 0.5),
+        legend.position = "bottom") +
+  ggtitle("B") +
+  facet_grid(.~ twoRegm)
+
+
+ggarrange(p.mean.risk.npi, 
+          p.mean.risk.time, 
+          ncol = 2, nrow = 1,
+          common.legend = TRUE, legend="bottom")
+
 
 
 ```
 
 ### Timber volume at wind risk
 
-Increasing harvesting levels lowers the amount of the available timber at any time step to be lost due to windthrows. Interestingly, the CCF regimes produces higher logs volumes, while RF has higher production of the pulp wood, which is in high demand by cheaper then log wood. The same trends are visible for harvested log and pulp volumes. For ALL management regimes, using all available management regimes, is located between two extremities. The highest mean log timber volume as available for the wind damage at lowest harvesting levels. Interestingly, under RF, low levels of timber extraction increase levels of the pupl  standing volume. The highest amount of harvested log wood is produced by CCF regimes, while RF dominates in harvesting pulp timber \@ref(fig:plot_V_timber). 
+All three types of management groups responds similarly to set-aside stands: stading timber volume decreases in set-aside stands, which corresponds to preferential selection of the low quality stands to be set as set-aside at the beginning of teh simulation period. Standing mean log timber volume slightly increases with harvesting intensity where increases from  50m3 to 75m3 with the highest increase in RF. In set aside stands, the highest mean top stratum timber volume starts as 150 m3 and lowers to 50 m3/ha with increasing harvest intensity. In pulp wood,RF has three times higher pulp volume compared to CCF as low harvest intensities, the pulp volume in CCF remains relatively stable with increasing harvest intensity. Over time, the log volume culminates in RF in year 2100 to up to 150 m3 in to top layers, while remaines halved in CCF, whereas the pulp volume starts at the same levels for CCF and RF in 2016 and in next 40 years (from 2060) in RF dominates the proportion of teh pulp wood over the CCF. Overall, the log timber in in SA stands increases over time, as they were not logged, and sligtthly decreases in teh amount of pulp wood. 
 
 
-```{r plot_V_timber, fig.width = 6, fig.height = 6, fig.cap = "A. Mean standing and B. harvested pulp and log timber under three types of management regimes over harvest intensity gradient. Please note the range of y axis"}
+```{r plot_V_timber, fig.width = 6, eval=F, fig.height = 6, fig.cap = "A. Mean standing and B. harvested pulp and log timber under three types of management regimes over harvest intensity gradient. Please note the range of y axis"}
 
 # -----------------------------------------
 # Visualize volume dynamics over scenarios
@@ -347,7 +369,7 @@ df<-
 
 In spruce dominated forests, the proportion of the log wood from top stratum lowers by 50% with increasing harvesting rate in all management regimes applied. Interestingly, RF maintains the high production of the pulp wood with increasing harvest intensity. For all species, the proportion of the stand and top stratum volumes lowers by `r round(80/170*100)`% (spruce, RF), while pulp lowers in CCF and ALL management (`r round(40/97*100)`) and remained the same (mean 100 m3/ha)in RF with increasing harvesting rates.    
 
-```{r V-stand-stratum, fig.width= 7, fig.height = 6, fig.cap="Mean pulp and log volume of the top tree layer in the stand over management groups and harvesting intensity gradient"}
+```{r V-stand-stratum, fig.width= 7, fig.height = 6, fig.cap="Mean log (left) and pulp (right) timber volume of the top tree layer in the stands over management groups over harvesting intensity gradient (top) and over years (bottom)"}
 # CReate a function to store all small details of teh plots
 
 plot_details <- function() {
@@ -358,11 +380,12 @@ plot_details <- function() {
     scale_color_brewer(palette="Greens"),
     labs(color = "Scenario",
         linetype = "Scenario"), # geom_line(size = 1) + 
-    xlab("NPI k € by ha"), # +
+  #  xlab("NPI k € by ha"), # +
   #  ylab("stand V (m3)"), #+
     ylim(0, 220),
-    facet_wrap(.~ species), # + 
-    theme(legend.position = "bottom"),# +
+    facet_wrap(.~ twoRegm), # + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "bottom"), # +
     ggtitle("") )
 }
 
@@ -370,42 +393,89 @@ plot_details <- function() {
 # plot the % of the stratum volume from the total volume 
 
 # The highest stratum volume
-V.strat.df <- 
-  df %>%
-  group_by(NPI, scenSimpl2, species) %>% 
-  summarize(V_mean = mean(V_strat_max, na.rm = T)) #%>% 
-
-V.strat <-  
-  ggplot(V.strat.df, 
-         aes(x = NPI,
-             y = V_mean, #/10,             group = scenSimpl2,
-             color = scenSimpl2)) + 
-  plot_details()
-
+# V.strat.df <- 
+#   df %>%
+#   group_by(NPI, scenSimpl2, twoRegm) %>% 
+#   summarize(V_mean = mean(V_strat_max, na.rm = T)) #%>% 
+# 
+# V.strat <-  
+#   ggplot(V.strat.df, 
+#          aes(x = NPI,
+#              y = V_mean, #/10,             group = scenSimpl2,
+#              color = scenSimpl2)) + 
+#   plot_details() +
+#   xlab("NPI k € by ha")
+# 
 
 # The highest stratum volume: LOG
-V.strat.log <- df %>%
-  group_by(NPI, scenSimpl2, species) %>% 
+V.strat.log.npi <- 
+  df %>%
+  group_by(NPI, scenSimpl2, twoRegm) %>% 
  summarize(V_mean = mean(V_strat_max_log, na.rm = T)) %>% 
   ggplot(aes(x = NPI,
              y = V_mean, #/10,             group = scenSimpl2,
              color = scenSimpl2)) +
-  ylab("Top stratum log V (m3)") +
+  ylab("log timber V (m3)") +
+  xlab("NPI k € by ha") + 
   plot_details()
 
 
 
 # The highest stratum volume: LOG
-V.strat.pulp <-
+V.strat.pulp.npi <-
   df %>%
-  group_by(NPI, scenSimpl2, species) %>% 
-  summarize(V_mean = mean(V_strat_max_pulp, na.rm = T)) %>% 
+  group_by(NPI, scenSimpl2, twoRegm) %>% 
+  summarize(V_mean = mean(V_strat_max_pulp, 
+                          na.rm = T)) %>% 
   ggplot(aes(x = NPI,
              y = V_mean, #/10,             group = scenSimpl2,
              color = scenSimpl2)) +
-  ylab("Top stratum pulp V (m3)") +
+  ylab("pulp timber V (m3)") +
   plot_details()
 
+
+
+# Get volume development over years
+
+# The highest stratum volume: LOG
+V.strat.log.year <- 
+  df %>%
+  group_by(year, scenSimpl2, twoRegm) %>% 
+ summarize(V_mean = mean(V_strat_max_log, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = V_mean, #/10,             group = scenSimpl2,
+             color = scenSimpl2)) +
+  ylab("log timber V (m3)") +
+  xlab("NPI k € by ha") + 
+  plot_details()
+
+
+
+# The highest stratum volume: LOG
+V.strat.pulp.year <-
+  df %>%
+  group_by(year, scenSimpl2, twoRegm) %>% 
+  summarize(V_mean = mean(V_strat_max_pulp, 
+                          na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = V_mean, #/10,             group = scenSimpl2,
+             color = scenSimpl2)) +
+  ylab("pulp timber V (m3)") +
+  plot_details()
+
+
+# Plot both plots: stand volume and highest stratum volume
+# ---------------------
+ggarrange(p.mean.risk.npi, p.mean.risk.time,
+          V.strat.log.npi,  V.strat.pulp.npi, 
+          V.strat.log.year, V.strat.pulp.year, #V.strat, 
+          ncol = 2, nrow = 1,
+          common.legend = TRUE, legend="bottom")
+
+
+```
+
+```{r timber_volume_stand, eval = F}
 
 
 # Total stand volume
@@ -413,7 +483,7 @@ V.strat.pulp <-
 
 V.stand.log <- 
   df %>%
-  group_by(NPI, scenSimpl2, species) %>% 
+  group_by(NPI, scenSimpl2, twoRegm) %>% 
   summarize(V_mean = mean(V_stand_log, na.rm = T)) %>% 
   ggplot(aes(x = NPI,
              y = V_mean, #/10,             group = scenSimpl2,
@@ -425,7 +495,7 @@ V.stand.log <-
 # Total stand volume
 V.stand.pulp <- 
   df %>%
-  group_by(NPI, scenSimpl2, species) %>% 
+  group_by(NPI, scenSimpl2, twoRegm) %>% 
   summarize(V_mean = mean(V_stand_pulp, na.rm = T)) %>% 
   ggplot(aes(x = NPI,
              y = V_mean, #/10,
@@ -453,12 +523,12 @@ V.stand <-
 # For 'other' species, there are no 'other' as main species for RF and CCF?
 # No, there are not
 
-# Plot both plots: stand volume and highest stratum volume
-# ---------------------
-ggarrange(V.stand.log, V.stand.pulp, #V.stand, 
-          V.strat.log, V.strat.pulp, #V.strat, 
-          ncol = 2, nrow = 2,
-          common.legend = TRUE, legend="bottom")
+# # Plot both plots: stand volume and highest stratum volume
+# # ---------------------
+# ggarrange(#V.stand.log, V.stand.pulp, #V.stand, 
+#           V.strat.log.npi, V.strat.pulp.npi, #V.strat, 
+#           ncol = 2, nrow = 2,
+#           common.legend = TRUE, legend="bottom")
 
 # why there are sometimes NA values in 'other' = shouwl it be 0??
 #filter(df, is.na(V_strat_max))
@@ -470,7 +540,7 @@ ggarrange(V.stand.log, V.stand.pulp, #V.stand,
 ```
 
 
-```{r proportion_V_stand_strat, fig.width = 4, fig.height=3, fig.cap = "Mean proportion of the top stratum volume from the totatl stand volume by management groups and harvest intensity." }
+```{r proportion_V_stand_strat, eval = F, fig.width = 4, fig.height=3, fig.cap = "Mean proportion of the top stratum volume from the totatl stand volume by management groups and harvest intensity." }
 
 df.V <- 
   V.stand.df %>% 
@@ -497,7 +567,7 @@ ggplot(df.V,
 
 
 
-```{r proportion_V_pulp_log, eval = T, echo = F, warning = F, message = F, fig.width = 4, fig.height = 2, fig.cap = "Ratio between standing log and pul volume (m^3)"}
+```{r proportion_V_pulp_log, eval = F, echo = F, warning = F, message = F, fig.width = 4, fig.height = 2, fig.cap = "Ratio between standing log and pul volume (m^3)"}
 # Here is te question: does the harvest intensification changes the proportion between log and pulp wood???
 
 # V_sum          <- aggregate(V ~ scenSimpl2 +  scenNumb, df, sum)
@@ -546,7 +616,7 @@ ggplot(df.V,
 
 ### Changes in wind risk
 
-```{r fig_windRisk_time_change, fig.width = 4, fig.height = 2.5, fig.cap = "Landscape level changes in wind risk over time"}
+```{r fig_windRisk_time_change, eval = F, fig.width = 4, fig.height = 2.5, fig.cap = "Landscape level changes in wind risk over time"}
 
 # How does the wind risk vary over time? can vary over the stands, over the landscapes
 # calculate mean wind risk by landscape, get differences in wind risk
@@ -1108,7 +1178,7 @@ df %>%
 
 
 
-
+ 
 Discussion
 ==========================
 
@@ -1150,12 +1220,13 @@ The shortening of the rotation period in Norway spruce forets  might slightly lo
 
 
 
+Conclusion
+==========================
+
+
+\newpage
 
 # References {#references .unnumbered}
 
 
-
-
-Conclusion
-==========================
 
