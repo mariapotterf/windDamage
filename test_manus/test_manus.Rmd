@@ -373,7 +373,7 @@ ggarrange(p.stand, p.harvested, ncol = 1, nrow = 2,
 The intensification of the harvesting levels increases the proportion of the pulp wood compared to log wood, especially in RF. In CCF, the proportion among standing log and pulp volume remains at the same rate (65:30) where the production of the log timber dominates. At the highest intensity of timber extraction, pulp wood creates up to 50% of teh total standing volume See figure  \@ref(fig:proportion_V_pulp_log) NEW FIG \@ref(proportion_V_pulp_log).
 
 
-``` {r replace-na, eval = F}
+``` {r replace-na, eval = TRUE}
 
 # replace all NA in volume by 0 - because not volume is available there
 df<- 
