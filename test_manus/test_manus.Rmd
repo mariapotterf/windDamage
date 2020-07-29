@@ -80,6 +80,14 @@ Our study aims to understand how types of forest management and harvesting inten
 Methods
 ==========================
 
+```{r set-dir, include = FALSE}
+require("knitr")
+opts_knit$set(root.dir = "/projappl/project_2003256/windDamage") #
+
+
+```
+
+
 ```{r libraries, include = F}
 
 knitr::opts_chunk$set(echo = FALSE, 
@@ -145,7 +153,11 @@ library(gridExtra)
 library(tidyr)
 library(ggpubr)
 library(RColorBrewer)
+
 ```
+
+
+
 
 ```{r set-my-theme, eval = T, echo = F, warning = F, message = F, include = F}
 
@@ -164,26 +176,27 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 ```{r process_input_data, eval = T, echo = F, warning = F, message = F, include = F}
 # 
 # setwd("C:/MyTemp/myGitLab/windDamage")
-setwd("/projappl/project_2003256/windDamage")
-
+#setwd("/projappl/project_2003256/windDamage")
 
 # Read datasets:
 # ----------------------------------------
 #df <- fread("C:/MyTemp/myGitLab/windDamage/output/final_df.csv")
+#df <- fread("final_df.csv")
 df <- fread(paste0(getwd(), "/output/final_df.csv"))
 
+# df <- fread("/output/final_df.csv")
 # stands geometry
-df.geom <- st_read(paste0(getwd(),"/14.534/14.534/mvj_14.534.shp"))
+#df.geom <- st_read(paste0(getwd(),"/14.534/14.534/mvj_14.534.shp"))
 
 #df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.#shp")
 
-df.geom <- subset(df.geom, select = c("KUVIO_ID"))
-names(df.geom) <- c("id", "geometry")
-df.geom$area <- st_area(df.geom)
-df.geom <- subset(df.geom, id %in% unique(df$id))
+#df.geom <- subset(df.geom, select = c("KUVIO_ID"))
+#names(df.geom) <- c("id", "geometry")
+#df.geom$area <- st_area(df.geom)
+#df.geom <- subset(df.geom, id %in% unique(df$id))
 
 # Total area of watershed:
-tot.area = as.numeric(sum(df.geom$area))
+#tot.area = as.numeric(sum(df.geom$area))
 
 ```
 
@@ -391,6 +404,7 @@ df<-
 In spruce dominated forests, the proportion of the log wood from top stratum lowers by 50% with increasing harvesting rate in all management regimes applied. Interestingly, RF maintains the high production of the pulp wood with increasing harvest intensity. For all species, the proportion of the stand and top stratum volumes lowers by `r round(80/170*100)`% (spruce, RF), while pulp lowers in CCF and ALL management (`r round(40/97*100)`) and remained the same (mean 100 m3/ha)in RF with increasing harvesting rates.    
 
 ```{r V-stand-stratum, fig.width= 7, fig.height = 6, fig.cap="Mean log (left) and pulp (right) timber volume of the top tree layer in the stands over management groups over harvesting intensity gradient (top) and over years (bottom)"}
+
 # CReate a function to store all small details of teh plots
 
 plot_details <- function() {
@@ -487,18 +501,18 @@ V.strat.pulp.year <-
 
 # Plot both plots: stand volume and highest stratum volume
 # ---------------------
-<<<<<<< HEAD
-ggarrange(V.strat.log.npi,  V.strat.pulp.npi, 
-          V.strat.log.year, V.strat.pulp.year, #V.strat, 
-          ncol = 2, nrow = 2,
-=======
-ggarrange(p.mean.risk.npi, p.mean.risk.time,
-          V.strat.log.npi,  V.strat.pulp.npi, 
-          V.strat.log.year, V.strat.pulp.year, #V.strat, 
-          ncol = 2, nrow = 1,
->>>>>>> f35d670dc2a261f9f3c05ed566417244429b0dc8
-          common.legend = TRUE, legend="bottom")
-
+# 
+# ggarrange(V.strat.log.npi,  V.strat.pulp.npi, 
+#           V.strat.log.year, V.strat.pulp.year, #V.strat, 
+#           ncol = 2, nrow = 2,
+# 
+# ggarrange(p.mean.risk.npi, p.mean.risk.time,
+#           V.strat.log.npi,  V.strat.pulp.npi, 
+#           V.strat.log.year, V.strat.pulp.year, #V.strat, 
+#           ncol = 2, nrow = 1,
+# >>>>>>> f35d670dc2a261f9f3c05ed566417244429b0dc8
+#           common.legend = TRUE, legend="bottom")
+# 
 
 ```
 
