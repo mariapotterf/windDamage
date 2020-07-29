@@ -33,6 +33,7 @@
 % use microtype if available
 \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 \bibliographystyle{elsarticle-harv}
+\usepackage{longtable}
 \usepackage{graphicx}
 % We will generate all images so they have a width \maxwidth. This means
 % that they will get their normal width if they fit onto the page, but
@@ -60,9 +61,8 @@
             pdfborder={0 0 0}}
 \urlstyle{same}  % don't use monospace font for urls
 
-\setcounter{secnumdepth}{0}
+\setcounter{secnumdepth}{5}
 % Pandoc toggle for numbering sections (defaults to be off)
-\setcounter{secnumdepth}{0}
 
 
 % Pandoc header
@@ -128,16 +128,14 @@ Jyvaskyla, P.O. Box 35, FI-40014 Jyvaskyla, Finland}
 
 \section{Introduction}\label{introduction}
 
-Large question
-
 Future forest ecosystems need to simultaneously provide timber,
 non-woody ecosystem services such as carbon storage or human recreation,
 and shelter biodiversity. Adaptive forest management strives to balance
 between timber production, provision of non-woody ecosystem services,
 and biodiversity. Existance of biodiversity, mostly attached to
-existence of deadwood, is limited by harvesting levels. Intensive
-logging activities fragment forested landspaces. To balance between
-biodiversity and economic gain from timber, the propostion of set=aside
+existence of deadwood, is limited by harvesting intensity. Intensive
+logging activities fragment forested landscapes. To balance between
+biodiversity and timber economic gains, the proportion of set-aside
 forests within commercial forests emerges, and new forest management
 approaches are explored, such as continuous forest cover (Eyvindson et
 al., 2021) and traditional harvesting regimes are becoming controversial
@@ -207,14 +205,20 @@ intensity of timber extraction will affects landscape level wind risk.
 
 Our study aims to understand how types of forest management and
 harvesting intensity affect stand and landcape level wind risk over
-time, and how much timber volume is at the risk. WE hypothetized that RF
-will increase stand level wind risk due accumulated V before the final
-cut, and increase wind risk in landscape dur to increasing stands with
-open edges after the final cut whereas the CCF would homogenize wind
-risk over stand and landscape over time. However, increasing harvesting
-rates might on one hand increase wind risk due to higher frequency of
-thinnings in CCF and RF, but also lower wind risk in RF due to shorter
-rotation lenghts.
+time, and how much timber volume is at the risk at time. We hypothetized
+that RF will increase stand level wind risk due accumulated timber
+volume before the final cut, and increase wind risk in landscape due to
+increasing number of stands with open edges after the final cuts. On the
+other hand, the CCF will likely homogenize the amount of timber volume
+over landscape; therefore at any given time, the exposed timber volume
+to wind damage will be lower in CCF compared to RF management. We wil
+consider the pulp and log volume of the standing volume. We futher
+investigate the dynamics of simulated stand characteristics as stand
+dominant height, dominant tree speciecs by stand, age, number of trees
+by stand, frequency of opend edge stands and thinning frequency over the
+landscape over the harvest intensity gradient and time. We further
+differentiate between the dynamics of the volume and wind risk in
+managed and set-aside forests.
 
 \section{Methods}\label{methods}
 
@@ -342,9 +346,7 @@ species and mean thinning frequencies by year.
 
 \section{Results}\label{results}
 
-\subsubsection{Landscape level wind risk under management restriction
-and harvest intensity
-scenarios}\label{landscape-level-wind-risk-under-management-restriction-and-harvest-intensity-scenarios}
+\subsubsection{Wind damage probability}\label{wind-damage-probability}
 
 The set-aside landscape level management resulted at the same mean
 landscape level risk for all management regimes (Fig. 2). However,
@@ -356,17 +358,20 @@ wind risk where CCF monotonically increased with increasing harvesting
 rates, while ALL regimes have slightly humpened curve shape, culminating
 around inteinsity of 7.5K by ha. The CCF increases monotonically while
 maximal harvesting increase the wind risk by 25\% compared to completely
-set-aside stands.
+set-aside stands. @ref\{fig\_meanRisk\_time\_NPI\}
 
 \begin{figure}
 \centering
-\includegraphics{test_manus_files/figure-latex/fig3_mean_risk_by_intensity_plot-1.pdf}
-\caption{Mean wind risk damage for three types of management regimes
-over harvest intensity gradient}
+\includegraphics{test_manus_files/figure-latex/fig_meanRisk_time_NPI-1.pdf}
+\caption{(\#fig:fig\_meanRisk\_time\_NPI)\label{fig:fig_meanRisk_time_NPI}
+Mean wind risk damage for three types of management regimes over A:
+harvest intensity gradient and B: over time.}
 \end{figure}
 
 \subsubsection{Timber volume at wind
 risk}\label{timber-volume-at-wind-risk}
+
+Question: how much timber is at risk????
 
 Increasing harvesting levels lowers the amount of the available timber
 at any time step to be lost due to windthrows. Interestingly, the CCF
@@ -380,14 +385,6 @@ RF, low levels of timber extraction increase levels of the pupl standing
 volume. The highest amount of harvested log wood is produced by CCF
 regimes, while RF dominates in harvesting pulp timber
 @ref(fig:plot\_V\_timber).
-
-\begin{figure}
-\centering
-\includegraphics{test_manus_files/figure-latex/plot_V_timber-1.pdf}
-\caption{A. Mean standing and B. harvested pulp and log timber under
-three types of management regimes over harvest intensity gradient.
-Please note the range of y axis}
-\end{figure}
 
 The intensification of the harvesting levels increases the proportion of
 the pulp wood compared to log wood, especially in RF. In CCF, the
@@ -408,24 +405,12 @@ same (mean 100 m3/ha)in RF with increasing harvesting rates.
 \begin{figure}
 \centering
 \includegraphics{test_manus_files/figure-latex/V-stand-stratum-1.pdf}
-\caption{Mean pulp and log volume of the top tree layer in the stand
-over management groups and harvesting intensity gradient}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics{test_manus_files/figure-latex/proportion_V_stand_strat-1.pdf}
-\caption{Mean proportion of the top stratum volume from the totatl stand
-volume by management groups and harvest intensity.}
+\caption{\label{fig:V-stand-stratum}Mean log (left) and pulp (right) timber
+volume of the top tree layer in the stands over management groups over
+harvesting intensity gradient (top) and over years (bottom)}
 \end{figure}
 
 \subsubsection{Changes in wind risk}\label{changes-in-wind-risk}
-
-\begin{figure}
-\centering
-\includegraphics{test_manus_files/figure-latex/fig_windRisk_time_change-1.pdf}
-\caption{Landscape level changes in wind risk over time}
-\end{figure}
 
 \subsection{Dynamic parameters contributing to wind
 risk}\label{dynamic-parameters-contributing-to-wind-risk}
@@ -442,8 +427,8 @@ higher harvest intensities.
 \begin{figure}
 \centering
 \includegraphics{test_manus_files/figure-latex/species_change-1.pdf}
-\caption{Changes in species composition under different management
-groups and harvest intensity.}
+\caption{(\#fig:species\_change)Changes in species composition under
+different management groups and harvest intensity.}
 \end{figure}
 
 \subsubsection{Dominant tree heights}\label{dominant-tree-heights}
@@ -457,13 +442,15 @@ maintain the mean tree height of the stand to 20 m(other) to 22 m
 \begin{figure}
 \centering
 \includegraphics{test_manus_files/figure-latex/res_D_tree_height-1.pdf}
-\caption{Mean dominant tree height under different management groups and
-harvest intensity.}
+\caption{(\#fig:res\_D\_tree\_height)Mean dominant tree height under
+different management groups and harvest intensity.}
 \end{figure}
 
 \subsubsection{Tree count}\label{tree-count}
 
 \includegraphics{test_manus_files/figure-latex/mean_tree_n-1.pdf}
+
+\includegraphics{test_manus_files/figure-latex/wind_risk_SA-1.pdf}
 
 \subsubsection{Frequency of open stands}\label{frequency-of-open-stands}
 
@@ -479,9 +466,9 @@ aside stands.
 \begin{figure}
 \centering
 \includegraphics{test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf}
-\caption{Yearly proportion stands with open edge by species, management
-group and over the harvest intensity gradient. Note y axis starts at
-80.}
+\caption{(\#fig:fig\_6\_count\_open\_edge)Yearly proportion stands with
+open edge by species, management group and over the harvest intensity
+gradient. Note y axis starts at 80.}
 \end{figure}
 
 \subsubsection{Thinning frequency}\label{thinning-frequency}
@@ -568,11 +555,12 @@ slightly lower the wind and subsequent bark beetle distudrabnces but has
 limited efficiencies and decreses under climate change (Zimová et al.,
 2020)
 
+\section{Conclusion}\label{conclusion}
+
+\newpage
+
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
-
-\section*{Conclusion}\label{conclusion}
-\addcontentsline{toc}{section}{Conclusion}
 
 \hypertarget{refs}{}
 \hypertarget{ref-Aijala2014a}{}
