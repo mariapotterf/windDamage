@@ -69,9 +69,6 @@ Traditional forest management regimes specialized in promoting timber revenues w
 
 Here we explore how the restriction of forest management practices, along with the increasing level of harvest levels over the landscape affects landscape level damage of wind risk and how much timber value is put on risk under alternative regimes and extraction levels. Our study for the first time evaluates the landcspeca level wind risk combined with the forest growth simulator and long-term consequences of he applied forest management practices. Therefore, we first calculate the stand level wind risk over alternative landscapes and further explore the likely drivers of the wind risk levels. We investigated how restriction of forest management regimes combined with levels of intensity of timber extraction will affects landscape level wind risk. 
 
-
-
-
 Our study aims to understand how types of forest management and harvesting intensity affect stand and landcape level wind risk over time, and how much timber volume is at the risk at time.  We hypothetized that RF will increase stand level wind risk due accumulated timber volume before the final cut, and increase wind risk in landscape due to increasing number of stands with open edges after the final cuts. On the other hand, the CCF will likely homogenize the amount of timber volume over landscape; therefore at any given time, the exposed timber volume to wind damage will be lower in CCF compared to RF management. We wil consider the pulp and log volume of the standing volume. We futher investigate the dynamics of simulated stand characteristics as stand dominant height, dominant tree speciecs by stand, age, number of trees by stand, frequency of opend edge stands and thinning frequency over the landscape over the harvest intensity gradient and time. We further differentiate between the dynamics of the volume and wind risk in managed and set-aside forests.
 
 
@@ -151,7 +148,7 @@ library(stringr)
 library(gridExtra)
 library(tidyr)
 library(ggpubr)
-library(RColorBrewer)
+#library(RColorBrewer)
 
 ```
 
@@ -206,12 +203,18 @@ df<-
 ```
 ```{r plot-details, echo = F, eval = T}
 
+# DEfine own palette
+# color blind
+cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
 plot_details <- function() {
   list( 
     geom_line(aes(linetype = scenSimpl2, 
                   color = scenSimpl2),
             lwd = 0.8),
-    scale_color_brewer(palette="Greens"),
+    scale_color_manual(values = cbp1),
+   # scale_color_brewer(palette="Greens"),
     labs(color = "Scenario",
         linetype = "Scenario"), # geom_line(size = 1) + 
     facet_wrap(.~ twoRegm), # + 
@@ -373,7 +376,8 @@ p.species.npi <-
   geom_line(aes(linetype = scenSimpl2, 
                   color = scenSimpl2),
             lwd = 0.8) +
-  scale_color_brewer(palette="Greens") +
+   scale_color_manual(values = cbp1)+
+ # scale_color_brewer(palette="Greens") +
   labs(color = "Scenario",
        linetype = "Scenario") + # geom_line(size = 1) + 
   xlab("NPI k € by ha") +
@@ -395,7 +399,8 @@ p.species.year <-
   geom_line(aes(linetype = scenSimpl2, 
                   color = scenSimpl2),
             lwd = 0.8) +
-  scale_color_brewer(palette="Greens") +
+   scale_color_manual(values = cbp1) +
+ # scale_color_brewer(palette="Greens") +
   labs(color = "Scenario",
        linetype = "Scenario") + # geom_line(size = 1) + 
   xlab("NPI k € by ha") +

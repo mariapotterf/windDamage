@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7140 64-bit) (preloaded format=pdflatex 2020.7.15)  29 JUL 2020 15:25
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7140 64-bit) (preloaded format=pdflatex 2020.7.15)  30 JUL 2020 12:58
 entering extended mode
 **./test_manus.tex
 (test_manus.tex
@@ -671,7 +671,7 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 
 
 {C:/Users/mpotterf/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2]
-</MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png, id=124, 430.2474p
+</MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png, id=120, 430.2474p
 t x 397.9668pt>
 File: /MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png Graphic file 
 (type png)
@@ -680,7 +680,7 @@ Package pdftex.def Info: /MyTemp/myGitLab/windDamage/externalFigs/studyArea_cro
 p.png  used on input line 237.
 (pdftex.def)             Requested size: 345.0pt x 319.13292pt.
 [3] [4 </MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png>]
-</MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png, id=136, 773
+</MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png, id=132, 773
 .89125pt x 258.9675pt>
 File: /MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png Graphic
  file (type png)
@@ -694,7 +694,7 @@ LaTeX Font Info:    Try loading font information for TS1+lmr on input line 278.
 File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 ) [5 </MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png (PNG co
 py)>] [6] [7]
-<test_manus_files/figure-latex/fig_risk_V_all-1.pdf, id=152, 505.89pt x 505.89p
+<test_manus_files/figure-latex/fig_risk_V_all-1.pdf, id=148, 505.89pt x 505.89p
 t>
 File: test_manus_files/figure-latex/fig_risk_V_all-1.pdf Graphic file (type pdf
 )
@@ -706,7 +706,7 @@ ed on input line 412.
 LaTeX Warning: Reference `species_change' on page 8 undefined on input line 426
 .
 
-<test_manus_files/figure-latex/species_change-1.pdf, id=153, 505.89pt x 252.945
+<test_manus_files/figure-latex/species_change-1.pdf, id=149, 505.89pt x 252.945
 pt>
 File: test_manus_files/figure-latex/species_change-1.pdf Graphic file (type pdf
 )
@@ -714,7 +714,7 @@ File: test_manus_files/figure-latex/species_change-1.pdf Graphic file (type pdf
 Package pdftex.def Info: test_manus_files/figure-latex/species_change-1.pdf  us
 ed on input line 434.
 (pdftex.def)             Requested size: 345.0pt x 172.50208pt.
-<test_manus_files/figure-latex/res_D_tree_height-1.pdf, id=154, 505.89pt x 252.
+<test_manus_files/figure-latex/res_D_tree_height-1.pdf, id=150, 505.89pt x 252.
 945pt>
 File: test_manus_files/figure-latex/res_D_tree_height-1.pdf Graphic file (type 
 pdf)
@@ -722,103 +722,122 @@ pdf)
 Package pdftex.def Info: test_manus_files/figure-latex/res_D_tree_height-1.pdf 
  used on input line 449.
 (pdftex.def)             Requested size: 345.0pt x 172.50208pt.
-<test_manus_files/figure-latex/mean_tree_n-1.pdf, id=155, 505.89pt x 252.945pt>
+<test_manus_files/figure-latex/mean_stand_age-1.pdf, id=151, 505.89pt x 252.945
+pt>
+File: test_manus_files/figure-latex/mean_stand_age-1.pdf Graphic file (type pdf
+)
+<use test_manus_files/figure-latex/mean_stand_age-1.pdf>
+Package pdftex.def Info: test_manus_files/figure-latex/mean_stand_age-1.pdf  us
+ed on input line 454.
+(pdftex.def)             Requested size: 345.0pt x 172.50208pt.
+
+Overfull \hbox (15.0pt too wide) in paragraph at lines 454--456
+[][]
+ []
+
+<test_manus_files/figure-latex/mean_tree_n-1.pdf, id=152, 505.89pt x 252.945pt>
 
 File: test_manus_files/figure-latex/mean_tree_n-1.pdf Graphic file (type pdf)
 <use test_manus_files/figure-latex/mean_tree_n-1.pdf>
 Package pdftex.def Info: test_manus_files/figure-latex/mean_tree_n-1.pdf  used 
-on input line 456.
+on input line 457.
 (pdftex.def)             Requested size: 345.0pt x 172.50208pt.
 
-Overfull \hbox (15.0pt too wide) in paragraph at lines 456--457
+Overfull \hbox (15.0pt too wide) in paragraph at lines 457--458
 [][] 
  []
 
-<test_manus_files/figure-latex/wind_risk_SA-1.pdf, id=156, 505.89pt x 252.945pt
->
-File: test_manus_files/figure-latex/wind_risk_SA-1.pdf Graphic file (type pdf)
-<use test_manus_files/figure-latex/wind_risk_SA-1.pdf>
-Package pdftex.def Info: test_manus_files/figure-latex/wind_risk_SA-1.pdf  used
- on input line 458.
-(pdftex.def)             Requested size: 345.0pt x 172.50208pt.
-
-Overfull \hbox (15.0pt too wide) in paragraph at lines 458--459
-[][] 
- []
-
-[8 <./test_manus_files/figure-latex/mean_tree_n-1.pdf>] [9 <./test_manus_files/
-figure-latex/fig_risk_V_all-1.pdf>] [10 <./test_manus_files/figure-latex/specie
-s_change-1.pdf> <./test_manus_files/figure-latex/res_D_tree_height-1.pdf
+[8 <./test_manus_files/figure-latex/mean_stand_age-1.pdf>] [9 <./test_manus_fil
+es/figure-latex/fig_risk_V_all-1.pdf>] [10 <./test_manus_files/figure-latex/spe
+cies_change-1.pdf> <./test_manus_files/figure-latex/res_D_tree_height-1.pdf
 
 pdfTeX warning: pdflatex.exe (file ./test_manus_files/figure-latex/res_D_tree_h
 eight-1.pdf): PDF inclusion: multiple pdfs with page group included in a single
  page
 >]
-<test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf, id=203, 505.89pt x 
+<test_manus_files/figure-latex/wind_risk_SA-1.pdf, id=199, 505.89pt x 252.945pt
+>
+File: test_manus_files/figure-latex/wind_risk_SA-1.pdf Graphic file (type pdf)
+<use test_manus_files/figure-latex/wind_risk_SA-1.pdf>
+Package pdftex.def Info: test_manus_files/figure-latex/wind_risk_SA-1.pdf  used
+ on input line 459.
+(pdftex.def)             Requested size: 345.0pt x 172.50208pt.
+
+Overfull \hbox (15.0pt too wide) in paragraph at lines 459--460
+[][] 
+ []
+
+<test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf, id=200, 505.89pt x 
 252.945pt>
 File: test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf Graphic file (t
 ype pdf)
 <use test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf>
 Package pdftex.def Info: test_manus_files/figure-latex/fig_6_count_open_edge-1.
-pdf  used on input line 473.
+pdf  used on input line 474.
 (pdftex.def)             Requested size: 345.0pt x 172.50208pt.
-[11 <./test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf> <./test_manus
-_files/figure-latex/wind_risk_SA-1.pdf
-
-pdfTeX warning: pdflatex.exe (file ./test_manus_files/figure-latex/wind_risk_SA
--1.pdf): PDF inclusion: multiple pdfs with page group included in a single page
-
->]
-<test_manus_files/figure-latex/unnamed-chunk-2-1.pdf, id=224, 505.89pt x 252.94
+<test_manus_files/figure-latex/unnamed-chunk-2-1.pdf, id=201, 505.89pt x 252.94
 5pt>
 File: test_manus_files/figure-latex/unnamed-chunk-2-1.pdf Graphic file (type pd
 f)
 <use test_manus_files/figure-latex/unnamed-chunk-2-1.pdf>
 Package pdftex.def Info: test_manus_files/figure-latex/unnamed-chunk-2-1.pdf  u
-sed on input line 488.
+sed on input line 489.
 (pdftex.def)             Requested size: 345.0pt x 172.50208pt.
 
-Overfull \hbox (15.0pt too wide) in paragraph at lines 488--489
+Overfull \hbox (15.0pt too wide) in paragraph at lines 489--490
 [][] 
  []
 
+[11 <./test_manus_files/figure-latex/mean_tree_n-1.pdf> <./test_manus_files/fig
+ure-latex/wind_risk_SA-1.pdf
+
+pdfTeX warning: pdflatex.exe (file ./test_manus_files/figure-latex/wind_risk_SA
+-1.pdf): PDF inclusion: multiple pdfs with page group included in a single page
+
+>]
 
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 492.
+(hyperref)                than one, level fixed on input line 493.
 
-[12 <./test_manus_files/figure-latex/unnamed-chunk-2-1.pdf>] [13]
-Overfull \hbox (51.77104pt too wide) in paragraph at lines 577--582
+[12 <./test_manus_files/figure-latex/fig_6_count_open_edge-1.pdf> <./test_manus
+_files/figure-latex/unnamed-chunk-2-1.pdf
+
+pdfTeX warning: pdflatex.exe (file ./test_manus_files/figure-latex/unnamed-chun
+k-2-1.pdf): PDF inclusion: multiple pdfs with page group included in a single p
+age
+>] [13]
+Overfull \hbox (51.77104pt too wide) in paragraph at lines 578--583
 \T1/lmr/m/n/10 (-20) as a dom-i-nant man-age-ment. Land Use Pol-icy 100, 1--10.
  doi:[]10.1016/j.landusepol.2020.104918[] 
  []
 
 
-Overfull \hbox (54.22119pt too wide) in paragraph at lines 594--598
+Overfull \hbox (54.22119pt too wide) in paragraph at lines 595--599
 \T1/lmr/m/n/10 (-20) aware forestry. For-est Ecol-ogy and Man-age-ment 453, 117
 619. doi:[]10.1016/j.foreco.2019.117619[] 
  []
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 605.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 606.
 [14]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 605.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 606.
 (test_manus.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 605.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 605.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 606.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 606.
 Package rerunfilecheck Info: File `test_manus.out' has not changed.
-(rerunfilecheck)             Checksum: 609B4B94D51FF2C04015EF6829BAD951;3887.
+(rerunfilecheck)             Checksum: 72CB8DC8432C58D4FB1930E28C147F02;3765.
 
 LaTeX Warning: There were undefined references.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 605.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 606.
  ) 
 Here is how much of TeX's memory you used:
- 12597 strings out of 492891
- 183154 string characters out of 3133339
- 285826 words of memory out of 3000000
- 16156 multiletter control sequences out of 15000+200000
+ 12599 strings out of 492891
+ 183365 string characters out of 3133339
+ 285779 words of memory out of 3000000
+ 16158 multiletter control sequences out of 15000+200000
  61777 words of font info for 111 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 40i,9n,38p,409b,402s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 40i,9n,38p,409b,347s stack positions out of 5000i,500n,10000p,200000b,50000s
 {C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ts1.enc}{C:/Program Files/
 MiKTeX 2.9/fonts/enc/dvips/lm/lm-ec.enc}{C:/Program Files/MiKTeX 2.9/fonts/enc/
 dvips/lm/lm-mathsy.enc}<C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmbx1
@@ -830,9 +849,9 @@ ogram Files/MiKTeX 2.9/fonts/type1/public/lm/lmri7.pfb><C:/Program Files/MiKTeX
  2.9/fonts/type1/public/lm/lmri8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/p
 ublic/lm/lmsy6.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy7.pfb
 ><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt8.pfb>
-Output written on test_manus.pdf (14 pages, 562689 bytes).
+Output written on test_manus.pdf (14 pages, 587211 bytes).
 PDF statistics:
- 310 PDF objects out of 1000 (max. 8388607)
- 57 named destinations out of 1000 (max. 500000)
- 17646 words of extra memory for PDF output out of 20736 (max. 10000000)
+ 314 PDF objects out of 1000 (max. 8388607)
+ 56 named destinations out of 1000 (max. 500000)
+ 17643 words of extra memory for PDF output out of 20736 (max. 10000000)
 
