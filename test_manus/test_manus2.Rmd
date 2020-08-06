@@ -2,7 +2,7 @@
 title: Effects of forest management and harvest intensity on landscape level wind damage risk
 
 author:
-  - name: 'Mária Potterf'
+  - name: Mária Potterf
     email: mpotterf@jyu.fi
     affiliation: Department of Biological and Environmental Science  
     footnote: 1
@@ -33,9 +33,9 @@ footnote:
   - #code: 2
     #text: "Equal contribution"
 abstract: |
-  Future forest management needs to balance between sustainable timber, supporting non-woody ecosystem services and shelter biodiversity. Novel approaches as optimization of forest management to certain goals, increasing proportion of set-aside forest stands, or novel management approaches such as continuous forest cover emerge. However, novel ways of forest management shape forest stands structures over the landscape and will define the stand vulnerability to more frequent climatic disruptions, such as windthrows under hardening climate change. 
-  To understand how will the traditional (rotation forestry, RF) and novel forest managements techniques (continuous cover forest, CCF) combined using optimal management alternate the risk of wind damages over the harvest intensity gradient (ranging from completely setaside to highest harvesting rates), we  combined the forest growth simulator under ranges of management regimes (RF, CCF and combined: ALL), optimized over the range of harvesting levels to calculate stand and landscape level wind damage risk for alternative paths of the forest management and harvesting levles over 100 years. 
-  We found that higher harvest intensity in RF lowers wind risk, whereas the wind risk increased under CCF and ALL scenarios. More intensive harvesting using RF produced more pulp, while CCF provided higher volumes of the standing and harvested log wood, which likely explains higher values of wind risk probability. RF slightly increased the number of stands with open edge, which remained stable under CCF and ALL regimes. Intensive harvesting may change species composition to favour Norway spruce which will further increase probability of wind damage in the future. Therefore, we suggest that forest managers should consider the target forest species composition to mitigate wind risk if aimed to support production of log wood over the pulp. 
+  Future forest management needs to balance between sustainable timber, supporting non-woody ecosystem services and shelter biodiversity. New techniques to atteint this goal emerge: landscape level optimization of forest managements, increasing proportion of set-aside forest stands, or new harvesting techniques emerge, such as continuous forest cover. Yet, novel stand and landscape level management shape forested landscapes and define future stand vulnerability to more frequent climatic disruptions, such as windthrows under hardening climate change. 
+  To understand how will the traditional (rotation forestry, RF) and novel forest managements techniques (continuous cover forest, CCF) combined using optimal management alternate the risk of wind damages over the harvest intensity gradient (ranging from completely set-aside (SA) to highest harvesting rates), we  simulated forest stand dynamics under groups of alternative management regimes (RF, CCF and combined: ALL) optimized over the range of harvesting intensity gradient to calculate stand and landscape level wind damage risk for each alternative stand condistions for next 100 years and how those vary under SA and active management. We further quantify the mean pulp and log timber volume at risk under scenarios and over time. 
+  We found that stands under CCF have higher wind risk probability than RF, and RF maintains levels of wind risk over time, while in CCF risk increases. Yet, the pulp timber at risk under RF is three times higher then in CCF under all harvest intensities. The CCF dominates in production of log wood, whereas pulp wood in intensive harvesting (RF) creates up to 1/2 of the total standing volume. RF produces smaller, younger trees (15 m and mean age of 50) compared to CCF (22m and 80 years) (!!! WHAT ID DBH???), and maintains less trees over stand. The stands under SA regimes have similar trends over harvest intensity level and time, independent of prevailing regimes applied over landscapes. We conclude that althought CCF increases landscape level wind risk, it equalizes the exposed timber volume at risk over time, compared to RF that culminates volume at risk to certain time - right beforet the harvest.    
   
 
 journal: "Forest Ecology and Management"
@@ -60,6 +60,8 @@ Introduction
 
 Future forest ecosystems need to simultaneously provide timber, non-woody ecosystem services such as carbon storage or human recreation, and shelter biodiversity.  Adaptive forest management strives to balance between timber production, provision of non-woody ecosystem services, and biodiversity. Existance of biodiversity, mostly attached to existence of deadwood, is limited by harvesting intensity. Intensive logging activities fragment forested landscapes. 
 To balance between biodiversity and timber economic gains, the proportion of set-aside forests within commercial forests emerges, and new forest management approaches are explored, such as continuous forest cover [@Eyvindson2020] and traditional harvesting regimes are becoming controversial or requested to ban (…). The increase of the set aside forests within the commercial forests, as well as development of the new management techniques affect landscape level structural diversity, timing of the thinning, presence of absence of the final cuts in rotation forestry or development of the larger trees within continuous cover forestry or in set-aside forestry. The fundamental is the carefull landscape level planning of the management actions balancing between set-aside (unmanaged forests), intensive management and continuously present forest cover.
+
+[@Trivino2017] no single management alone is able to balance timber and biodiversity demand, and we need to combine management regimes over the landscape to balance between  nonw-woody ESS, biodiversity and timber production. WE need to diversity forest management over the landscape to support multifunctionnality [@Trivino2017]
 
 Optimal management scenarios fullfil the specific objectives of the society of forest owners to provide certain timber value, improve provision of timber and non-timber ecosystem services, or improve overall forest multifunctionality of the landscape. As such, optimization provides the combination of the specific forest management regimes on stand level. Althought the optimization process does not necessary involve the spatial configuration of the stands, it specifically assigns the particular regimes to individual stands and therefore allows to recreate alternative dynamics landscapes shaped by forest managements aggregated by optimal scenarios. As such, the spatial configuration of the management regimes allows to estimate the subsequent characteristics such as landscape level risk of wind damage. 
 
@@ -629,15 +631,7 @@ ggarrange( p.species.npi, p.species.year, # species,
            common.legend = TRUE, legend="bottom")
  
 
-cowplot::plot_grid(p.species.npi, p.species.year, # species, 
-           p.H.npi, p.H.year,             # tree_heigh, 
-           p.tree.n.npi, p.tree.n.year,   # tree count, 
-           p.open.edge.npi, p.open.edge.year, #open stand,
-           p.thin.npi, p.thin.year,       # thinning, 
-           p.age.npi, p.age.year,
-           ncol = 2, nrow = 6,
-           axis = "b", align = "h", 
-           rel_heights = c(250,200,200,200,200,200))
+
 
 ```
 
