@@ -180,7 +180,12 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 
 # Read datasets:
 # ----------------------------------------
-df <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/final_df_solution8.csv")
+df.even <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/final_df_solution8.csv")
+
+df.old <- fread("C:/MyTemp/myGitLab/windDamage/output/final_df.csv")
+
+
+
 #df <- fread("final_df.csv")
 #df <- fread(paste0(getwd(), "/output/final_df.csv"))
 
@@ -194,6 +199,9 @@ df <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/final_df_solution8.c
 #names(df.geom) <- c("id", "geometry")
 #df.geom$area <- st_area(df.geom)
 #df.geom <- subset(df.geom, id %in% unique(df$id))
+
+
+
 
 # Total area of watershed:
 #tot.area = as.numeric(sum(df.geom$area))
@@ -210,6 +218,11 @@ df<-
   dplyr::mutate(Harvested_V_pulp_under_bark = replace_na(Harvested_V_pulp_under_bark, 0)) 
 
 ```
+
+
+
+
+
 ```{r plot-details, echo = F, eval = T}
 
 # DEfine own palette
@@ -226,13 +239,94 @@ plot_details <- function() {
    # scale_color_brewer(palette="Greens"),
     labs(color = "Scenario",
         linetype = "Scenario"), # geom_line(size = 1) + 
-    facet_wrap(.~ twoRegm), # + 
+   # facet_wrap(.~ twoRegm), # + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
         legend.position = "bottom")
   )
 }
 
 ```
+
+
+# How does the proportion of the SA  
+
+Get sum of the wind risk in SA/no SA stands over scenarios
+```{r}
+
+dat <- data.frame(x = c(1:5,1:5),
+              y = c(9:5, 10,7,5,3,1),
+              type = rep(c("a", "b"), each = 5))
+
+
+
+library(dplyr)
+library(ggplot2)
+
+
+dat %>% 
+  ggplot(aes(fill = type,
+             x = x,
+             y = y,
+         color = type,
+         linetype = type)) +
+  geom_area(position="stack", 
+            stat="identity",
+            alpha = 0.5) +
+  geom_line(position = "stack", size = 2) + 
+  theme_bw()
+
+
+
+
+
+
+
+p.sum.risk.npi <-
+ df %>% 
+  group_by(scenSimpl2, scenNumb, 
+           NPI, twoRegm) %>% 
+  summarize(sum.risk = sum(windRisk))  %>%
+  ggplot(aes(y = sum.risk, 
+              x = scenNumb,
+              color=twoRegm,
+              linetype = twoRegm)) + 
+  ylim(0,1200) +
+  geom_line(position = "stack", size = 1) +
+  scale_color_manual(values = cbp1) +
+  facet_wrap(.~scenSimpl2)
+
+
+
+p.sum.risk.time <-
+  df %>% 
+  group_by(scenSimpl2,year, twoRegm) %>% 
+  summarize(sum.risk = sum(windRisk)) %>% 
+  ggplot(aes(x = year,
+             y = sum.risk,
+             color=twoRegm,
+            linetype = twoRegm)) + # ,
+  ylim(0, 1200)+
+  xlab("Time") + #  
+  ylab("Sum wind risk damage (%)") +
+   geom_line(position = "stack", size = 1) +
+  scale_color_manual(values = cbp1) +
+  facet_wrap(.~scenSimpl2)
+  #plot_details()
+
+
+
+ggarrange(p.sum.risk.npi,  
+          p.sum.risk.time,
+           ncol = 2, nrow = 1,
+           common.legend = TRUE,
+          legend="bottom")
+
+
+```
+
+
+
+
 
 
 ## Wind damage probability 
@@ -267,6 +361,9 @@ p.mean.risk.time <-
   xlab("Time") + #  
   ylab("mean wind risk damage (%)") +
   plot_details()
+
+
+
 
 
 ```
