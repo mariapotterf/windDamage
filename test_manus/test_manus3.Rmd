@@ -218,7 +218,13 @@ df<-
   dplyr::mutate(Harvested_V_pulp_under_bark = replace_na(Harvested_V_pulp_under_bark, 0)) 
 
 
-# Replace the no_SA values 
+# Replace the no_SA values in TwoRegms: change to Management
+df <- 
+  df %>% 
+  dplyr::mutate(Management = twoRegm) %>% # copy the columns 
+  dplyr::mutate(Management = replace(Management, # replace the values
+                                     Management == "no_SA", "active")) 
+  
 
 
 
@@ -249,6 +255,29 @@ plot_line_details <- function() {
   )
 }
 
+
+plot_lineCumul_details <- function() {
+ list( 
+  geom_area(position="stack", 
+             stat="identity",
+             alpha = 0.2,
+             color = "white"), 
+  geom_line(position = "stack", 
+            size = 1.2),
+  scale_linetype_manual(values = c("solid", "dotdash")),
+  scale_color_manual(values = cbp1),
+  scale_fill_manual(values = cbp1),
+  facet_wrap(.~scenSimpl2),
+   theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "bottom")
+  )
+}
+
+
+
+
+
+
 ```
 
 
@@ -261,56 +290,32 @@ Get sum of the wind risk in SA/no SA stands over scenarios
 p.sum.risk.npi <-
  df %>% 
   group_by(scenSimpl2, #scenNumb, 
-           NPI, twoRegm) %>% 
+           NPI, Management) %>% 
   summarize(sum.risk = sum(windRisk))  %>%
   ggplot(aes(y = sum.risk, 
              x = NPI, #scenNumb,
-             color = twoRegm,
-             linetype = twoRegm,
-             fill = twoRegm)) + 
+             color = Management,
+             linetype = Management,
+             fill = Management)) + 
   ylim(0,1500) +
   xlab("NPI k € by ha") + #
   ylab("Sum wind risk damage (%)") +
-  geom_area(position="stack", 
-            stat="identity",
-            alpha = 0.2,
-            color = "white") +
-  geom_line(position = "stack", size = 1.2) +
-  scale_linetype_manual(values = c("solid", "dotdash")) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  facet_wrap(.~scenSimpl2) +
-   theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "bottom")
-
+  plot_lineCumul_details()
 
 
 p.sum.risk.time <-
   df %>% 
-  group_by(scenSimpl2,year, twoRegm) %>% 
+  group_by(scenSimpl2,year, Management) %>% 
   summarize(sum.risk = sum(windRisk)) %>% 
   ggplot(aes(y = sum.risk, 
              x = year, #scenNumb,
-             color = twoRegm,
-             linetype = twoRegm,
-             fill = twoRegm)) +
+             color = Management,
+             linetype = Management,
+             fill = Management)) +
   ylim(0, 1500)+
   xlab("Time") + #  
   ylab("Sum wind risk damage (%)") +
-  geom_area(position="stack", 
-            stat="identity",
-            alpha = 0.2,
-            color = "white") +
-  geom_line(position = "stack", size = 1.2) +
-  scale_linetype_manual(values = c("solid", "dotdash")) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  facet_wrap(.~scenSimpl2) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "bottom")
-
-
-
+  plot_lineCumul_details()
 
 ggarrange(p.sum.risk.npi,  
           p.sum.risk.time,
@@ -323,6 +328,89 @@ ggarrange(p.sum.risk.npi,
 ```
 
 
+## Timber at risk among scenarios and time
+
+```{r sum_V_atRisk}
+
+milion = 1000000
+
+# Log timber
+
+p.sum.V.log.npi <-
+ df %>% 
+  filter()
+  group_by(scenSimpl2, 
+           NPI, Management) %>% 
+  summarize(sum.risk = sum(V_strat_max_log))  %>%
+  ggplot(aes(y = sum.risk/milion, 
+             x = NPI, #scenNumb,
+             color = Management,
+             linetype = Management,
+             fill = Management)) + 
+  #ylim(0,1500) +
+  xlab("NPI k € by ha") + #
+  ylab("Standing log volume\nat risk (sum mil m3)") +
+  plot_lineCumul_details()
+
+
+p.sum.V.log.time <-
+  df %>% 
+  group_by(scenSimpl2, year, Management) %>% 
+  summarize(sum.risk = sum(V_strat_max_log)) %>% 
+  ggplot(aes(y = sum.risk/milion, 
+             x = year, #scenNumb,
+             color = Management,
+             linetype = Management,
+             fill = Management)) +
+ # ylim(0, 1500)+
+  xlab("Time") + #  
+  ylab("Sum log V (mil m3)") +
+  plot_lineCumul_details()
+
+
+# Pulp timber
+
+p.sum.V.pulp.npi <-
+ df %>% 
+  group_by(scenSimpl2, 
+           NPI, Management) %>% 
+  summarize(sum.risk = sum(V_strat_max_pulp))  %>%
+  ggplot(aes(y = sum.risk/milion, 
+             x = NPI, #scenNumb,
+             color = Management,
+             linetype = Management,
+             fill = Management)) + 
+  ylim(0,4) +
+  xlab("NPI k € by ha") + #
+  ylab("Sum pulp V (mil m3)") +
+  plot_lineCumul_details()
+
+
+p.sum.V.pulp.time <-
+  df %>% 
+  group_by(scenSimpl2, year, Management) %>% 
+  summarize(sum.risk = sum(V_strat_max_pulp)) %>% 
+  ggplot(aes(y = sum.risk/milion, 
+             x = year, #scenNumb,
+             color = Management,
+             linetype = Management,
+             fill = Management)) +
+  ylim(0, 4)+
+  xlab("Time") + #  
+  ylab("Sum pulp V (mil m3)") +
+  plot_lineCumul_details()
+
+
+
+ggarrange(p.sum.V.log.npi,  p.sum.V.log.time,
+          p.sum.V.pulp.npi, p.sum.V.pulp.time,
+          ncol = 2, nrow = 2,
+          common.legend = TRUE,
+          align = c("hv"),
+          legend="bottom")
+
+
+```
 
 
 
@@ -407,7 +495,7 @@ V.strat.pulp.npi <-
   ggplot(aes(x = NPI,
              y = V_mean, #/10,             group = scenSimpl2,
              color = scenSimpl2)) +
-  ylab("pulp timber V (m3)") +
+  ylab("mean pulp timber V (m3)") +
   plot_line_details() +
   ylim(0,100)
 
