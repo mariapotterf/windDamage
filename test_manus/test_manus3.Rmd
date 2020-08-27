@@ -180,9 +180,9 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 
 # Read datasets:
 # ----------------------------------------
-df.even <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/final_df_solution8.csv")
+df <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/final_df_solution8.csv")
 
-df.old <- fread("C:/MyTemp/myGitLab/windDamage/output/final_df.csv")
+#df.old <- fread("C:/MyTemp/myGitLab/windDamage/output/final_df.csv")
 
 
 
@@ -217,6 +217,11 @@ df<-
   dplyr::mutate(Harvested_V_log_under_bark = replace_na(Harvested_V_log_under_bark, 0)) %>% 
   dplyr::mutate(Harvested_V_pulp_under_bark = replace_na(Harvested_V_pulp_under_bark, 0)) 
 
+
+# Replace the no_SA values 
+
+
+
 ```
 
 
@@ -230,13 +235,12 @@ df<-
 cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
           "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-plot_details <- function() {
+plot_line_details <- function() {
   list( 
     geom_line(aes(linetype = scenSimpl2, 
                   color = scenSimpl2),
             lwd = 0.8),
     scale_color_manual(values = cbp1),
-   # scale_color_brewer(palette="Greens"),
     labs(color = "Scenario",
         linetype = "Scenario"), # geom_line(size = 1) + 
    # facet_wrap(.~ twoRegm), # + 
@@ -253,47 +257,31 @@ plot_details <- function() {
 Get sum of the wind risk in SA/no SA stands over scenarios
 ```{r}
 
-dat <- data.frame(x = c(1:5,1:5),
-              y = c(9:5, 10,7,5,3,1),
-              type = rep(c("a", "b"), each = 5))
-
-
-
-library(dplyr)
-library(ggplot2)
-
-
-dat %>% 
-  ggplot(aes(fill = type,
-             x = x,
-             y = y,
-         color = type,
-         linetype = type)) +
-  geom_area(position="stack", 
-            stat="identity",
-            alpha = 0.5) +
-  geom_line(position = "stack", size = 2) + 
-  theme_bw()
-
-
-
-
-
-
 
 p.sum.risk.npi <-
  df %>% 
-  group_by(scenSimpl2, scenNumb, 
+  group_by(scenSimpl2, #scenNumb, 
            NPI, twoRegm) %>% 
   summarize(sum.risk = sum(windRisk))  %>%
   ggplot(aes(y = sum.risk, 
-              x = scenNumb,
-              color=twoRegm,
-              linetype = twoRegm)) + 
-  ylim(0,1200) +
-  geom_line(position = "stack", size = 1) +
+             x = NPI, #scenNumb,
+             color = twoRegm,
+             linetype = twoRegm,
+             fill = twoRegm)) + 
+  ylim(0,1500) +
+  xlab("NPI k € by ha") + #
+  ylab("Sum wind risk damage (%)") +
+  geom_area(position="stack", 
+            stat="identity",
+            alpha = 0.2,
+            color = "white") +
+  geom_line(position = "stack", size = 1.2) +
+  scale_linetype_manual(values = c("solid", "dotdash")) +
   scale_color_manual(values = cbp1) +
-  facet_wrap(.~scenSimpl2)
+  scale_fill_manual(values = cbp1) +
+  facet_wrap(.~scenSimpl2) +
+   theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "bottom")
 
 
 
@@ -301,17 +289,26 @@ p.sum.risk.time <-
   df %>% 
   group_by(scenSimpl2,year, twoRegm) %>% 
   summarize(sum.risk = sum(windRisk)) %>% 
-  ggplot(aes(x = year,
-             y = sum.risk,
-             color=twoRegm,
-            linetype = twoRegm)) + # ,
-  ylim(0, 1200)+
+  ggplot(aes(y = sum.risk, 
+             x = year, #scenNumb,
+             color = twoRegm,
+             linetype = twoRegm,
+             fill = twoRegm)) +
+  ylim(0, 1500)+
   xlab("Time") + #  
   ylab("Sum wind risk damage (%)") +
-   geom_line(position = "stack", size = 1) +
+  geom_area(position="stack", 
+            stat="identity",
+            alpha = 0.2,
+            color = "white") +
+  geom_line(position = "stack", size = 1.2) +
+  scale_linetype_manual(values = c("solid", "dotdash")) +
   scale_color_manual(values = cbp1) +
-  facet_wrap(.~scenSimpl2)
-  #plot_details()
+  scale_fill_manual(values = cbp1) +
+  facet_wrap(.~scenSimpl2) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "bottom")
+
 
 
 
@@ -319,6 +316,7 @@ ggarrange(p.sum.risk.npi,
           p.sum.risk.time,
            ncol = 2, nrow = 1,
            common.legend = TRUE,
+          align = c("h"),
           legend="bottom")
 
 
@@ -346,7 +344,7 @@ p.mean.risk.npi <-
   ylim(0, 0.06)+
   xlab("NPI k € by ha") + #  
   ylab("mean wind risk damage (%)") +
-  plot_details()
+  plot_line_details()
 
 
 
@@ -360,7 +358,7 @@ p.mean.risk.time <-
   ylim(0, 0.06)+
   xlab("Time") + #  
   ylab("mean wind risk damage (%)") +
-  plot_details()
+  plot_line_details()
 
 
 
@@ -397,7 +395,7 @@ V.strat.log.npi <-
   ylab("log timber V (m3)") +
   xlab("NPI k € by ha") + 
   ylim(0,150) +
-  plot_details()
+  plot_line_details()
 
 
 # The highest stratum volume: Pulp
@@ -410,7 +408,7 @@ V.strat.pulp.npi <-
              y = V_mean, #/10,             group = scenSimpl2,
              color = scenSimpl2)) +
   ylab("pulp timber V (m3)") +
-  plot_details() +
+  plot_line_details() +
   ylim(0,100)
 
 
@@ -427,7 +425,7 @@ V.strat.log.year <-
   ylab("log timber V (m3)") +
   xlab("NPI k € by ha") + 
   ylim(0,150) +
-  plot_details()
+  plot_line_details()
 
 
 
@@ -442,7 +440,7 @@ V.strat.pulp.year <-
              color = scenSimpl2)) +
   ylab("pulp timber V (m3)") +
   ylim(0,100) +
-  plot_details()
+  plot_line_details()
 
 ```
 
@@ -537,7 +535,7 @@ p.H.npi <- df %>%
   xlab("NPI k € by ha") +
   ylab("tree height\n(m)") +
   ylim(0, 25) +
-       plot_details()
+       plot_line_details()
   
 p.H.year <- df %>%
   group_by(year, scenSimpl2, twoRegm) %>% 
@@ -549,7 +547,7 @@ p.H.year <- df %>%
   xlab("NPI k € by ha") +
   ylab("tree height\n(m)") +
   ylim(0, 25) +
-  plot_details()
+  plot_line_details()
 
 ```
 
@@ -569,7 +567,7 @@ p.tree.n.npi <-
   xlab("NPI k € by ha") +
   ylab("Mean # tree\n(*100)") +
   ylim(0, 50) +
-  plot_details()
+  plot_line_details()
  
 p.tree.n.year <- 
   df %>%
@@ -582,7 +580,7 @@ p.tree.n.year <-
   xlab("NPI k € by ha") +
   ylab("Mean # tree\n(*100)") +
   ylim(0, 50) +
-  plot_details()
+  plot_line_details()
 
 #range(df$N)
 #hist(df$N)
@@ -616,7 +614,7 @@ p.open.edge.npi <-
   ylim(0, 100) +
   xlab("NPI k € by ha") + 
   ylab("open edge stands\n(%)") +
-  plot_details()
+  plot_line_details()
 
 
 
@@ -633,7 +631,7 @@ p.open.edge.year <-
   ylim(0, 100) +
   xlab("NPI k € by ha") + 
   ylab("open edge stands\n(%)") +
-  plot_details()
+  plot_line_details()
 
 ```
 
@@ -667,7 +665,7 @@ p.thin.npi <-
              y = non_na_count/20/1470*100,  # number of stands by one year
              color = scenSimpl2,
              group = scenSimpl2)) + # ,
-  plot_details() +
+  plot_line_details() +
   ylim(0, 20) +
   xlab("NPI k € by ha") + 
   ylab("Mean # of thinned stands\n(year/landscape)") 
@@ -680,7 +678,7 @@ p.thin.year <-
              y = non_na_count/21/1470*100,  # number of stands by one year
              color = scenSimpl2,
              group = scenSimpl2)) + # ,
-  plot_details() +
+  plot_line_details() +
   ylim(0, 20) +
   xlab("NPI k € by ha") + 
   ylab("Mean # of thinned stands\n(year/landscape)") 
@@ -701,7 +699,7 @@ p.age.npi <-
   xlab("NPI k € by ha") +
   ylab("Mean stand age\n") +
   ylim(0, 150) +
-  plot_details() 
+  plot_line_details() 
 
 
 p.age.year <- 
@@ -716,7 +714,7 @@ p.age.year <-
   xlab("Years") +
   ylab("Mean age\n") +
   ylim(0, 150) +
-  plot_details() 
+  plot_line_details() 
 
 
 ```
