@@ -299,7 +299,7 @@ p.sum.risk.npi <-
              fill = Management)) + 
   ylim(0,1500) +
   xlab("NPI k € by ha") + #
-  ylab("Sum wind risk damage (%)") +
+  ylab("Sum wind risk\ndamage probability (%)") +
   plot_lineCumul_details()
 
 
@@ -314,7 +314,7 @@ p.sum.risk.time <-
              fill = Management)) +
   ylim(0, 1500)+
   xlab("Time") + #  
-  ylab("Sum wind risk damage (%)") +
+  ylab("Sum wind risk\ndamage probability (%)") +
   plot_lineCumul_details()
 
 ggarrange(p.sum.risk.npi,  
@@ -322,7 +322,11 @@ ggarrange(p.sum.risk.npi,
            ncol = 2, nrow = 1,
            common.legend = TRUE,
           align = c("h"),
-          legend="bottom")
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
 
 
 ```
@@ -334,71 +338,121 @@ ggarrange(p.sum.risk.npi,
 
 milion = 1000000
 
-# Log timber
 
+# make a line plot only for active management
 p.sum.V.log.npi <-
  df %>% 
-  filter()
+  filter(Management == "active") %>% 
   group_by(scenSimpl2, 
-           NPI, Management) %>% 
+           NPI, 
+           Management) %>% 
   summarize(sum.risk = sum(V_strat_max_log))  %>%
   ggplot(aes(y = sum.risk/milion, 
-             x = NPI, #scenNumb,
-             color = Management,
-             linetype = Management,
-             fill = Management)) + 
-  #ylim(0,1500) +
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2)) + 
+  geom_point() +
+  geom_line() +
+  ylim(0,2) +
+  ggtitle("") +
   xlab("NPI k € by ha") + #
-  ylab("Standing log volume\nat risk (sum mil m3)") +
-  plot_lineCumul_details()
+  ylab("Standing log volume\n(sum mil m3)") +
+  scale_linetype_manual(values = c("solid", "dotdash", "dotted")) +
+  scale_color_manual(values = cbp1) +
+  labs(shape = "Regimes",
+       color = "Regimes",
+       linetype = "Regimes") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "bottom")
+  #plot_lineCumul_details()
 
 
 p.sum.V.log.time <-
   df %>% 
-  group_by(scenSimpl2, year, Management) %>% 
-  summarize(sum.risk = sum(V_strat_max_log)) %>% 
+  filter(Management == "active") %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(sum.risk = sum(V_strat_max_log))  %>%
   ggplot(aes(y = sum.risk/milion, 
-             x = year, #scenNumb,
-             color = Management,
-             linetype = Management,
-             fill = Management)) +
- # ylim(0, 1500)+
-  xlab("Time") + #  
-  ylab("Sum log V (mil m3)") +
-  plot_lineCumul_details()
+             x = year, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2)) + 
+  geom_point() +
+  geom_line() +
+  ylim(0,2) +
+  ggtitle("") +
+  xlab("Years") + #
+  ylab("Standing log volume\n(sum mil m3)") +
+  scale_linetype_manual(values = c("solid", "dotdash", "dotted")) +
+  scale_color_manual(values = cbp1) +
+  labs(shape = "Regimes",
+       color = "Regimes",
+       linetype = "Regimes") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "bottom")
 
 
 # Pulp timber
-
 p.sum.V.pulp.npi <-
  df %>% 
+  filter(Management == "active") %>% 
   group_by(scenSimpl2, 
-           NPI, Management) %>% 
+           NPI, 
+           Management) %>% 
   summarize(sum.risk = sum(V_strat_max_pulp))  %>%
   ggplot(aes(y = sum.risk/milion, 
-             x = NPI, #scenNumb,
-             color = Management,
-             linetype = Management,
-             fill = Management)) + 
-  ylim(0,4) +
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2)) + 
+  geom_point() +
+ geom_line() +
+  ylim(0,2) +
+  labs(shape = "Regimes",
+       color = "Regimes",
+       linetype = "Regimes") +
+  ggtitle("") +
   xlab("NPI k € by ha") + #
-  ylab("Sum pulp V (mil m3)") +
-  plot_lineCumul_details()
+  ylab("Standing pulp volume\n(sum mil m3)") +
+  scale_linetype_manual(values = c("solid", "dotdash", "dotted")) +
+  scale_color_manual(values = cbp1) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "bottom")
+  #plot_lineCumul_details()
 
 
 p.sum.V.pulp.time <-
   df %>% 
-  group_by(scenSimpl2, year, Management) %>% 
-  summarize(sum.risk = sum(V_strat_max_pulp)) %>% 
+  filter(Management == "active") %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(sum.risk = sum(V_strat_max_pulp))  %>%
   ggplot(aes(y = sum.risk/milion, 
-             x = year, #scenNumb,
-             color = Management,
-             linetype = Management,
-             fill = Management)) +
-  ylim(0, 4)+
-  xlab("Time") + #  
-  ylab("Sum pulp V (mil m3)") +
-  plot_lineCumul_details()
+             x = year, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2)) + 
+  geom_point() +
+  geom_line() +
+  ylim(0,2) +
+  ggtitle("") +
+  xlab("Years") + #
+  ylab("Standing log volume\n(sum mil m3)") +
+  scale_linetype_manual(values = c("solid", "dotdash", "dotted")) +
+  scale_color_manual(values = cbp1) +
+  labs(shape = "Regimes",
+       color = "Regimes",
+       linetype = "Regimes") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "bottom")
 
 
 
@@ -407,12 +461,247 @@ ggarrange(p.sum.V.log.npi,  p.sum.V.log.time,
           ncol = 2, nrow = 2,
           common.legend = TRUE,
           align = c("hv"),
-          legend="bottom")
+          legend="right",
+          labels= "AUTO",
+          hjust = -5,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
 
 
 ```
 
 
+```{r total_V}
+
+
+
+
+
+# make a line plot only for active management
+p.sum.V.strat.npi <-
+ df %>% 
+  filter(Management == "active" & scenSimpl2 != "ALL") %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(sum.risk = sum(V_strat_max))  %>%
+  ggplot(aes(y = sum.risk/milion, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2)) + 
+  geom_point() +
+  geom_line() +
+  ylim(0,4) +
+  ggtitle("") +
+  xlab("NPI k € by ha") + #
+  ylab("Top stratum volume\n(sum mil m3)") +
+  scale_linetype_manual(values = c("solid", "dotdash", "dotted")) +
+  scale_color_manual(values = cbp1) +
+  labs(shape = "Regimes",
+       color = "Regimes",
+       linetype = "Regimes") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right")
+  #plot_lineCumul_details()
+
+
+p.sum.V.strat.time <-
+  df %>% 
+  filter(Management == "active" & scenSimpl2 != "ALL") %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(sum.risk = sum(V_strat_max))  %>%
+  ggplot(aes(y = sum.risk/milion, 
+             x = year, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2)) + 
+  geom_point() +
+  geom_line() +
+  ylim(0,4) +
+  ggtitle("") +
+  xlab("Years") + #
+  ylab("Top stratum volume\n(sum mil m3)") +
+  scale_linetype_manual(values = c("solid", "dotdash", "dotted")) +
+  scale_color_manual(values = cbp1) +
+  labs(shape = "Regimes",
+       color = "Regimes",
+       linetype = "Regimes") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "bottom")
+
+
+
+ggarrange(p.sum.V.strat.npi,  p.sum.V.strat.time,
+          ncol = 2, nrow = 1,
+          common.legend = TRUE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+```
+
+```{r}
+
+# New plot for abstract!!!!!
+# combine sum wind risk and total top stratum volume!!
+# Make sum wind risk in a same way as the second plot: remove the SA stands
+# ===============================================
+
+
+# Wind risk
+
+p.sum.windRisk.area.npi <-
+ df %>% 
+  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(sum.risk = sum(windRisk)*1000)  %>%
+  ggplot(aes(y = sum.risk/milion, 
+             x = NPI, 
+             shape = Management,
+             color = Management,
+             linetype = Management,
+             group = Management,
+             fill = Management)) + 
+    geom_area(position="stack", 
+             stat="identity",
+             alpha = 0.1,
+             color = "white") +
+  geom_line(position = "stack", 
+            size = 0.7) +
+  geom_point(position = "stack",
+             size = 1) +
+  facet_wrap(.~scenSimpl2)+
+  ggtitle("") +
+  xlab("NPI k € by ha") + #
+  ylab("Wind damage probability\n(sum, %)") +
+  scale_linetype_manual(values = c("solid", "dotdash", "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+# Top straum volume
+
+p.V.area.npi <-
+ df %>% 
+  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(sum.risk = sum(V_strat_max))  %>%
+  ggplot(aes(y = sum.risk/milion, 
+             x = NPI, 
+             shape = Management,
+             color = Management,
+             linetype = Management,
+             group = Management,
+             fill = Management)) + 
+    geom_area(position="stack", 
+             stat="identity",
+             alpha = 0.1,
+             color = "white") +
+  geom_line(position = "stack", 
+            size = 0.7) +
+  geom_point(position = "stack",
+             size = 1) +
+  facet_wrap(.~scenSimpl2)+
+#  ggtitle("") +
+  xlab("NPI k € by ha") + #
+  ylab("Top stratum volume\n(sum, mil m3)") +
+  scale_linetype_manual(values = c("solid", "dotdash", "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+# stratum volume line
+
+p.sum.V.strat.npi <-
+ df %>% 
+  filter(Management == "active" & scenSimpl2 != "ALL") %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(sum.risk = sum(V_strat_max))  %>%
+  ggplot(aes(y = sum.risk/milion, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2)) + 
+  geom_point() +
+  geom_line() +
+  ylim(0,4) +
+  ggtitle("") +
+  xlab("NPI k € by ha") + #
+  ylab("Top stratum volume\n(sum mil m3)") +
+  scale_linetype_manual(values = c("solid", "dotdash", "dotted")) +
+  scale_color_manual(values = cbp1) +
+  labs(shape = "Regimes",
+       color = "Regimes",
+       linetype = "Regimes") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right")
+  #plot_lineCumul_details()
+
+
+
+
+
+windows(width =7, height = 2.5)
+# area plot
+ggarrange(p.sum.windRisk.area.npi, 
+          p.V.area.npi,  
+          ncol = 2, nrow = 1,
+          widths = c(1, 1),
+          common.legend = FALSE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+
+
+# Area and line plot
+ggarrange(p.sum.windRisk.area.npi, 
+          p.sum.V.strat.npi,  
+          ncol = 2, nrow = 1,
+          widths = c(1.5, 1),
+          common.legend = FALSE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+
+```
 
 
 ## Wind damage probability 
