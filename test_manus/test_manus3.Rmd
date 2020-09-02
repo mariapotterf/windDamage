@@ -223,7 +223,10 @@ df <-
   df %>% 
   dplyr::mutate(Management = twoRegm) %>% # copy the columns 
   dplyr::mutate(Management = replace(Management, # replace the values
-                                     Management == "no_SA", "active")) 
+                                     Management == "no_SA", "Active")) %>%
+    dplyr::mutate(Management = replace(Management, # replace the values
+                                     Management == "SA", "Set Aside"))
+  
   
 
 
@@ -548,7 +551,7 @@ ggarrange(p.sum.V.strat.npi,  p.sum.V.strat.time,
 
 ```
 
-```{r}
+```{r abstract_area}
 
 # New plot for abstract!!!!!
 # combine sum wind risk and total top stratum volume!!
@@ -564,8 +567,8 @@ p.sum.windRisk.area.npi <-
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
-  summarize(sum.risk = sum(windRisk)*1000)  %>%
-  ggplot(aes(y = sum.risk/milion, 
+  summarize(sum.risk = sum(windRisk))  %>%
+  ggplot(aes(y = sum.risk, 
              x = NPI, 
              shape = Management,
              color = Management,
@@ -596,7 +599,7 @@ p.sum.windRisk.area.npi <-
         strip.background =element_rect(fill="white", color = NA))
 
 
-# Top straum volume
+# Top stratum volume
 
 p.V.area.npi <-
  df %>% 
@@ -703,6 +706,112 @@ ggarrange(p.sum.windRisk.area.npi,
 
 ```
 
+
+
+```{r abstract_line }
+
+# make plots with means and not stacked???
+
+p.mean.windRisk.line.npi <-
+ df %>% 
+  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(sum.risk = mean(windRisk))  %>%
+  ggplot(aes(y = sum.risk, 
+             x = NPI, 
+             shape = Management,
+             color = Management,
+             linetype = Management,
+             group = Management,
+             fill = Management)) +
+    #geom_area(position="stack", 
+     #        stat="identity",
+      #       alpha = 0.1,
+       #      color = "white") +
+  geom_line(#position = "stack",
+            size = 0.7) +
+  geom_point(#position = "stack",
+             size = 1) +
+  facet_wrap(.~scenSimpl2) +
+  ylim(0,0.05) +
+  ggtitle("") +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Wind damage probability\n(mean, %)") +
+  scale_linetype_manual(values = c("solid",  "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+# Mean stratum volume: active vs passive
+
+p.mean.V.act.pass.line.npi <-
+ df %>% 
+  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(y = mean(V_strat_max))  %>%
+  ggplot(aes(y = y, 
+             x = NPI, 
+             shape = Management,
+             color = Management,
+             linetype = Management,
+             group = Management,
+             fill = Management)) + 
+  geom_line(#position = "stack", 
+            size = 0.7) +
+  geom_point(#position = "stack",
+             size = 1) +
+  facet_wrap(.~scenSimpl2) +
+  ylim(0,240) +
+  ggtitle("") +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Top stratum volume\n(mean, m3)") +
+  scale_linetype_manual(values = c("solid",  "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+
+
+
+
+
+# Area and line plot
+windows(width = 7, height = 2.5)
+ggarrange(p.mean.windRisk.line.npi, 
+          p.mean.V.act.pass.line.npi,  
+          ncol = 2, nrow = 1,
+          widths = c(1, 1),
+          common.legend = TRUE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          vjust = 3,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+
+```
 
 ## Wind damage probability 
 
