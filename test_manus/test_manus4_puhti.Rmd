@@ -60,6 +60,32 @@ output:
 Introduction
 ==========================
 
+Importance of increasing disturbances and associated timber damage
+
+Disturbances and climate change associated stand level damage will increase on global nad local scales. 
+
+Novel managements seeks for balance between economy and ecology
+
+Novel methos of the forest managements balances between provision of timber, non-woody ecosystem services by optimazing the harvesting priorities given equal weights to timber, non-woody ESS and deadwood associated biodiversity. These novel methods implements wider options for management regimes within rotation forestry including thining, non wthinning or increading number of retained green trees after the final cut, or developting new harvesting methods such as continuous cover forests that seems t promisingly balance between simultaneous provision of timber and non-woody ecosystem services. 
+
+Landscape level management combine the approaches to balance economy-ecology
+
+LAndscape level scale for management planing, along with optimization for specific targets  aiming to non-timber benefits along to it monetary values allows to allocate the most beneficail managenet regimes based on initial stand condition and state and potential of whole groups of stands to generate required values over whole landscape. THis approach can on one hand dedicate the stand to completely set aside regime to shelter biodiversity and on another hand increase harvesting levels on separated stands, creating a landscape level mosaic of various management regimes applied over the alternative landscape. Both approaches have however consequences of subseuqnet wind risk of individual and their neighboring stands. 
+
+What managements are done to reduce wind risk?
+
+
+Multiple management regimes aim to reduce the risk of wind damage for example by reducing rotation age @Zimova2020 
+
+
+
+
+
+The forest management needs to simultaneously deliver timber, non-woody ecosystem services and shalter biodiveristy under constant threat of increasing disturbances.  frequencies or simply by changing climatic conditions that e.g. exposes trees to wind damage by lowering tree anchorage during the windiest time of the year.    
+
+The frequency of teh climatic disruptions will increase and as such will increase teh potential damage t individual stands and the 
+
+Novel methods of teh forest management are needed to 
 
 Future forest ecosystems need to simultaneously provide timber, non-woody ecosystem services such as carbon storage or human recreation, and shelter biodiversity.  
 To balance between biodiversity and timber economic gains, the proportion of set-aside forests within commercial forests emerges, and new forest management approaches are explored, such as continuous forest cover [@Eyvindson2021] and traditional harvesting regimes are becoming controversial or requested to ban (…). The increase of the set aside forests within the commercial forests, as well as development of the new management techniques affect landscape level structural diversity, timing of the thinning, presence of absence of the final cuts in rotation forestry or development of the larger trees within continuous cover forestry or in set-aside forestry. The fundamental is the carefull landscape level planning of the management actions balancing between set-aside (unmanaged forests), intensive management and continuously present forest cover.
