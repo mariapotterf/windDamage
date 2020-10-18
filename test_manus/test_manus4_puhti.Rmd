@@ -136,7 +136,7 @@ rm(list = ls())
 
 # Add this to your R code:
 #.libPaths(c("/projappl/project_2003256/project_rpackages", #.libPaths()))
-#libpath <- .libPaths()[1]
+libpath <- .libPaths()[1]
 
 .libPaths(c("/projappl/project_2003256/project_rpackages", .libPaths()))
 
@@ -555,8 +555,8 @@ p.mean.V.pulp.line.time <-
 
 
 # The log and pulp timber volume over NPI and time at one pot 
-ggarrange(p.mean.V.log.line.npi, p.mean.V.log.line.time, 
-          p.mean.V.pulp.line.npi, p.mean.V.pulp.line.time, 
+ggarrange(p.mean.V.pulp.line.npi, p.mean.V.pulp.line.time, 
+          p.mean.V.log.line.npi, p.mean.V.log.line.time, 
           ncol = 2, nrow = 2,
           #widths = c(1, 1),
           common.legend = TRUE,
