@@ -127,7 +127,7 @@ plot_lineCumul_details <- function() {
 
 p.mean.windRisk.line.npi <-
   df %>% 
-  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  #filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
@@ -164,7 +164,7 @@ p.mean.windRisk.line.npi <-
 # Wind risk over time
 p.mean.windRisk.line.time <-
   df %>% 
-  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  #filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            year, 
            Management) %>% 
@@ -197,7 +197,6 @@ p.mean.windRisk.line.time <-
         strip.background =element_rect(fill="white", color = NA))
 
 
-
 ggarrange(p.mean.windRisk.line.npi, 
           p.mean.windRisk.line.time,  
           ncol = 2, nrow = 1,
@@ -212,6 +211,9 @@ ggarrange(p.mean.windRisk.line.npi,
                             face = "bold", color ="black"))
 
 
+# Export png image
+dev.copy(png, paste(getwd(), 'figs', 'risk_mean.png', sep = "/"))
+dev.off()
 
 # Top layer standing timber at risk??
 # Plot log volume:
