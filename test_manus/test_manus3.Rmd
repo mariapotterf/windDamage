@@ -51,6 +51,7 @@ output:
     base_format: rticles::elsevier_article
 #output: rticles::elsevier_article
 #output: word_document
+#output: html_document
 ---
 
 \newpage
@@ -107,12 +108,12 @@ knitr::opts_chunk$set(echo = FALSE,
 
 Our study area represents a typical Finnish production forested landscape with relatively structurally homogenous forests stands. In total, we used 1475 forests stands aggregated within a single watershed (number 14.534) in Central Finland, covering 2242 ha (Fig. \ref{study_area}). Initial stand conditions were collected as open source data from the Finnish Forest Centre (available on www.metsaan.fi) providing currents stand conditions in 2016. 
 
-![The study area located in Central Finland (watershed 14.534) comprising 1475 forest stands.\label{study_area}](/MyTemp/myGitLab/windDamage/externalFigs/studyArea_crop.png)
+![The study area located in Central Finland (watershed 14.534) comprising 1475 forest stands.\label{study_area}](/projappl/project_2003256/windDamage/externalFigs/studyArea_crop.png)
 
-Our input dataset includes initial stand conditions (2016), alternative forest growth under the range of forest managemnet regimes over 100 years and a set of optimal solutions balancing between intensifying harvest levels and multifunctionnality (from completely set-aside, i.e. no management to maximal harvest gains). From the set of optimal solutions we have calculated stand-level probability of wind damage (for full details, please refer to @Eyvindson2020 study. Fig. \ref{workflow}) represents study workflow. 
+Our input dataset includes initial stand conditions (2016), alternative forest growth under the range of forest managemnet regimes over 100 years and a set of optimal solutions balancing between intensifying harvest levels and multifunctionnality (from completely set-aside, i.e. no management to maximal harvest gains). From the set of optimal solutions we have calculated stand-level probability of wind damage (for full details, please refer to @Eyvindson2021 study. Fig. \ref{workflow}) represents study workflow. 
 
 
-![The study workflow from collecting initial stand conditions (2016) throught forest simulation growth under various ranges of forest management, and constriuction of teh harvesting intensity gradient using optimization to landscape level stand configurations.\label{workflow}](/MyTemp/myGitLab/windDamage/externalFigs/overview2_horizontal.png)
+![The study workflow from collecting initial stand conditions (2016) throught forest simulation growth under various ranges of forest management, and constriuction of teh harvesting intensity gradient using optimization to landscape level stand configurations.\label{workflow}](/projappl/project_2003256/windDamage/externalFigs/overview2_horizontal.png)
 
 
 
@@ -144,7 +145,7 @@ rm(list = ls())
 #.libPaths(c("/projappl/project_2003256/project_rpackages", #.libPaths()))
 #libpath <- .libPaths()[1]
 
-#.libPaths(c("/projappl/project_2003256/project_rpackages", .libPaths()))
+.libPaths(c("/projappl/project_2003256/project_rpackages", .libPaths()))
 
 
 # , eval = FALSE
@@ -180,7 +181,9 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 
 # Read datasets:
 # ----------------------------------------
-df <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/final_df_solution8.csv")
+#df <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/final_df_solution8.csv")
+
+df <- fread("/projappl/project_2003256/windDamage/output/final_df_solution8.csv")
 
 #df.old <- fread("C:/MyTemp/myGitLab/windDamage/output/final_df.csv")
 
@@ -287,7 +290,7 @@ plot_lineCumul_details <- function() {
 # How does the proportion of the SA  
 
 Get sum of the wind risk in SA/no SA stands over scenarios
-```{r}
+```{r, eval = TRUE}
 
 
 p.sum.risk.npi <-
@@ -337,7 +340,7 @@ ggarrange(p.sum.risk.npi,
 
 ## Timber at risk among scenarios and time
 
-```{r sum_V_atRisk}
+```{r sum_V_atRisk, eval = FALSE}
 
 milion = 1000000
 
@@ -474,7 +477,7 @@ ggarrange(p.sum.V.log.npi,  p.sum.V.log.time,
 ```
 
 
-```{r total_V}
+```{r total_V, eval = FALSE}
 
 
 
@@ -551,7 +554,7 @@ ggarrange(p.sum.V.strat.npi,  p.sum.V.strat.time,
 
 ```
 
-```{r abstract_area}
+```{r abstract_area, eval = FALSE}
 
 # New plot for abstract!!!!!
 # combine sum wind risk and total top stratum volume!!
@@ -674,7 +677,7 @@ p.sum.V.strat.npi <-
 
 
 
-windows(width =7, height = 2.5)
+#windows(width =7, height = 2.5)
 # area plot
 ggarrange(p.sum.windRisk.area.npi, 
           p.V.area.npi,  
@@ -708,7 +711,7 @@ ggarrange(p.sum.windRisk.area.npi,
 
 
 
-```{r abstract_line }
+```{r abstract_line,eval = FALSE }
 
 # make plots with means and not stacked???
 
@@ -796,7 +799,7 @@ p.mean.V.act.pass.line.npi <-
 
 
 # Area and line plot
-windows(width = 7, height = 2.5)
+#windows(width = 7, height = 2.5)
 ggarrange(p.mean.windRisk.line.npi, 
           p.mean.V.act.pass.line.npi,  
           ncol = 2, nrow = 1,
@@ -1255,7 +1258,7 @@ map erepresent the forest vulnerability to the wind, but it is impossible to pre
 - the glm takes into account the dominant tree species but neglects the stand structure. WE neglected the stand structure in applying the raster level based glm model to stand level information
 - difficult to link the predicted wind risk to explicit wind damage volume as windthrows are unpredictanvle events in time and explicit locations.
 - We need to understand what risks about current management decisions involves and if they bring another challenges, such as increasing risk of wind damage. On the other hand, the set-aside stands, if protected, teh wind damage there should not be regarded as lost timber volume due to windthrow, as was not supposed to be logged anyway. Howvere, if windthrow happen in SA stands, the risk of subsequent disturbances such as *Ips typographus*  might increase the cost of the effective stand protection in following years.
-- SA forests have clearly higher wind risk than intensively managemed forests under RF. However, RF as highly specialized in provision of teh single benefit - timber - while deterioration non-woody ecosystem servoices and destroyng habitats for endangered species should be largely replaced over the landscapes by managements fulfillings multiple benefits @Eyvindson2020. 
+- SA forests have clearly higher wind risk than intensively managemed forests under RF. However, RF as highly specialized in provision of teh single benefit - timber - while deterioration non-woody ecosystem servoices and destroyng habitats for endangered species should be largely replaced over the landscapes by managements fulfillings multiple benefits @Eyvindson2021. 
 - 
 
 The shortening of the rotation period in Norway spruce forets  might slightly lower the wind and subsequent bark beetle distudrabnces but has limited efficiencies and decreses under climate change [@Zimova2020]

@@ -22,7 +22,9 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 
 # Read datasets:
 # ----------------------------------------
-df.all <- fread("C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
+#df.all <- fread("C:/MyTemp/myGitLab/windDamage/output/df_sim_windRisk.csv")
+df <- fread("/projappl/project_2003256/windDamage/output/final_df_solution8.csv")
+
 
 # Create two regimes: SA and non-SA"
 df.all <- 
