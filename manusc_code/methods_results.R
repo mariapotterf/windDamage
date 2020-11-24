@@ -127,7 +127,11 @@ plot_lineCumul_details <- function() {
 
 p.mean.windRisk.line.npi <-
   df %>% 
+<<<<<<< HEAD
   filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+=======
+  #filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
@@ -164,7 +168,11 @@ p.mean.windRisk.line.npi <-
 # Wind risk over time
 p.mean.windRisk.line.time <-
   df %>% 
+<<<<<<< HEAD
   filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+=======
+  #filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
   group_by(scenSimpl2, 
            year, 
            Management) %>% 
@@ -197,7 +205,10 @@ p.mean.windRisk.line.time <-
         strip.background =element_rect(fill="white", color = NA))
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
 ggarrange(p.mean.windRisk.line.npi, 
           p.mean.windRisk.line.time,  
           ncol = 2, nrow = 1,
@@ -212,6 +223,12 @@ ggarrange(p.mean.windRisk.line.npi,
                             face = "bold", color ="black"))
 
 
+<<<<<<< HEAD
+=======
+# Export png image
+dev.copy(png, paste(getwd(), 'figs', 'risk_mean.png', sep = "/"))
+dev.off()
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
 
 # Top layer standing timber at risk??
 # Plot log volume:
@@ -274,7 +291,11 @@ p.mean.V.log.line.time <-
   facet_wrap(.~scenSimpl2) +
   ylim(0,210) +
   ggtitle("") +
+<<<<<<< HEAD
   xlab("Time/n)") + #
+=======
+  xlab("Time\n ") + #
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
   ylab("Standing log volume\n(mean, m^3)") +
   scale_linetype_manual(values = c("solid",  "dotted")) +
   scale_color_manual(values = cbp1) +
@@ -350,7 +371,11 @@ p.mean.V.pulp.line.time <-
   facet_wrap(.~scenSimpl2) +
   ylim(0,210) +
   ggtitle("") +
+<<<<<<< HEAD
   xlab("Time/n)") + #
+=======
+  xlab("Time\n )") + #
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
   ylab("Standing pulp volume\n(mean, m^3)") +
   scale_linetype_manual(values = c("solid",  "dotted")) +
   scale_color_manual(values = cbp1) +
@@ -455,23 +480,40 @@ df %>%  # .sample
 # -------------------------------------
 # Explain why???
 # ----------------------------------
+<<<<<<< HEAD
 # Tree species
 # tree height
 # Time since thinning
 # open-neighbour
+=======
+
+# Tree species
+# tree height
+# Time since thinning
+# open-neighbor
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
 
 
 # Tree species:
 # -------------------------
+<<<<<<< HEAD
 # Spruce is teh most vulnerable: frequency of spruce
 
 # Calculate the mean # of spruces!!
 
 #p.mean.H_dom.npi <-
+=======
+# Spruce is the most vulnerable: get mean frequency of spruce by scenario
+
+# Calculate the mean # of spruces!!
+
+p.spruce.ratio.npi <-
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
   df %>% 
   filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            NPI, 
+<<<<<<< HEAD
            Management) %>% 
   filter(species == "spruce") %>% 
   tally() %>% 
@@ -479,6 +521,13 @@ df %>%  # .sample
   summarize(mean.m = mean(n)) %>% 
   #summarize(my_y = mean(H_dom))  %>%
   ggplot(aes(y = mean.m, 
+=======
+           Management) %>% #, species
+  filter(species == "spruce") %>% 
+  tally() %>%
+  mutate(spruce_prop = n/1470/21*100)  %>%  # get the proportion of spruce from all stands over 20 years 
+  ggplot(aes(y = spruce_prop, 
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
              x = NPI, 
              shape = Management,
              color = Management,
@@ -489,11 +538,56 @@ df %>%  # .sample
     size = 0.7) +
   geom_point(#position = "stack",
     size = 1) +
+<<<<<<< HEAD
   facet_wrap(.~Management) +
 #  ylim(0,300) +
   ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
   ylab("Tree height\n(mean, dm)") +
+=======
+  facet_wrap(.~scenSimpl2) +
+  ylim(0,35) +
+  ggtitle("") +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Spruce proportion\n(%)") +
+  scale_linetype_manual(values = c("solid",  "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+p.spruce.ratio.time <-
+  df %>% 
+  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% #, species
+  filter(species == "spruce") %>% 
+  tally() %>%
+  mutate(spruce_prop = n/1470/20*100)  %>%  # get the proportion of spruce from all stands over 20 years 
+  ggplot(aes(y = spruce_prop, 
+             x = year, 
+             shape = Management,
+             color = Management,
+             linetype = Management,
+             group = Management,
+             fill = Management)) +
+  geom_line(#position = "stack",
+    size = 0.7) +
+  geom_point(#position = "stack",
+    size = 1) +
+  facet_wrap(.~scenSimpl2) +
+  ylim(0,35) +
+  ggtitle("") +
+  xlab("Time\n") + #
+  ylab("Spruce proportion\n(%)") +
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
   scale_linetype_manual(values = c("solid",  "dotted")) +
   scale_color_manual(values = cbp1) +
   scale_fill_manual(values = cbp1) +
@@ -507,7 +601,11 @@ df %>%  # .sample
 
 
 
+<<<<<<< HEAD
 # H Dom
+=======
+# H_dom
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
 # ---------------------
 p.mean.H_dom.npi <-
   df %>% 
@@ -567,7 +665,11 @@ p.mean.H_dom.time <-
   facet_wrap(.~scenSimpl2) +
   ylim(0,300) +
   ggtitle("") +
+<<<<<<< HEAD
   xlab("Time/n)") + #
+=======
+  xlab("Time\n ") + #
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
   ylab("Tree height\n(mean, dm)") +
   scale_linetype_manual(values = c("solid",  "dotted")) +
   scale_color_manual(values = cbp1) +
@@ -583,5 +685,199 @@ p.mean.H_dom.time <-
 
 
 
+<<<<<<< HEAD
+=======
+# -----------------------
+# Time since thinnning:
+# ------------------------
+# get teh difference by landscape???
+# replace NA by 0?
+# get mean landscape differences by NPI, by time
+# how to calculate the time since thinning? for NPi, for time??
+# calculate weighted mean??
+
+
+p.mean.thin.npi <-
+  df %>% 
+  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  group_by(scenSimpl2, 
+           NPI, 
+           Management,
+           difference) %>% 
+  tally() %>%
+  summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = Management,
+             color = Management,
+             linetype = Management,
+             group = Management,
+             fill = Management)) +
+  geom_line(#position = "stack",
+    size = 0.7) +
+  geom_point(#position = "stack",
+    size = 1) +
+  facet_wrap(.~scenSimpl2) +
+  ylim(0,30) +
+  ggtitle("") +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Years since thinning\n(weigh. mean)") +
+  scale_linetype_manual(values = c("solid",  "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+# Mean thinning over time
+# ------------------
+p.mean.thin.time <-
+  df %>% 
+  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  group_by(scenSimpl2, 
+           year, 
+           Management,
+           difference) %>% 
+  tally()  %>%
+  summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = Management,
+             color = Management,
+             linetype = Management,
+             group = Management,
+             fill = Management)) +
+  geom_line(#position = "stack",
+    size = 0.7) +
+  geom_point(#position = "stack",
+    size = 1) +
+  facet_wrap(.~scenSimpl2) +
+  ylim(0,30) +
+  ggtitle("") +
+  xlab("Time\n ") + #
+  ylab("Years since thinning\n(weigh. mean)") +
+  scale_linetype_manual(values = c("solid",  "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+# ???
+# Or, what is the proportion of stands that get thinned???
+# !!!!???
+
+
+
+# Open_edge frequency
+# ---------------------------
+p.mean.open.edge.npi <-
+  df %>% 
+  filter(scenSimpl2 != "ALL") %>% # Management == "active" &
+  group_by(scenSimpl2, 
+           NPI, 
+           Management,
+           open_edge) %>%
+  tally() %>%
+  filter(open_edge == TRUE) %>% 
+  summarize(my_y = n/1470/20) %>% 
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = Management,
+             color = Management,
+             linetype = Management,
+             group = Management,
+             fill = Management)) +
+  geom_line(#position = "stack",
+    size = 0.7) +
+  geom_point(#position = "stack",
+    size = 1) +
+  facet_wrap(.~scenSimpl2) +
+  ylim(0,2) +
+  ggtitle("") +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Open edge stands\n(%)") +
+  scale_linetype_manual(values = c("solid",  "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+# Mean thinning over time
+# ------------------
+p.mean.open.edge.time <-
+  df %>% 
+  filter(scenSimpl2 != "ALL") %>% # Management == "active" &
+  group_by(scenSimpl2, 
+           year, 
+           Management,
+           open_edge) %>%
+  tally() %>%
+  filter(open_edge == TRUE) %>% 
+  summarize(my_y = n/1470/20) %>% 
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = Management,
+             color = Management,
+             linetype = Management,
+             group = Management,
+             fill = Management)) +
+  geom_line(#position = "stack",
+    size = 0.7) +
+  geom_point(#position = "stack",
+    size = 1) +
+  facet_wrap(.~scenSimpl2) +
+  ylim(0,2) +
+  ggtitle("") +
+  xlab("Time\n ") + #
+  ylab("Open edge stands\n(%)") +
+  scale_linetype_manual(values = c("solid",  "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+# --------------------
+# Plot all together
+# -------------------------
+
+# The log and pulp timber volume over NPI and time at one pot 
+ggarrange(p.spruce.ratio.npi,  p.mean.H_dom.npi,  p.mean.thin.npi,  p.mean.open.edge.npi, 
+          p.spruce.ratio.time, p.mean.H_dom.time, p.mean.thin.time, p.mean.open.edge.time,
+          ncol = 4, nrow = 2,
+          #widths = c(1, 1),
+          common.legend = TRUE,
+          align = c("hv"),
+          legend="bottom",
+         # labels= "AUTO",
+          hjust = -5,
+          vjust = 3,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+>>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
 
 
