@@ -38,7 +38,9 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 
 # Read input data
 # =========================
-df <- fread("/projappl/project_2003256/windDamage/output/final_df_solution8.csv")
+#df <- fread("/projappl/project_2003256/windDamage/output/final_df_solution8.csv")
+df <- fread(paste(getwd(), "output/even_flow/final_df_solution8.csv", sep = "/"))
+
 
 
 # stands geometry
@@ -127,11 +129,7 @@ plot_lineCumul_details <- function() {
 
 p.mean.windRisk.line.npi <-
   df %>% 
-<<<<<<< HEAD
-  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
-=======
   #filter( scenSimpl2 != "ALL") %>% #Management == "active" &
->>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
@@ -168,11 +166,7 @@ p.mean.windRisk.line.npi <-
 # Wind risk over time
 p.mean.windRisk.line.time <-
   df %>% 
-<<<<<<< HEAD
-  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
-=======
-  #filter( scenSimpl2 != "ALL") %>% #Management == "active" &
->>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
+#  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            year, 
            Management) %>% 
@@ -205,10 +199,6 @@ p.mean.windRisk.line.time <-
         strip.background =element_rect(fill="white", color = NA))
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
 ggarrange(p.mean.windRisk.line.npi, 
           p.mean.windRisk.line.time,  
           ncol = 2, nrow = 1,
@@ -223,12 +213,89 @@ ggarrange(p.mean.windRisk.line.npi,
                             face = "bold", color ="black"))
 
 
-<<<<<<< HEAD
-=======
+# ---------------------------------
+# try a plot where they will all be in a same plot: different color lines
+# maybe exclude SA?
+# --------------------------------
+
+#p.mean.windRisk.line.npi <-
+  df %>% 
+  #filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(sum.risk = mean(windRisk))  %>%
+  ggplot(aes(y = sum.risk, 
+             x = NPI, 
+             shape = scenSimpl2,     #interaction(Management,scenSimpl2),
+             color = scenSimpl2,     #interaction(Management,scenSimpl2),
+             linetype = scenSimpl2,  #interaction(Management,scenSimpl2),
+             group = scenSimpl2,     #interaction(Management,scenSimpl2),
+             fill = scenSimpl2 )) +  #interaction(Management,scenSimpl2))) +
+  geom_line(#position = "stack",
+    size = 0.7) +
+  geom_point(#position = "stack",
+    size = 1) #+
+  facet_wrap(.~Management) # + # scenSimpl2
+  ylim(0,0.06) +
+  ggtitle("") +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Wind damage probability\n(mean, %)") +
+  scale_linetype_manual(values = c("solid",  "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+# Wind risk over time
+p.mean.windRisk.line.time <-
+  df %>% 
+  #  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(my.y = mean(windRisk))  %>%
+  ggplot(aes(y = my.y, 
+             x = year, 
+             shape = Management,
+             color = Management,
+             linetype = Management,
+             group = Management,
+             fill = Management)) +
+  geom_line(#position = "stack",
+    size = 0.7) +
+  geom_point(#position = "stack",
+    size = 1) +
+  facet_wrap(.~scenSimpl2) +
+  ylim(0,0.06) +
+  ggtitle("") +
+  xlab("\nTime") + #
+  ylab("Wind damage probability\n(mean, %)") +
+  scale_linetype_manual(values = c("solid",  "dotted")) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+
+
 # Export png image
 dev.copy(png, paste(getwd(), 'figs', 'risk_mean.png', sep = "/"))
 dev.off()
->>>>>>> ee48d1ee34b9d28757a4413774a1f71775676709
 
 # Top layer standing timber at risk??
 # Plot log volume:
