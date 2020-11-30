@@ -368,7 +368,7 @@ ggarrange(p.mean.V.pulp.line.npi, p.mean.V.pulp.line.time,
 
 
 # get summary statistics
-sum_tab<-
+sum_tab_risk<-
   df %>% 
   group_by(scenSimpl2,  
            Management) %>% 
@@ -492,11 +492,10 @@ df %>%
 tot.stand.n = 1470*20
 
 
-# Make plots
+# Make plots for npi and time
 # -----------------------
 p.spruce.ratio.npi <-
   df %>% 
-  #filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
@@ -512,11 +511,10 @@ p.spruce.ratio.npi <-
              fill = scenSimpl2)) +
   geom_line(size = 0.9) +
   facet_wrap(.~Management) +
-
   ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
   ylab("Tree height\n(mean, dm)") +
-  ylim(0,35) +
+  ylim(0,40) +
   ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
   ylab("Spruce proportion\n(%)") +
@@ -549,7 +547,7 @@ p.spruce.ratio.time <-
              fill = scenSimpl2)) +
   geom_line(size = 0.9) +
   facet_wrap(.~Management) +
-  ylim(0,35) +
+  ylim(0,40) +
   ggtitle("") +
   xlab("Time\n") + #
   ylab("Spruce proportion\n(%)") +
@@ -569,27 +567,23 @@ p.spruce.ratio.time <-
 # ---------------------
 p.mean.H_dom.npi <-
   df %>% 
-  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
   summarize(my_y = mean(H_dom))  %>%
   ggplot(aes(y = my_y, 
              x = NPI, 
-             shape = Management,
-             color = Management,
-             linetype = Management,
-             group = Management,
-             fill = Management)) +
-  geom_line(#position = "stack",
-    size = 0.7) +
-  geom_point(#position = "stack",
-    size = 1) +
-  facet_wrap(.~scenSimpl2) +
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  geom_line(size = 0.9) +
+  facet_wrap(.~Management) +
   ylim(0,300) +
   ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
-  ylab("Tree height\n(mean, dm)") +
+  ylab("Tree height\n(mean, cm)") +
   scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
   scale_color_manual(values = cbp1) +
   scale_fill_manual(values = cbp1) +
@@ -606,28 +600,24 @@ p.mean.H_dom.npi <-
 
 p.mean.H_dom.time <-
   df %>% 
-  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            year, 
            Management) %>% 
   summarize(my_y = mean(H_dom ))  %>%
   ggplot(aes(y = my_y, 
              x = year, 
-             shape = Management,
-             color = Management,
-             linetype = Management,
-             group = Management,
-             fill = Management)) +
-  geom_line(#position = "stack",
-    size = 0.7) +
-  geom_point(#position = "stack",
-    size = 1) +
-  facet_wrap(.~scenSimpl2) +
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  geom_line(size = 0.9) +
+  facet_wrap(.~Management) +
   ylim(0,300) +
   ggtitle("") +
   xlab("Time/n)") + #
   xlab("Time\n ") + #
-  ylab("Tree height\n(mean, dm)") +
+  ylab("Tree height\n(mean, cm)") +
   scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
   scale_color_manual(values = cbp1) +
   scale_fill_manual(values = cbp1) +
@@ -654,7 +644,6 @@ p.mean.H_dom.time <-
 
 p.mean.thin.npi <-
   df %>% 
-  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            NPI, 
            Management,
@@ -663,16 +652,13 @@ p.mean.thin.npi <-
   summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
   ggplot(aes(y = my_y, 
              x = NPI, 
-             shape = Management,
-             color = Management,
-             linetype = Management,
-             group = Management,
-             fill = Management)) +
-  geom_line(#position = "stack",
-    size = 0.7) +
-  geom_point(#position = "stack",
-    size = 1) +
-  facet_wrap(.~scenSimpl2) +
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  geom_line(size = 0.9) +
+  facet_wrap(.~Management) +
   ylim(0,30) +
   ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
@@ -693,7 +679,6 @@ p.mean.thin.npi <-
 # ------------------
 p.mean.thin.time <-
   df %>% 
-  filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            year, 
            Management,
@@ -702,16 +687,13 @@ p.mean.thin.time <-
   summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
   ggplot(aes(y = my_y, 
              x = year, 
-             shape = Management,
-             color = Management,
-             linetype = Management,
-             group = Management,
-             fill = Management)) +
-  geom_line(#position = "stack",
-    size = 0.7) +
-  geom_point(#position = "stack",
-    size = 1) +
-  facet_wrap(.~scenSimpl2) +
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  geom_line(size = 0.9) +
+  facet_wrap(.~Management) +
   ylim(0,30) +
   ggtitle("") +
   xlab("Time\n ") + #
@@ -739,7 +721,6 @@ p.mean.thin.time <-
 # ---------------------------
 p.mean.open.edge.npi <-
   df %>% 
-  filter(scenSimpl2 != "ALL") %>% # Management == "active" &
   group_by(scenSimpl2, 
            NPI, 
            Management,
@@ -749,16 +730,13 @@ p.mean.open.edge.npi <-
   summarize(my_y = n/1470/20) %>% 
   ggplot(aes(y = my_y, 
              x = NPI, 
-             shape = Management,
-             color = Management,
-             linetype = Management,
-             group = Management,
-             fill = Management)) +
-  geom_line(#position = "stack",
-    size = 0.7) +
-  geom_point(#position = "stack",
-    size = 1) +
-  facet_wrap(.~scenSimpl2) +
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  geom_line(size = 0.9) +
+  facet_wrap(.~Management) +
   ylim(0,2) +
   ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
@@ -779,7 +757,6 @@ p.mean.open.edge.npi <-
 # ------------------
 p.mean.open.edge.time <-
   df %>% 
-  filter(scenSimpl2 != "ALL") %>% # Management == "active" &
   group_by(scenSimpl2, 
            year, 
            Management,
@@ -789,16 +766,13 @@ p.mean.open.edge.time <-
   summarize(my_y = n/1470/20) %>% 
   ggplot(aes(y = my_y, 
              x = year, 
-             shape = Management,
-             color = Management,
-             linetype = Management,
-             group = Management,
-             fill = Management)) +
-  geom_line(#position = "stack",
-    size = 0.7) +
-  geom_point(#position = "stack",
-    size = 1) +
-  facet_wrap(.~scenSimpl2) +
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  geom_line(size = 0.9) +
+  facet_wrap(.~Management) +
   ylim(0,2) +
   ggtitle("") +
   xlab("Time\n ") + #
@@ -820,18 +794,122 @@ p.mean.open.edge.time <-
 # -------------------------
 
 # The log and pulp timber volume over NPI and time at one pot 
-ggarrange(p.spruce.ratio.npi,  p.mean.H_dom.npi,  p.mean.thin.npi,  p.mean.open.edge.npi, 
-          p.spruce.ratio.time, p.mean.H_dom.time, p.mean.thin.time, p.mean.open.edge.time,
-          ncol = 4, nrow = 2,
+# ggarrange(p.spruce.ratio.npi,  p.mean.H_dom.npi,  p.mean.thin.npi,  p.mean.open.edge.npi, 
+#           p.spruce.ratio.time, p.mean.H_dom.time, p.mean.thin.time, p.mean.open.edge.time,
+#           ncol = 4, nrow = 2,
+#           #widths = c(1, 1),
+#           common.legend = TRUE,
+#           align = c("hv"),
+#           legend="bottom",
+#          # labels= "AUTO",
+#           hjust = -5,
+#           vjust = 3,
+#           font.label = list(size = 10, 
+#                             face = "bold", color ="black"))
+
+
+windows(width = 7.4, height = 10)
+ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
+          p.mean.H_dom.npi,   p.mean.H_dom.time,
+          p.mean.thin.npi,    p.mean.thin.time,
+          p.mean.open.edge.npi, p.mean.open.edge.time,
+          ncol = 2, nrow = 4,
           #widths = c(1, 1),
           common.legend = TRUE,
           align = c("hv"),
           legend="bottom",
-         # labels= "AUTO",
+          labels= "AUTO",
           hjust = -5,
           vjust = 3,
           font.label = list(size = 10, 
                             face = "bold", color ="black"))
 
 
+# -------------------------------
+# Get summary statistic tables
+# ------------------------------
+# get summary statistics
+#sum_tab_vars<-
+  df %>% 
+  group_by(scenSimpl2,  
+           Management) %>% 
+  summarize(mean_H_dom = round(mean(H_dom),1),
+            sd_H_dom = round(sd(H_dom),1) ) #, 
+            #mean_pulp = round(mean(V_strat_max_pulp),1),
+            #sd_pulp = round(sd(V_strat_max_pulp), 1))
 
+
+
+
+# ------------------------------------
+# Make a plot of volume development by NPI and Years
+# -----------------------------------
+
+#p.mean.V.pulp.line.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year,
+           NPI, 
+           Management) %>% 
+  filter(Management != "Set Aside") %>% 
+  summarize(my_y = mean(V_strat_max_log)) %>%
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = interaction(scenSimpl2, Management),     
+             color = interaction(scenSimpl2, Management),   
+             linetype = interaction(scenSimpl2, Management),  
+             group = interaction(scenSimpl2, Management),     
+             fill = interaction(scenSimpl2, Management) )) +  
+  geom_line(    size = 0.9) +
+  facet_wrap(.~year)  + # scenSimpl2
+  ylim(0,250) +
+  ggtitle("") #+
+  xlab("Time\n") + #
+  ylab("Standing pulp volume\n(mean, m^3)") +
+  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+  
+  
+  
+# CHeck wind risk over time  
+  df %>% 
+    group_by(scenSimpl2, 
+             year,
+             NPI, 
+             Management) %>% 
+    filter(Management != "Set Aside") %>% 
+    summarize(my_y = mean(windRisk)) %>%
+    ggplot(aes(y = my_y, 
+               x = NPI, 
+               shape = interaction(scenSimpl2, Management),     
+               color = interaction(scenSimpl2, Management),   
+               linetype = interaction(scenSimpl2, Management),  
+               group = interaction(scenSimpl2, Management),     
+               fill = interaction(scenSimpl2, Management) )) +  
+    geom_line(    size = 0.9) +
+    facet_wrap(.~year)  + # scenSimpl2
+    #ylim(0,250) +
+    ggtitle("") #+
+  xlab("Time\n") + #
+    ylab("Standing pulp volume\n(mean, m^3)") +
+    scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+    scale_color_manual(values = cbp1) +
+    scale_fill_manual(values = cbp1) +
+    labs(shape = "Management",
+         color = "Management",
+         linetype = "Management",
+         fill = "Management") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.position = "right",
+          strip.background =element_rect(fill="white", color = NA))
+  
+  
+  
