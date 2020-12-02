@@ -22,6 +22,7 @@ library(stringr)
 library(gridExtra)
 library(tidyr)
 library(ggpubr)
+library(broom)
 #library(RColorBrewer)
 
 
@@ -391,24 +392,24 @@ sum_tab_risk<-
 
 # sample the data
 # Sample  random rows:
-df1 <- filter(df,  scenSimpl2 != "ALL")
+#df1 <- filter(df,  scenSimpl2 != "ALL")
 
 set.seed(1)
 # create the vector index of the rows to select from original large dataset
-sample_row <- sample(1:nrow(df1), 100000, replace=F)  # 100000 is number of rows to subset
+sample_row <- sample(1:nrow(df), 50000, replace=F)  # 100000 is number of rows to subset
 # subset the selected rows from the original large.df
-df.sample <- df1[sample_row,]
+df.sample <- df[sample_row,]
 
 
 
 # Make correlation plot: how does timber volume predict wind risk??
-ggplot(df.sample, aes(x = V,
-                      y = windRisk,
-                      group = scenNumb,
-                      color = scenNumb)) + 
-  geom_point() +
-  geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 3)) + 
-  facet_grid(scenSimpl2~Management)
+#ggplot(df.sample, aes(x = V,
+ #                     y = windRisk,
+  #                    group = scenNumb,
+   #                   color = scenNumb)) + 
+  #geom_point() +
+  #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 3)) + 
+  #facet_grid(scenSimpl2~Management)
 
 
 
@@ -420,16 +421,106 @@ df.sample %>%
             # group = scenSimpl2,
              #color = scenSimpl2,
              fill = scenSimpl2
-             )) + 
+             )) #+ 
   #geom_jitter(size = 0.3, alpha = 0.5) #+
   #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 2)) %>% #+ 
   #facet_grid(scenSimpl2 ~ scenNumb)
 
 
-ggplot(df.sample, aes(x = windRisk)) +
-  geom_density()
+# --------------------------
+# Make models by groups:
+# does  the volume correlate with risk?
+# ------------------------
+# https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r
+
+fitted_models <- 
+  df.sample %>% 
+  group_by(NPI) %>% 
+  do(model = lm(windRisk ~ year, data = .))
 
 
+# Check models: 
+fitted_models$model
+
+
+# Retrieve the coefficients
+fitted_models %>% broom::augment(model)
+
+
+# Get summary statistics
+fitted_models %>% broom::glance(model)
+
+
+# plot regression lines by group
+df.sample %>% 
+  #filter(Management == "Active") %>% 
+  ggplot(aes(x =  V, #V,
+             y = windRisk, #,
+             group = Management,
+             color = Management  )) + 
+ # geom_jitter(size = 0.1, alpha = 0.9) +
+  geom_smooth(method=glm, formula = y ~ x^2, se=FALSE)  + 
+  facet_grid(. ~ scenSimpl2 )
+
+  
+# plot regression lines by group
+# for pulp
+p.lm.pulp <- 
+  df.sample %>% 
+  #filter(Management == "Active") %>% 
+  ggplot(aes(x =  V_strat_max_pulp, #V,
+             y = windRisk, #,
+             group = scenSimpl2,
+             color = scenSimpl2  )) + 
+  ylim(0,0.09) +
+  # geom_jitter(size = 0.1, alpha = 0.9) +
+  geom_smooth(method=glm, formula = y ~ poly(x,2), se=FALSE)  + 
+  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+  scale_color_manual(values = cbp1) +
+  facet_grid(. ~ Management )
+
+
+
+
+p.lm.log <- 
+  df.sample %>% 
+  #filter(Management == "Active") %>% 
+  ggplot(aes(x =  V_strat_max_log, #V,
+             y = windRisk, #,
+             group = scenSimpl2,
+             color = scenSimpl2  )) + 
+  ylim(0,0.09) +
+  # geom_jitter(size = 0.1, alpha = 0.9) +
+  geom_smooth(method=glm, formula = y ~ poly(x,2), se=FALSE)  + 
+  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+  scale_color_manual(values = cbp1) +
+  facet_grid(. ~ Management )
+
+
+
+# ------------------------
+
+windows(width = 7, height = 2.5)
+ggarrange(p.lm.pulp, p.lm.log, 
+          #ncol = 2, nrow = 2,
+          #widths = c(1, 1),
+          common.legend = TRUE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          vjust = 3,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+
+
+
+
+
+
+
+  
 # Risk based on  log volume
 df %>%  # .sample
   filter(Management == "Active"  & scenSimpl2 != "ALL") %>% 
