@@ -145,68 +145,34 @@ df.out1 <-
 
 # test if it ok well calculated??
 # Subset two regimes and recalculate teh THIN values:
-df.out1 %>% 
-  filter(id == 13239722 &  avohaakut == "LRT30") %>%   # (avohaakut == "CCF_3_45" )) %>%  # | avohaakut == "LRT30"
-  arrange(year) %>% 
-  dplyr::select(id, year, THIN, THIN_filled_lagged, difference, avohaakut, since_thin) #%>%
+#df.out1 %>% 
+#  filter(id == 13239722 &  avohaakut == "LRT30") %>%   # (avohaakut == "CCF_3_45" )) %>%  # | avohaakut == "LRT30"
+ # arrange(year) %>% 
+  #dplyr::select(id, year, V, Harvested_V, cash_flow, THIN, THIN_filled_lagged, difference, avohaakut, since_thin, branching_new) #%>%
 
 
 
+# Seems correct. If there are NA in thgus case, it means that there is no volume to be harvested as it was already harevsted 
 
-
-
-
-# Create two regimes: SA and non-SA"
-df.all <- 
-  df.all %>% 
+# ----------------------------------
+# Create two regimes: SA and non-SA
+# ----------------------------------
+df.out1 <- 
+  df.out1 %>% 
   mutate(twoRegm = case_when(avohaakut == "SA" ~ "SA",
                              avohaakut != "SA" ~ "no_SA"))
 
 
 
+# Export data
+# 
+fwrite(df.out1, "C:/MyTemp/myGitLab/windDamage/manuscript_regimes/output/df_sim_raster.csv")
 
 
 
 
-
-
-
-
-
-
-
-# Dummy example: filter all id by group
-group = c("a", "a", "a",
-          "b", "b", "b",
-          "c", "c")
-val = c(1,2,3,
-        3,4,5,
-        1,3)
-
-dd <- data.frame(group,
-                 val)
-
-
-dd %>% 
-  group_by(group) %>% 
-  filter(all(val))
-
-# Group by IDs and then check which ids have all groups
-dd %>%
-  group_by(val) %>%
-  filter(n_distinct(group) == n_distinct(dd$group))
-
-
-
-#group   val
-#<fct> <dbl>
-#1 a         3
-#2 b         3
-#3 c         3
 
 
 
 # Ask Kyle if it is somehow possible to have the same regimes for all stands?
 
-# Read and merge enrivromnetal conditions
-# --------------------------------------------
