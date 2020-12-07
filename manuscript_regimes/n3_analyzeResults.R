@@ -164,3 +164,114 @@ df %>%
         legend.position = "right",
         strip.background =element_rect(fill="white", color = NA)) +
   facet_wrap(.~year)
+
+
+# Make a line plot of the means over years??
+df %>% 
+  group_by(modif,
+           year) %>% 
+  summarize(mean.risk = mean(windRisk))  %>%
+  ggplot(aes(y = mean.risk, 
+             x = year,
+             group = modif,
+             color = modif,
+             linetype = modif)) + #, 
+  geom_line() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+# standardize by to 'no adjustement'? 
+
+
+# Calculate stand-wise differences in wind risk over years
+df <- df %>% 
+  group_by(id, avohaakut) %>% 
+  arrange(id) %>% 
+  mutate(risk.diff = windRisk - lag(windRisk)) # %>% 
+#  dplyr::select(id, avohaakut, year, V, windRisk, Harvested_V, THIN, risk.diff) %>% 
+ # print(n=40)
+
+
+# differences between groups? 
+
+df %>% 
+group_by(modif,
+         year) %>% 
+  summarize(mean.diff = mean(risk.diff))  %>%
+  ggplot(aes(y = mean.diff, 
+             x = year,
+             group = modif,
+             color = modif,
+             linetype = modif)) + #, 
+  geom_line() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+# order by differences, x = order number, y = ordered fifference
+
+#
+rep_time = nrow(df)/length(unique(df$year))
+
+df %>% 
+#  filter(modif == "extension") %>% 
+  group_by(id, avohaakut) %>% 
+  arrange(id, avohaakut, risk.diff) %>% 
+  dplyr::mutate(n_ord = 1:20) %>%   # add ordenr numbers, this will recycle teh values
+  #dplyr::select(id, avohaakut, year, V, windRisk, Harvested_V, THIN, risk.diff, n_ord)  %>% 
+  ungroup() %>% 
+  group_by(modif, n_ord) %>% 
+  summarize(mean.diff = mean(risk.diff, na.rm = TRUE)) %>% 
+  ggplot(aes(y = mean.diff,
+             x = n_ord,
+             linetype = modif,
+             group = modif,
+             color = modif)) +
+  geom_line(lwd = 1)
+
+
+
+# Heck the changes within longer extension times?
+# need to classify the +/- times
+df.rf <- 
+  df %>%
+  filter(mainRegime == "RF") %>% 
+  mutate(change_time = case_when(
+    grepl("15", avohaakut) ~ "_15",
+    grepl("5",  avohaakut) ~ "_5",
+    grepl("10", avohaakut) ~ "_10",
+    grepl("30", avohaakut) ~ "_30",
+    grepl("20", avohaakut) ~ "_20"))
+
+
+# Get +- times for CCF
+# Filter only basic CCF that I do not overcomplicated ho to make 
+# a new category of the postponing
+df.ccf0 <- 
+  df %>% 
+  filter(avohaakut %in% c("CCF_1","CCF_2","CCF_3","CCF_4")) %>%
+  mutate(change_time = 0)
+
+# Make the new time change category for CCF_X_XX
+df.ccf.x <- df %>% 
+  filter(mainRegime == "CCF" & !avohaakut %in% c("CCF_1","CCF_2","CCF_3","CCF_4")) %>% 
+  
+  
+# !!!! complete from here!!!
+
+# Make dummy example
+
+# Get the extent number to the new columns
+# Make this only for RF, as could be easier for the CCF 
+type = c("S_5_15", 'cc_10', "c_1_5", "c_5", 'cm_2_0', "cc", "bb_15")
+
+dd <-data.frame(type)
+
+dd %>% 
+  mutate(ch_num = case_when(grepl("15", type) ~ "_15",
+                            grepl("5", type) ~ "_5"))
+         
