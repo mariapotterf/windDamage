@@ -34,11 +34,16 @@ library(RColorBrewer)
 df <- data.table::fread("C:/MyTemp/myGitLab/windDamage/manuscript_regimes/output/df_sim_raster.csv", 
                             data.table=FALSE)
 
-unique(df$id) # 640 stands
+# unique(df$id) # 640 stands
 
 
 # add open-edge values
 df$open_edge = "TRUE"
+
+
+# Or, generate random values
+#df %>% 
+#  mutate(pop = sample(c("T", "F"), n(), replace = TRUE))
 
 
 
@@ -147,6 +152,21 @@ coefficients(windRisk.m)  # the open_edge is coefficient #8
 #windRisk.m.open.up$coefficients[8]  <- windRisk.m$coefficients[8] + 0.095  
 
 
+# Create random sample of open TRUE or FALSE to see if tehre is effect?
+# https://stackoverflow.com/questions/29884432/dplyr-integer-sampling-within-mutate
+# --------------------------
+#library(dplyr)
+#set.seed(0)
+
+#Dummy data.frame to test
+# ---------
+
+#df <- tbl_df(data.frame(x = rep(1:3, each = 4)))
+
+
+# ----------------------
+
+
 # For temperature sum, I have single value: not variabilit over the landscape: 1299.273
 df.all$windRisk <- predict.glm(windRisk.m,
                                subset(df.all, select = glm.colnames),
@@ -155,7 +175,52 @@ df.all$windRisk <- predict.glm(windRisk.m,
 # Check how values looks like: 
 range(df.all$windRisk, na.rm = T) # 
 
+
+
+# Classify data
+# replace all NA in volume by 0 - because not volume is available there
+df<- 
+  df.all %>% 
+  dplyr::mutate(V_stand_log = replace_na(V_stand_log, 0)) %>% 
+  dplyr::mutate(V_stand_pulp = replace_na(V_stand_pulp, 0)) %>% 
+  dplyr::mutate(V_strat_max = replace_na(V_strat_max, 0)) %>% 
+  dplyr::mutate(V_strat_max_log = replace_na(V_strat_max_log, 0)) %>% 
+  dplyr::mutate(V_strat_max_pulp = replace_na(V_strat_max_pulp, 0)) %>% 
+  dplyr::mutate(Harvested_V_log_under_bark = replace_na(Harvested_V_log_under_bark, 0)) %>% 
+  dplyr::mutate(Harvested_V_pulp_under_bark = replace_na(Harvested_V_pulp_under_bark, 0)) 
+
+
+# Replace the no_SA values in TwoRegms: change to Management
+df <- 
+  df %>% 
+  dplyr::mutate(Management = as.character(twoRegm))%>% # copy the columns
+    #distinct(Management)
+  dplyr::mutate(Management = replace(Management, # replace the values
+                                     Management == "no_SA", "Active")) %>%
+  dplyr::mutate(Management = replace(Management, # replace the values
+                                     Management == "SA", "Set Aside"))
+
+
+
+# Reclassify teh regimes
+# Reclassify names of tables:
+# continuous, shortening, extecsion, green tree ret
+# I already have define if thining occurs or not, so maybe keep this simple
+df<- 
+  df %>% 
+  mutate(modif = case_when(grepl("CCF_", avohaakut) ~ "CCF",
+                           grepl("SR", avohaakut)   ~ "shortening",
+                           grepl("TTN", avohaakut)  ~ "GTR",
+                           grepl("LRT", avohaakut)  ~ "extension",
+                           grepl("THwoTM20", avohaakut) ~ "shortening",
+                           grepl("THNS", avohaakut) ~ "GTR",
+                           grepl("THwoT10", avohaakut) ~ "extension",
+                           grepl("LRH", avohaakut)  ~ "extension",
+                           grepl("SA", avohaakut)   ~ "SA",
+                           TRUE ~ "no"))
+
+
 # Export data
-data.table::fwrite(df.all, 
+data.table::fwrite(df, 
                    "C:/MyTemp/myGitLab/windDamage/manuscript_regimes/output/df_sim_windRisk.csv")
 
