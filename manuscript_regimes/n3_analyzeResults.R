@@ -56,29 +56,6 @@ df.geom <- subset(df.geom, id %in% unique(df$id))
 
 
 
-# replace all NA in volume by 0 - because not volume is available there
-df<- 
-  df %>% 
-  dplyr::mutate(V_stand_log = replace_na(V_stand_log, 0)) %>% 
-  dplyr::mutate(V_stand_pulp = replace_na(V_stand_pulp, 0)) %>% 
-  dplyr::mutate(V_strat_max = replace_na(V_strat_max, 0)) %>% 
-  dplyr::mutate(V_strat_max_log = replace_na(V_strat_max_log, 0)) %>% 
-  dplyr::mutate(V_strat_max_pulp = replace_na(V_strat_max_pulp, 0)) %>% 
-  dplyr::mutate(Harvested_V_log_under_bark = replace_na(Harvested_V_log_under_bark, 0)) %>% 
-  dplyr::mutate(Harvested_V_pulp_under_bark = replace_na(Harvested_V_pulp_under_bark, 0)) 
-
-
-# Replace the no_SA values in TwoRegms: change to Management
-df <- 
-  df %>% 
-  dplyr::mutate(Management = twoRegm) %>% # copy the columns 
-  dplyr::mutate(Management = replace(Management, # replace the values
-                                     Management == "no_SA", "Active")) %>%
-  dplyr::mutate(Management = replace(Management, # replace the values
-                                     Management == "SA", "Set Aside"))
-
-
-
 
 # --------------------------
 # Define the plotting 
@@ -111,7 +88,7 @@ cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
 
 # filter CCF, keep only one, keep all RF
 # ---------------------------
-unique(df$branching_new)
+#unique(df$branching_new)
   
   
 # Keep regimes, define them as factors to keep order
@@ -129,21 +106,6 @@ keep.rgms <- c("CCF_1",                      # CCF, no
                "LRH5", "LRH10", "LRH15", "LRH30", # BAU longer, no thin
                "SA"  )                       # SA
 
-# Reclassify names of tables:
-# continuous, shortening, extecsion, green tree ret
-# I already have define if thining occurs or not, so maybe keep this simple
-df<- 
-  df %>% 
-  mutate(modif = case_when(grepl("CCF_", avohaakut) ~ "CCF",
-                           grepl("SR", avohaakut)   ~ "shortening",
-                           grepl("TTN", avohaakut)  ~ "GTR",
-                           grepl("LRT", avohaakut)  ~ "extension",
-                           grepl("THwoTM20", avohaakut) ~ "shortening",
-                           grepl("THNS", avohaakut) ~ "GTR",
-                           grepl("THwoT10", avohaakut) ~ "extension",
-                           grepl("LRH", avohaakut)  ~ "extension",
-                           grepl("SA", avohaakut)   ~ "SA",
-                           TRUE ~ "no"))
 
 # Compare groups between themselves
 df %>%   
@@ -241,11 +203,14 @@ df.rf <-
   df %>%
   filter(mainRegime == "RF") %>% 
   mutate(change_time = case_when(
-    grepl("15", avohaakut) ~ "_15",
-    grepl("5",  avohaakut) ~ "_5",
-    grepl("10", avohaakut) ~ "_10",
-    grepl("30", avohaakut) ~ "_30",
-    grepl("20", avohaakut) ~ "_20"))
+    grepl("15", avohaakut) ~ "15",
+    grepl("5",  avohaakut) ~ "5",
+    grepl("10", avohaakut) ~ "10",
+    grepl("30", avohaakut) ~ "30",
+    grepl("20", avohaakut) ~ "20")) %>% 
+  mutate(change_time = replace_na(change_time, 0)) %>% 
+  mutate(change_time = as.character(change_time))
+    
 
 
 # Get +- times for CCF
@@ -254,24 +219,109 @@ df.rf <-
 df.ccf0 <- 
   df %>% 
   filter(avohaakut %in% c("CCF_1","CCF_2","CCF_3","CCF_4")) %>%
-  mutate(change_time = 0)
+  mutate(change_time = 0) %>%  # remove 'type' columns
+  mutate(change_time = as.character(change_time))
 
 # Make the new time change category for CCF_X_XX
-df.ccf.x <- df %>% 
+df.ccf.x <- 
+  df %>% 
   filter(mainRegime == "CCF" & !avohaakut %in% c("CCF_1","CCF_2","CCF_3","CCF_4")) %>% 
+ # mutate(help_col = avohaakut) %>%  # Create new colums that I will remove afterwards
+  mutate(new_col = str_replace(avohaakut, "F_", ""))  %>%  # replace the part of string to get rid of _
+  separate(new_col, c("type", "change_time"), sep = "_") %>% 
+  dplyr::select(!type) %>%     #
+  mutate(change_time = as.character(change_time))
+
   
   
-# !!!! complete from here!!!
+# Merge the three columns together
+df2 <- rbind(df.rf, df.ccf0, df.ccf.x)
 
-# Make dummy example
+df2$change_time <-factor(df2$change_time, 
+                         levels = c("0",  "5",  "10", "15","20", "25","30", "35", "40", "45"))
 
-# Get the extent number to the new columns
-# Make this only for RF, as could be easier for the CCF 
-type = c("S_5_15", 'cc_10', "c_1_5", "c_5", 'cm_2_0', "cc", "bb_15")
 
-dd <-data.frame(type)
+# Check wind risk for avohaakut that have progress in time
+# select the regime, shorten/longer and delay time
+p.ext <- df2 %>% 
+  filter(modif == "extension") %>%
+  group_by(change_time, avohaakut, modif) %>%
+  summarize(mean_risk = mean(windRisk, na.rm = TRUE))  %>% 
+  ggplot(aes(x = change_time,
+             y = mean_risk )) +#,
+             #group = change_time)) +
+  geom_boxplot() +
+  ylim(0, 0.03) +
+  ggtitle("Extension")
+ # facet_wrap(.~modif)
 
-dd %>% 
-  mutate(ch_num = case_when(grepl("15", type) ~ "_15",
-                            grepl("5", type) ~ "_5"))
-         
+p.short <- df2 %>% 
+  filter(modif == "shortening") %>%
+  group_by(change_time, avohaakut, modif) %>%
+  summarize(mean_risk = mean(windRisk, na.rm = TRUE))  %>% 
+  ggplot(aes(x = change_time,
+             y = mean_risk )) +#,
+  #group = change_time)) +
+  geom_boxplot() +
+  ylim(0, 0.03) +
+  ggtitle("Shortening")
+
+p.cc <- df2 %>% 
+  filter(modif == "CC") %>%
+  group_by(change_time, avohaakut, modif) %>%
+  summarize(mean_risk = mean(windRisk, na.rm = TRUE))  %>% 
+  ggplot(aes(x = change_time,
+             y = mean_risk )) +#,
+  #group = change_time)) +
+  geom_boxplot() +
+  ylim(0, 0.03) +
+  ggtitle("CC")
+
+
+
+
+
+
+
+
+# Not means, just values
+
+df2 %>% 
+  filter(modif == "extension" | modif == "shortening"| modif == "no")  %>%
+  group_by(change_time, avohaakut, modif) %>%
+  summarize(mean_risk = mean(windRisk, na.rm = TRUE))  %>% 
+  ggplot(aes(x = change_time,
+             y = mean_risk )) + #, #+ #,
+            # y = windRisk, 
+             #group = modif,
+             #fill = change_time)) +#,
+  #group = change_time)) +
+  geom_boxplot() +
+  facet_wrap(.~modif) +
+  ylim(0, 0.05) +
+  theme(legend.position = "bottom")
+  #ggtitle("CC")
+
+
+
+
+
+
+
+
+# Prin plots
+windows(width = 7, height = 2.5)
+ggarrange(p.ext, p.short, p.cc, 
+          ncol = 3, nrow = 1,
+          #widths = c(1, 1),
+          common.legend = TRUE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          vjust = 3,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+
+
