@@ -42,8 +42,8 @@ df$open_edge = "TRUE"
 
 
 # Or, generate random values
-#df %>% 
-#  mutate(pop = sample(c("T", "F"), n(), replace = TRUE))
+#df <- df %>% 
+  #mutate(open_edge = sample(c("TRUE", "FALSE"), n(), replace = TRUE))
 
 
 
@@ -218,6 +218,19 @@ df<-
                            grepl("LRH", avohaakut)  ~ "extension",
                            grepl("SA", avohaakut)   ~ "SA",
                            TRUE ~ "no"))
+
+
+
+# CHeck how wind risk looks like?
+# Compare groups between themselves
+df %>%   
+  ggplot(aes(y = windRisk, 
+             x = modif)) + #, 
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
 
 
 # Export data
