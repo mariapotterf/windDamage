@@ -309,7 +309,7 @@ df2 %>%
 
 
 
-# Prin plots
+# Print plots
 windows(width = 7, height = 2.5)
 ggarrange(p.ext, p.short, p.cc, 
           ncol = 3, nrow = 1,
