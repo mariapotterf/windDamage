@@ -27,5 +27,8 @@ g = st_make_grid(df.watershed,
 # Convert st object to s objects
 g2<- st_as_sf(g)
 
+# Subset 640 stands to be continuous
+g_640 <- g[1:640] #, nrow = 1:640)
+
 # Export the new file
 st_write(g2, paste( getwd(), "manuscript_regimes/output/hexa.shp", sep = "/"))
