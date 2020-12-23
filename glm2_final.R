@@ -270,7 +270,8 @@ tot.area = as.numeric(sum(df.geom$area))
 # Read NPI values:
 # -------------------------
 # get the NPVI&NPI values over scenarios 
-df.npi <- fread("C:/MyTemp/myGitLab/windDamage/params/MF_NPI.csv")
+#df.npi <- fread("C:/MyTemp/myGitLab/windDamage/params/MF_NPI.csv")
+df.npi <- read.csv("C:/MyTemp/myGitLab/windDamage/params/MF_NPI.csv")
 
 # reorganize teh data to correspond to simulated scenarios:
 df.npi <- 
@@ -278,7 +279,7 @@ df.npi <-
   rename(scenario = Type) %>%   # rename Type to scenario
   mutate(scenario = gsub("not_CCF", "RF", scenario)) %>% 
   tidyr::separate(scenario,   # Separate text from the number
-                  into = c("scenSimpl2", "scenNumb"), 
+                  into = c("simpleScen", "scenNumb"), 
                   sep = "(?<=[A-Za-z])(?=[0-9])") %>% 
   dplyr::select(-TypeSimple) %>% 
   mutate(scenNumb = as.numeric(scenNumb)) %>% 
@@ -302,7 +303,8 @@ df <-
                    #windSpeed, 
                    PEAT.v )) %>% 
                    #tempSum)) 
-   left_join(df.npi, by = c("scenSimpl2", "scenNumb"))
+   left_join(df.npi, 
+             by = c("simpleScen", "scenNumb"))
 
 
 # Complete factors:
@@ -320,7 +322,7 @@ hist(df.geom$area/10000)
 # Calculate the % of SA and add to table:
 df.SA_prop <-
   df %>% 
-  group_by(scenSimpl2, scenNumb, avohaakut) %>% 
+  group_by(simpleScen, scenNumb, avohaakut) %>% 
   distinct(id) %>% 
   summarise(stands_n = n()) %>%
   filter(avohaakut == "SA") %>% 
@@ -331,7 +333,7 @@ df.SA_prop <-
 # Add SA % (frequency) to the simulated data table
 df <- 
   df %>% 
-  left_join(df.SA_prop, by = c("scenSimpl2", "scenNumb"))
+  left_join(df.SA_prop, by = c("simpleScen", "scenNumb"))
 
 # export simplified table
 
