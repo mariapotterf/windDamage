@@ -40,7 +40,7 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 # Read input data
 # =========================
 #df <- fread("/projappl/project_2003256/windDamage/output/final_df_solution8.csv")
-df <- fread(paste(getwd(), "output/even_flow/final_df_solution8_2.csv", sep = "/"))
+df <- fread(paste(getwd(), "output/even_flow/final_df_solution8_3.csv", sep = "/"))
 
 
 
@@ -177,7 +177,7 @@ p.mean.windRisk.line.time2 <-
   group_by(scenSimpl2, 
            year, 
            Management) %>% 
-  summarize(my.y = mean(windRisk))  %>%
+  summarize(my.y = mean(windRisk)) %>%
   ggplot(aes(y = my.y, 
              x = year, 
              shape = scenSimpl2,     
@@ -381,10 +381,10 @@ sum_tab_risk<-
   df %>% 
   group_by(scenSimpl2,  
            Management) %>% 
-  summarize(mean_log = round(mean(V_strat_max_log),1),
-            sd_log = round(sd(V_strat_max_log),1), 
+  summarize(mean_log = round(mean(V_strat_max_log),  1),
+            sd_log = round(sd(V_strat_max_log),      1), 
             mean_pulp = round(mean(V_strat_max_pulp),1),
-            sd_pulp = round(sd(V_strat_max_pulp), 1))
+            sd_pulp = round(sd(V_strat_max_pulp),    1))
   
 
 
@@ -732,7 +732,7 @@ p.mean.H_dom.time <-
 
 
 # -----------------------
-# Time since thinnning:
+# Time since thinning:
 # ------------------------
 # get teh difference by landscape???
 # replace NA by 0?
@@ -922,6 +922,100 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
           vjust = 3,
           font.label = list(size = 10, 
                             face = "bold", color ="black"))
+
+
+
+
+# CHeck the open_ edge counts over time??
+
+
+#p.mean.open.edge.time <-
+  df %>% 
+    filter(scenNumb == 10) %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management,
+           open_edge) %>%
+  tally() %>%
+  filter(open_edge == TRUE) %>% 
+  summarize(my_y = n ) %>% # /1470/20 
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  geom_line(size = 0.9) +
+  facet_wrap(.~Management) +
+ # ylim(0,2) +
+  ggtitle("") +
+  xlab("Time\n ") + #
+  ylab("Open edge stands\n(%)") +
+  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+# how does the range of tree height changes oevr time???
+  # get range of values, does it lowers ove time???
+
+  df %>% 
+    group_by(scenSimpl2, 
+             NPI, 
+             Management ) %>%  #,
+    #open_edge) %>%
+    summarise(H_min = min(H_dom, na.rm = T),
+              H_max = max(H_dom, na.rm = T)) %>% 
+    mutate(H_diff = H_max - H_min) %>% 
+    ggplot(aes(y = H_diff, 
+               x = NPI, 
+               shape = scenSimpl2,
+               color = scenSimpl2,
+               linetype = scenSimpl2,
+               group = scenSimpl2,
+               fill = scenSimpl2)) +
+    geom_line(size = 0.9) +
+    facet_wrap(.~Management) + #+
+    ylim(0, 350)
+  
+  
+  
+  
+  
+  
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management ) %>%  #,
+           #open_edge) %>%
+  summarise(H_min = min(H_dom, na.rm = T),
+            H_max = max(H_dom, na.rm = T)) %>% 
+  mutate(H_diff = H_max - H_min) %>% 
+  ggplot(aes(y = H_diff, 
+             x = year, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  geom_line(size = 0.9) +
+  facet_wrap(.~Management) + #+
+  ylim(0, 350)
+  
+  
+# How to illustrate teh difference in tre heights distributions over time??
+  
+
+
 
 
 # -------------------------------
