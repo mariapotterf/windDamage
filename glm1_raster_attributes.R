@@ -106,7 +106,7 @@ df.raster <- df.geom
 st_geometry(df.raster) <-NULL
 
 
-fwrite(df.raster, "C:/MyTemp/myGitLab/windDamage/output/df_glm_raster.csv")
+fwrite(df.raster, "C:/MyTemp/myGitLab/windDamage/output/even_flow/df_glm_raster.csv")
 
 
 
