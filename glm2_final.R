@@ -211,9 +211,12 @@ range(df.all$windRisk)  # na.rm = T
 # Add string with indication of the optimla scenarioL: 0-20 from teh SA%
 # --------------------------------------
 # Split the string with numbers and characters into string and numbers:
+# Change the 
 # -----------------------------------------------
-df.all <- 
+df.all2 <- 
   df.all %>% 
+  mutate(scenario = gsub("./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1", '', scenario)) %>% 
+  mutate(landscape = gsub("./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1", '', landscape)) %>% 
   tidyr::extract(scenario, 
                  c('scenSimpl2', 'scenNumb'), 
                  '(.*?)(\\d+)', 
@@ -235,8 +238,8 @@ df.all <-
 # ---------------------------------------
 
 # Create two regimes: SA and non-SA"
-df.all <- 
-  df.all %>% 
+df.all2 <- 
+  df.all2 %>% 
   mutate(twoRegm = case_when(avohaakut == "SA" ~ "SA",
                              avohaakut != "SA" ~ "no_SA"))
 
@@ -253,7 +256,7 @@ stands.remove <-c(13243875,
 
 
 # Subset stands only for normal H_dom values
-df.all <- subset(df.all, !id %in% stands.remove)
+df.all2 <- subset(df.all2, !id %in% stands.remove)
 
 
 # stands geometry
@@ -279,7 +282,7 @@ df.npi <-
   rename(scenario = Type) %>%   # rename Type to scenario
   mutate(scenario = gsub("not_CCF", "RF", scenario)) %>% 
   tidyr::separate(scenario,   # Separate text from the number
-                  into = c("simpleScen", "scenNumb"), 
+                  into = c("scenSimpl2", "scenNumb"), 
                   sep = "(?<=[A-Za-z])(?=[0-9])") %>% 
   dplyr::select(-TypeSimple) %>% 
   mutate(scenNumb = as.numeric(scenNumb)) %>% 
@@ -292,7 +295,7 @@ df.npi <-
 # add NPI & MF values
 # ------------------------------
 df <-
-  df.all %>% 
+  df.all2 %>% 
   # remove excessive columns
   dplyr::select(-c(AREA, V_total_deadwood, 
                    DEVEL_CLASS, SC,
@@ -303,26 +306,26 @@ df <-
                    #windSpeed, 
                    PEAT.v )) %>% 
                    #tempSum)) 
-   left_join(df.npi, 
-             by = c("simpleScen", "scenNumb"))
+   left_join(df.npi,      # join the NPI table
+             by = c("scenSimpl2", "scenNumb"))
 
 
 # Complete factors:
 # ---------------------
 # CHaracterize stands extends:
 # ---------------------
-length(unique(df.geom$area))
-mean(df.geom$area)
-max(df.geom$area)
-min(df.geom$area)
+#length(unique(df.geom$area))
+#mean(df.geom$area)
+#max(df.geom$area)
+#min(df.geom$area)
 
-hist(df.geom$area/10000)
+#hist(df.geom$area/10000)
 
 
 # Calculate the % of SA and add to table:
 df.SA_prop <-
   df %>% 
-  group_by(simpleScen, scenNumb, avohaakut) %>% 
+  group_by(scenSimpl2, scenNumb, avohaakut) %>% 
   distinct(id) %>% 
   summarise(stands_n = n()) %>%
   filter(avohaakut == "SA") %>% 
@@ -333,7 +336,8 @@ df.SA_prop <-
 # Add SA % (frequency) to the simulated data table
 df <- 
   df %>% 
-  left_join(df.SA_prop, by = c("simpleScen", "scenNumb"))
+  left_join(df.SA_prop, by = c("scenSimpl2", "scenNumb"))# %>% 
+  #mutate(scenSimpl2 = simpleScen)
 
 # export simplified table
 
