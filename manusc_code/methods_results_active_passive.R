@@ -7,9 +7,9 @@ rm(list = ls())
 
 # Add this to your R code:
 #.libPaths(c("/projappl/project_2003256/project_rpackages", #.libPaths()))
-libpath <- .libPaths()[1]
+#libpath <- .libPaths()[1]
 
-.libPaths(c("/projappl/project_2003256/project_rpackages", .libPaths()))
+#.libPaths(c("/projappl/project_2003256/project_rpackages", .libPaths()))
 
 
 # , eval = FALSE
@@ -40,7 +40,7 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 # Read input data
 # =========================
 #df <- fread("/projappl/project_2003256/windDamage/output/final_df_solution8.csv")
-df <- fread(paste(getwd(), "output/even_flow/final_df_solution8.csv", sep = "/"))
+df <- fread(paste(getwd(), "output/even_flow/final_df_solution8_2.csv", sep = "/"))
 
 
 
@@ -67,15 +67,23 @@ df<-
   dplyr::mutate(Harvested_V_log_under_bark = replace_na(Harvested_V_log_under_bark, 0)) %>% 
   dplyr::mutate(Harvested_V_pulp_under_bark = replace_na(Harvested_V_pulp_under_bark, 0)) 
 
-
-# Replace the no_SA values in TwoRegms: change to Management
+# DEfine SA and no_SA regimes:
+# Create two regimes: SA and non-SA"
 df <- 
   df %>% 
-  dplyr::mutate(Management = twoRegm) %>% # copy the columns 
-  dplyr::mutate(Management = replace(Management, # replace the values
-                                     Management == "no_SA", "Active")) %>%
-  dplyr::mutate(Management = replace(Management, # replace the values
-                                     Management == "SA", "Set Aside"))
+  mutate(Management = case_when(avohaakut == "SA" ~ "Set Aside",
+                                avohaakut != "SA" ~ "Active"))
+
+
+
+# Replace the no_SA values in TwoRegms: change to Management
+#df <- 
+#  df %>% 
+#  dplyr::mutate(Management = twoRegm) %>% # copy the columns 
+#  dplyr::mutate(Management = replace(Management, # replace the values
+ #                                    Management == "no_SA", "Active")) %>%
+ # dplyr::mutate(Management = replace(Management, # replace the values
+ #                                    Management == "SA", "Set Aside"))
 
 
 
