@@ -40,7 +40,7 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 # Read input data
 # =========================
 #df <- fread("/projappl/project_2003256/windDamage/output/final_df_solution8.csv")
-df <- fread(paste(getwd(), "output/even_flow/final_df_solution8.csv", sep = "/"))
+df <- fread(paste(getwd(), "output/even_flow/final_df_solution8_3.csv", sep = "/"))
 
 
 
