@@ -316,7 +316,7 @@ calculateDailyMeans <- function(sf, gridNames, ...) {
 
 # ---------------------------------------
 # 
-#  Get Suvanto's calulation and fake model:
+#  Get Suvanto's calculation and fake model:
 
 # ---------------------
 #
@@ -505,7 +505,7 @@ df.fake.bin<-df.fake.bin[ , !(names(df.fake.bin) %in% c(categVars,
 # add columnf for intersectp => fill with 1
 df.fake.bin$interc <- 1
 
-df.fake.bin$log_H_dom <- log(df.fake.bin$H_dom)
+df.fake.bin$log_H_dom  <- log(df.fake.bin$H_dom)
 df.fake.bin$log_Wspeed <- log(df.fake.bin$windSpeed)
 
 # add interactions
