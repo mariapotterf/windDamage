@@ -63,6 +63,14 @@ df <-
   mutate(Management = case_when(avohaakut == "SA" ~ "Set Aside",
                                 avohaakut != "SA" ~ "Active"))
 
+
+# get the % between V total and V_top
+df <- df %>% 
+  mutate(V_prop = V_strat_max / V *100)  
+
+
+
+
 # --------------------------
 # Define the plotting 
 # --------------------------
@@ -177,6 +185,8 @@ p.mean.windRisk.line.time2 <-
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
         legend.position = "right",
         strip.background =element_rect(fill="white", color = NA))
+
+
 
 # -----------------------------
 # Plot by managed/unmanaged stands!!!
@@ -354,15 +364,153 @@ ggarrange(p.mean.V.pulp.line.npi, p.mean.V.pulp.line.time,
 
 # How does the % of the volume change between SA and regimes, and among scenarios??
 # -----------------------------------
-# get the % between V total and V_top
-# get meanss by group
-# plot
-#windows(7,3)
+  
 
+# Make plots with proportions, total volum, total top volume,
+# can dgo to supplementary material
+# -----------------------------
+
+
+
+
+# Total volume
+# --------------------
+p.mean.V.line.npi <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(my_y = mean(V, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  geom_line(    size = 0.9) +
+  facet_wrap(.~Management)  + # scenSimpl2
+  ylim(0,350) +
+  ggtitle("") +
+  xlab("NPI\n") + #
+  ylab("Total stand volume\n(mean, m^3)") +
+  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+p.mean.V.line.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(my_y = mean(V, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  geom_line(    size = 0.9) +
+  facet_wrap(.~Management)  + # scenSimpl2
+  ylim(0,350) +
+  ggtitle("") +
+  xlab("Time\n") + #
+  ylab("Total stand volume\n(mean, m^3)") +
+  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+
+# -----------------
+# V at top layer
+# -----------------
+
+p.mean.V_stratum.line.npi <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(my_y = mean(V_strat_max, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  geom_line(    size = 0.9) +
+  facet_wrap(.~Management)  + # scenSimpl2
+  ylim(0,350) +
+  ggtitle("") +
+  xlab("NPI\n") + #
+  ylab("Top stratum volume\n(mean, m^3)") +
+  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+p.mean.V_stratum.line.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(my_y = mean(V_strat_max, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  geom_line(    size = 0.9) +
+  facet_wrap(.~Management)  + # scenSimpl2
+  ylim(0,350) +
+  ggtitle("") +
+  xlab("Time\n") + #
+  ylab("Top stratum volume\n(mean, m^3)") +
+  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+# Plot proportions
+# ----------------------
 p.mean.V_prop.line.npi <-
   df %>% 
-  mutate(V_prop = V_strat_max / V *100) %>% 
-  group_by(scenSimpl2, 
+   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
   summarize(my_y = mean(V_prop, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
@@ -378,7 +526,7 @@ p.mean.V_prop.line.npi <-
   ylim(0,100) +
   ggtitle("") +
   xlab("NPI\n") + #
-  ylab("Volume allocation\n(top from total, mean, %)") +
+  ylab("Rate top:total volume\n(mean, %)") +
   scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
   scale_color_manual(values = cbp1) +
   scale_fill_manual(values = cbp1) +
@@ -393,7 +541,6 @@ p.mean.V_prop.line.npi <-
 
 p.mean.V_prop.line.time <-
   df %>% 
-  mutate(V_prop = V_strat_max / V *100) %>% 
   group_by(scenSimpl2, 
            year, 
            Management) %>% 
@@ -410,7 +557,7 @@ p.mean.V_prop.line.time <-
   ylim(0,100) +
   ggtitle("") +
   xlab("Time\n") + #
-  ylab("Volume allocation\n(top from total, mean, %)") +
+  ylab("Rate top:total volume\n(mean, %)") +
   scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
   scale_color_manual(values = cbp1) +
   scale_fill_manual(values = cbp1) +
@@ -428,9 +575,11 @@ p.mean.V_prop.line.time <-
 
 
 # The Volume proportion top vs total over NPI and time 
-windows(width = 7, height = 3)
-ggarrange(p.mean.V_prop.line.npi, p.mean.V_prop.line.time, 
-          ncol = 2, nrow = 1,
+windows(width = 7, height = 8)
+ggarrange(p.mean.V.line.npi, p.mean.V.line.time,
+          p.mean.V_stratum.line.npi, p.mean.V_stratum.line.time, 
+          p.mean.V_prop.line.npi, p.mean.V_prop.line.time, 
+          ncol = 2, nrow = 3,
           #widths = c(1, 1),
           common.legend = TRUE,
           align = c("hv"),
@@ -440,10 +589,6 @@ ggarrange(p.mean.V_prop.line.npi, p.mean.V_prop.line.time,
           vjust = 3,
           font.label = list(size = 10, 
                             face = "bold", color ="black"))
-
-
-
-
 
 
 
@@ -453,181 +598,41 @@ ggarrange(p.mean.V_prop.line.npi, p.mean.V_prop.line.time,
 # Make a nice table including wind risk and total timber volume
 # how to show how much volume is in the top and total straum? does this change by scenario???
 
-sum_tab_risk<-
+sum_tab<-
   df %>% 
   group_by(scenSimpl2,  
            Management) %>% 
-  summarize(mean_log = round(mean(V_strat_max_log),  3),
-            sd_log = round(sd(V_strat_max_log),      3), 
-            mean_pulp = round(mean(V_strat_max_pulp),3),
-            sd_pulp = round(sd(V_strat_max_pulp),    3))
+  summarize(mean_risk    = round(mean(windRisk,    na.rm = T),  3),
+            sd_risk      = round(sd(  windRisk,    na.rm = T),  3),
+            mean_V       = round(mean(V,           na.rm = T),  1),
+            sd_V         = round(sd(  V,           na.rm = T),  1),
+            mean_V_strat = round(mean(V_strat_max, na.rm = T),  1),
+            sd_V_strat   = round(sd(  V_strat_max, na.rm = T),  1),
+            mean_V_prop  = round(mean(V_prop,      na.rm = T),  1),
+            sd_V_prop    = round(sd(  V_prop,      na.rm = T),  1),
+            mean_log     = round(mean(V_strat_max_log, na.rm = T), 1),
+            sd_log       = round(sd(  V_strat_max_log, na.rm = T), 1), 
+            mean_pulp    = round(mean(V_strat_max_pulp,na.rm = T), 1),
+            sd_pulp      = round(sd(  V_strat_max_pulp,na.rm = T), 1))
   
 
 
 
+# Format table nicely
+formated_sum_tab <- 
+  sum_tab %>% 
+  mutate(windRisk      = stringr::str_glue("{mean_risk}±{sd_risk}"),
+         Volume        = stringr::str_glue("{mean_V}±{sd_V}"),
+         Volume_top    = stringr::str_glue("{mean_V_strat}±{sd_V_strat} ({mean_V_prop}±{sd_V_prop})"),
+         Volume_log    = stringr::str_glue("{mean_log}±{sd_log}"),
+         Volume_pulp    = stringr::str_glue("{mean_pulp}±{sd_pulp}")) %>%  #,  {scales::percent(sd_height)}
+  tidyr::complete(scenSimpl2, Management)  %>%
+  dplyr::select(scenSimpl2, Management, windRisk, 
+                Volume, Volume_top, Volume_log, Volume_pulp)
 
 
 
 
-
-# ---------------------------------------
-# does standing timber volume predict wind risk???
-# ---------------------------------------
-
-# sample the data
-# Sample  random rows:
-#df1 <- filter(df,  scenSimpl2 != "ALL")
-
-set.seed(1)
-# create the vector index of the rows to select from original large dataset
-sample_row <- sample(1:nrow(df), 50000, replace=F)  # 100000 is number of rows to subset
-# subset the selected rows from the original large.df
-df.sample <- df[sample_row,]
-
-
-
-# Make correlation plot: how does timber volume predict wind risk??
-#ggplot(df.sample, aes(x = V,
- #                     y = windRisk,
-  #                    group = scenNumb,
-   #                   color = scenNumb)) + 
-  #geom_point() +
-  #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 3)) + 
-  #facet_grid(scenSimpl2~Management)
-
-
-
-# Risk based on pulp volume
-df.sample %>% 
-  filter(Management == "Active") %>% 
-  ggplot(aes(x =  V_strat_max_pulp, #V,
-             y = windRisk,
-            # group = scenSimpl2,
-             #color = scenSimpl2,
-             fill = scenSimpl2
-             )) #+ 
-  #geom_jitter(size = 0.3, alpha = 0.5) #+
-  #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 2)) %>% #+ 
-  #facet_grid(scenSimpl2 ~ scenNumb)
-
-
-# --------------------------
-# Make models by groups:
-# does  the volume correlate with risk?
-# ------------------------
-# https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r
-
-fitted_models <- 
-  df.sample %>% 
-  group_by(NPI) %>% 
-  do(model = lm(windRisk ~ year, data = .))
-
-
-# Check models: 
-fitted_models$model
-
-
-# Retrieve the coefficients
-fitted_models %>% broom::augment(model)
-
-
-# Get summary statistics
-fitted_models %>% broom::glance(model)
-
-
-# plot regression lines by group
-df.sample %>% 
-  #filter(Management == "Active") %>% 
-  ggplot(aes(x =  V, #V,
-             y = windRisk, #,
-             group = Management,
-             color = Management  )) + 
- # geom_jitter(size = 0.1, alpha = 0.9) +
-  geom_smooth(method=glm, formula = y ~ x^2, se=FALSE)  + 
-  facet_grid(. ~ scenSimpl2 )
-
-  
-# plot regression lines by group
-# for pulp
-p.lm.pulp <- 
-  df.sample %>% 
-  #filter(Management == "Active") %>% 
-  ggplot(aes(x =  V_strat_max_pulp, #V,
-             y = windRisk, #,
-             group = scenSimpl2,
-             color = scenSimpl2  )) + 
-  ylim(0,0.09) +
-  # geom_jitter(size = 0.1, alpha = 0.9) +
-  geom_smooth(method=glm, formula = y ~ poly(x,2), se=FALSE)  + 
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  facet_grid(. ~ Management )
-
-
-
-
-p.lm.log <- 
-  df.sample %>% 
-  #filter(Management == "Active") %>% 
-  ggplot(aes(x =  V_strat_max_log, #V,
-             y = windRisk, #,
-             group = scenSimpl2,
-             color = scenSimpl2  )) + 
-  ylim(0,0.09) +
-  # geom_jitter(size = 0.1, alpha = 0.9) +
-  geom_smooth(method=glm, formula = y ~ poly(x,2), se=FALSE)  + 
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  facet_grid(. ~ Management )
-
-
-
-# ------------------------
-
-windows(width = 7, height = 2.5)
-ggarrange(p.lm.pulp, p.lm.log, 
-          #ncol = 2, nrow = 2,
-          #widths = c(1, 1),
-          common.legend = TRUE,
-          align = c("hv"),
-          legend="bottom",
-          labels= "AUTO",
-          hjust = -5,
-          vjust = 3,
-          font.label = list(size = 10, 
-                            face = "bold", color ="black"))
-
-
-
-
-
-
-
-
-  
-# Risk based on  log volume
-df %>%  # .sample
-  filter(Management == "Active"  & scenSimpl2 != "ALL") %>% 
-  ggplot(aes(x = V_strat_max_log,  #V,
-             y = windRisk,
-             group = scenSimpl2,
-             color = scenSimpl2)) + 
-  #geom_jitter(size = 0.3, alpha = 0.5) +
-  #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 2)) #+ 
-  geom_smooth() #+  # se=FALSE
-  #facet_wrap(scenSimpl2 ~ .)
-
-
-df %>%  # .sample
-  filter(Management == "Active"  & scenSimpl2 != "ALL") %>% 
-  ggplot(aes(x = V_strat_max_pulp,  #V,
-             y = windRisk,
-             group = scenSimpl2,
-             color = scenSimpl2)) + 
-  #geom_jitter(size = 0.3, alpha = 0.5) +
-  geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 3)) #+ 
- # geom_smooth() #+  # se=FALSE
-#facet_wrap(scenSimpl2 ~ .)
 
 
 
@@ -1183,4 +1188,188 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
   
   
  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  # --------------------------------------
+  
+  
+  
+  # ---------------------------------------
+  # does standing timber volume predict wind risk???
+  # ---------------------------------------
+  
+  # sample the data
+  # Sample  random rows:
+  #df1 <- filter(df,  scenSimpl2 != "ALL")
+  
+  set.seed(1)
+  # create the vector index of the rows to select from original large dataset
+  sample_row <- sample(1:nrow(df), 50000, replace=F)  # 100000 is number of rows to subset
+  # subset the selected rows from the original large.df
+  df.sample <- df[sample_row,]
+  
+  
+  
+  # Make correlation plot: how does timber volume predict wind risk??
+  #ggplot(df.sample, aes(x = V,
+  #                     y = windRisk,
+  #                    group = scenNumb,
+  #                   color = scenNumb)) + 
+  #geom_point() +
+  #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 3)) + 
+  #facet_grid(scenSimpl2~Management)
+  
+  
+  
+  # Risk based on pulp volume
+  df.sample %>% 
+    filter(Management == "Active") %>% 
+    ggplot(aes(x =  V_strat_max_pulp, #V,
+               y = windRisk,
+               # group = scenSimpl2,
+               #color = scenSimpl2,
+               fill = scenSimpl2
+    )) #+ 
+  #geom_jitter(size = 0.3, alpha = 0.5) #+
+  #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 2)) %>% #+ 
+  #facet_grid(scenSimpl2 ~ scenNumb)
+  
+  
+  # --------------------------
+  # Make models by groups:
+  # does  the volume correlate with risk?
+  # ------------------------
+  # https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r
+  
+  fitted_models <- 
+    df.sample %>% 
+    group_by(NPI) %>% 
+    do(model = lm(windRisk ~ year, data = .))
+  
+  
+  # Check models: 
+  fitted_models$model
+  
+  
+  # Retrieve the coefficients
+  fitted_models %>% broom::augment(model)
+  
+  
+  # Get summary statistics
+  fitted_models %>% broom::glance(model)
+  
+  
+  # plot regression lines by group
+  df.sample %>% 
+    #filter(Management == "Active") %>% 
+    ggplot(aes(x =  V, #V,
+               y = windRisk, #,
+               group = Management,
+               color = Management  )) + 
+    # geom_jitter(size = 0.1, alpha = 0.9) +
+    geom_smooth(method=glm, formula = y ~ x^2, se=FALSE)  + 
+    facet_grid(. ~ scenSimpl2 )
+  
+  
+  # plot regression lines by group
+  # for pulp
+  p.lm.pulp <- 
+    df.sample %>% 
+    #filter(Management == "Active") %>% 
+    ggplot(aes(x =  V_strat_max_pulp, #V,
+               y = windRisk, #,
+               group = scenSimpl2,
+               color = scenSimpl2  )) + 
+    ylim(0,0.09) +
+    # geom_jitter(size = 0.1, alpha = 0.9) +
+    geom_smooth(method=glm, formula = y ~ poly(x,2), se=FALSE)  + 
+    scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+    scale_color_manual(values = cbp1) +
+    facet_grid(. ~ Management )
+  
+  
+  
+  
+  p.lm.log <- 
+    df.sample %>% 
+    #filter(Management == "Active") %>% 
+    ggplot(aes(x =  V_strat_max_log, #V,
+               y = windRisk, #,
+               group = scenSimpl2,
+               color = scenSimpl2  )) + 
+    ylim(0,0.09) +
+    # geom_jitter(size = 0.1, alpha = 0.9) +
+    geom_smooth(method=glm, formula = y ~ poly(x,2), se=FALSE)  + 
+    scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+    scale_color_manual(values = cbp1) +
+    facet_grid(. ~ Management )
+  
+  
+  
+  # ------------------------
+  
+  windows(width = 7, height = 2.5)
+  ggarrange(p.lm.pulp, p.lm.log, 
+            #ncol = 2, nrow = 2,
+            #widths = c(1, 1),
+            common.legend = TRUE,
+            align = c("hv"),
+            legend="bottom",
+            labels= "AUTO",
+            hjust = -5,
+            vjust = 3,
+            font.label = list(size = 10, 
+                              face = "bold", color ="black"))
+  
+  
+  # Risk based on  log volume
+  df %>%  # .sample
+    filter(Management == "Active"  & scenSimpl2 != "ALL") %>% 
+    ggplot(aes(x = V_strat_max_log,  #V,
+               y = windRisk,
+               group = scenSimpl2,
+               color = scenSimpl2)) + 
+    #geom_jitter(size = 0.3, alpha = 0.5) +
+    #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 2)) #+ 
+    geom_smooth() #+  # se=FALSE
+  #facet_wrap(scenSimpl2 ~ .)
+  
+  
+  df %>%  # .sample
+    filter(Management == "Active"  & scenSimpl2 != "ALL") %>% 
+    ggplot(aes(x = V_strat_max_pulp,  #V,
+               y = windRisk,
+               group = scenSimpl2,
+               color = scenSimpl2)) + 
+    #geom_jitter(size = 0.3, alpha = 0.5) +
+    geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 3)) #+ 
+  # geom_smooth() #+  # se=FALSE
+  #facet_wrap(scenSimpl2 ~ .)
   
