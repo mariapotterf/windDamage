@@ -5,14 +5,6 @@
 rm(list = ls())
 
 
-# Add this to your R code:
-#.libPaths(c("/projappl/project_2003256/project_rpackages", #.libPaths()))
-#libpath <- .libPaths()[1]
-
-#.libPaths(c("/projappl/project_2003256/project_rpackages", .libPaths()))
-
-
-# , eval = FALSE
 library(data.table)
 library(dplyr)
 library(raster)
@@ -46,9 +38,6 @@ df <- fread(paste(getwd(), "output/even_flow/final_df_solution8_3.csv", sep = "/
 
 # stands geometry
 df.geom <- st_read(paste0(getwd(),"/14.534/14.534/mvj_14.534.shp"))
-
-#df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.#shp")
-
 df.geom <- subset(df.geom, select = c("KUVIO_ID"))
 names(df.geom) <- c("id", "geometry")
 df.geom$area <- st_area(df.geom)
@@ -59,10 +48,10 @@ df.geom <- subset(df.geom, id %in% unique(df$id))
 # replace all NA in volume by 0 - because not volume is available there
 df<- 
   df %>% 
-  dplyr::mutate(V_stand_log = replace_na(V_stand_log, 0)) %>% 
-  dplyr::mutate(V_stand_pulp = replace_na(V_stand_pulp, 0)) %>% 
-  dplyr::mutate(V_strat_max = replace_na(V_strat_max, 0)) %>% 
-  dplyr::mutate(V_strat_max_log = replace_na(V_strat_max_log, 0)) %>% 
+  dplyr::mutate(V_stand_log      = replace_na(V_stand_log, 0)) %>% 
+  dplyr::mutate(V_stand_pulp     = replace_na(V_stand_pulp, 0)) %>% 
+  dplyr::mutate(V_strat_max      = replace_na(V_strat_max, 0)) %>% 
+  dplyr::mutate(V_strat_max_log  = replace_na(V_strat_max_log, 0)) %>% 
   dplyr::mutate(V_strat_max_pulp = replace_na(V_strat_max_pulp, 0)) %>% 
   dplyr::mutate(Harvested_V_log_under_bark = replace_na(Harvested_V_log_under_bark, 0)) %>% 
   dplyr::mutate(Harvested_V_pulp_under_bark = replace_na(Harvested_V_pulp_under_bark, 0)) 
@@ -73,20 +62,6 @@ df <-
   df %>% 
   mutate(Management = case_when(avohaakut == "SA" ~ "Set Aside",
                                 avohaakut != "SA" ~ "Active"))
-
-
-
-# Replace the no_SA values in TwoRegms: change to Management
-#df <- 
-#  df %>% 
-#  dplyr::mutate(Management = twoRegm) %>% # copy the columns 
-#  dplyr::mutate(Management = replace(Management, # replace the values
- #                                    Management == "no_SA", "Active")) %>%
- # dplyr::mutate(Management = replace(Management, # replace the values
- #                                    Management == "SA", "Set Aside"))
-
-
-
 
 # --------------------------
 # Define the plotting 
@@ -376,15 +351,116 @@ ggarrange(p.mean.V.pulp.line.npi, p.mean.V.pulp.line.time,
 
 
 
+
+# How does the % of the volume change between SA and regimes, and among scenarios??
+# -----------------------------------
+# get the % between V total and V_top
+# get meanss by group
+# plot
+#windows(7,3)
+
+p.mean.V_prop.line.npi <-
+  df %>% 
+  mutate(V_prop = V_strat_max / V *100) %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(my_y = mean(V_prop, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  geom_line(    size = 0.9) +
+  facet_wrap(.~Management)  + # scenSimpl2
+  ylim(0,100) +
+  ggtitle("") +
+  xlab("NPI\n") + #
+  ylab("Volume allocation\n(top from total, mean, %)") +
+  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+p.mean.V_prop.line.time <-
+  df %>% 
+  mutate(V_prop = V_strat_max / V *100) %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(my_y = mean(V_prop, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  geom_line(    size = 0.9) +
+  facet_wrap(.~Management)  + # scenSimpl2
+  ylim(0,100) +
+  ggtitle("") +
+  xlab("Time\n") + #
+  ylab("Volume allocation\n(top from total, mean, %)") +
+  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+  scale_color_manual(values = cbp1) +
+  scale_fill_manual(values = cbp1) +
+  labs(shape = "Management",
+       color = "Management",
+       linetype = "Management",
+       fill = "Management") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "right",
+        strip.background =element_rect(fill="white", color = NA))
+
+
+
+
+
+
+# The Volume proportion top vs total over NPI and time 
+windows(width = 7, height = 3)
+ggarrange(p.mean.V_prop.line.npi, p.mean.V_prop.line.time, 
+          ncol = 2, nrow = 1,
+          #widths = c(1, 1),
+          common.legend = TRUE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          vjust = 3,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+
+
+
+
+
+
+
 # get summary statistics
+# ---------------------------
+# Make a nice table including wind risk and total timber volume
+# how to show how much volume is in the top and total straum? does this change by scenario???
+
 sum_tab_risk<-
   df %>% 
   group_by(scenSimpl2,  
            Management) %>% 
-  summarize(mean_log = round(mean(V_strat_max_log),  1),
-            sd_log = round(sd(V_strat_max_log),      1), 
-            mean_pulp = round(mean(V_strat_max_pulp),1),
-            sd_pulp = round(sd(V_strat_max_pulp),    1))
+  summarize(mean_log = round(mean(V_strat_max_log),  3),
+            sd_log = round(sd(V_strat_max_log),      3), 
+            mean_pulp = round(mean(V_strat_max_pulp),3),
+            sd_pulp = round(sd(V_strat_max_pulp),    3))
   
 
 
