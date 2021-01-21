@@ -110,7 +110,7 @@ formated_df <-
          Volume        = stringr::str_glue("{mean_V}±{sd_V}"),
          Species_share = stringr::str_glue("{n}({share_n})")) %>%  #,  {scales::percent(sd_height)}
        #Age    = stringr::str_glue("{scales::percent(share_bball, accuracy = 1)} ({count_bball} / {n})")) %>%
-  tidyr::complete(species)  %>%
+  #tidyr::complete(species)  %>%
   dplyr::select(species, Species_share, Height, Age, Basal_area, Volume)
 
 
