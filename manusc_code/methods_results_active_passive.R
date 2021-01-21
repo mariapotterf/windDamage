@@ -321,7 +321,7 @@ p.mean.V.line.npi <-
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
   ylim(0,350) +
-  xlab("NPI\n") + #
+  xlab("Net present income\n(k€/ha)") + #
   ylab("Total stand volume\n(mean, m^3)") +
   plot_line_details()
 
@@ -362,7 +362,7 @@ p.mean.V_stratum.line.npi <-
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
   ylim(0,350) +
-  xlab("NPI\n") + #
+  xlab("Net present income\n(k€/ha)") + #
   ylab("Top stratum volume\n(mean, m^3)") +
   plot_line_details()
 
@@ -402,7 +402,7 @@ p.mean.V_prop.line.npi <-
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
   ylim(0,100) +
-  xlab("NPI\n") + #
+  xlab("Net present income\n(k€/ha)") + #
   ylab("Rate top:total volume\n(mean, %)") +
   plot_line_details()
 
@@ -429,11 +429,11 @@ p.mean.V_prop.line.time <-
 
 # The Volume proportion top vs total over NPI and time 
 # --------------------------------------------
-windows(width = 7, height = 8)
-ggarrange(p.mean.V.line.npi, p.mean.V.line.time,
+windows(width = 7, height = 5.5)
+ggarrange(#p.mean.V.line.npi, p.mean.V.line.time,
           p.mean.V_stratum.line.npi, p.mean.V_stratum.line.time, 
           p.mean.V_prop.line.npi, p.mean.V_prop.line.time, 
-          ncol = 2, nrow = 3,
+          ncol = 2, nrow = 2,
           #widths = c(1, 1),
           common.legend = TRUE,
           align = c("hv"),
@@ -476,10 +476,10 @@ sum_tab<-
 # Format table nicely
 formated_sum_tab <- 
   sum_tab %>% 
-  mutate(windRisk      = stringr::str_glue("{mean_risk}±{sd_risk}"),
-         Volume        = stringr::str_glue("{mean_V}±{sd_V}"),
-         Volume_top    = stringr::str_glue("{mean_V_strat}±{sd_V_strat} ({mean_V_prop}±{sd_V_prop})"),
-         Volume_log    = stringr::str_glue("{mean_log}±{sd_log}"),
+  mutate(windRisk       = stringr::str_glue("{mean_risk}±{sd_risk}"),
+         Volume         = stringr::str_glue("{mean_V}±{sd_V}"),
+         Volume_top     = stringr::str_glue("{mean_V_strat}±{sd_V_strat} ({mean_V_prop}±{sd_V_prop})"),
+         Volume_log     = stringr::str_glue("{mean_log}±{sd_log}"),
          Volume_pulp    = stringr::str_glue("{mean_pulp}±{sd_pulp}")) %>%  #,  {scales::percent(sd_height)}
   tidyr::complete(scenSimpl2, Management)  %>%
   dplyr::select(scenSimpl2, Management, windRisk, 
@@ -503,14 +503,13 @@ formated_sum_tab <-
 # Spruce is the most vulnerable: frequency of spruce
 
 # Calculate the mean # of spruces!!
-# do both, over time and npi
+# over time and npi
 
 # Calculate the mean # of spruces!! Why mean???
 # How many stand I have for each simple scen vs NPI?
 
 
 df %>% 
-  #filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            NPI) %>% 
   tally() %>%
@@ -538,25 +537,12 @@ p.spruce.ratio.npi <-
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  geom_line(size = 0.9) +
-  facet_wrap(.~Management) +
-  ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
   ylab("Tree height\n(mean, dm)") +
   ylim(0,40) +
-  ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
   ylab("Spruce proportion\n(%)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
+  plot_line_details()
 
 
 p.spruce.ratio.time <-
@@ -574,23 +560,12 @@ p.spruce.ratio.time <-
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  geom_line(size = 0.9) +
-  facet_wrap(.~Management) +
   ylim(0,40) +
-  ggtitle("") +
   xlab("Time\n") + #
   ylab("Spruce proportion\n(%)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
+  plot_line_details()
+  
+ 
 
 # H Dom
 # ---------------------
@@ -607,23 +582,11 @@ p.mean.H_dom.npi <-
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  geom_line(size = 0.9) +
-  facet_wrap(.~Management) +
   ylim(0,300) +
   ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
   ylab("Tree height\n(mean, cm)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
+  plot_line_details()
 
 
 
@@ -640,36 +603,22 @@ p.mean.H_dom.time <-
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  geom_line(size = 0.9) +
-  facet_wrap(.~Management) +
   ylim(0,300) +
   ggtitle("") +
-  xlab("Time/n)") + #
   xlab("Time\n ") + #
   ylab("Tree height\n(mean, cm)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
+  plot_line_details()
 
 
 
 # -----------------------
 # Time since thinning:
 # ------------------------
-# get teh difference by landscape???
+# get the difference by landscape???
 # replace NA by 0?
 # get mean landscape differences by NPI, by time
 # how to calculate the time since thinning? for NPi, for time??
 # calculate weighted mean??
-
 
 p.mean.thin.npi <-
   df %>% 
@@ -686,23 +635,10 @@ p.mean.thin.npi <-
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  geom_line(size = 0.9) +
-  facet_wrap(.~Management) +
   ylim(0,30) +
-  ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
   ylab("Years since thinning\n(weigh. mean)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
+  plot_line_details()
 
 # Mean thinning over time
 # ------------------
@@ -721,29 +657,15 @@ p.mean.thin.time <-
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  geom_line(size = 0.9) +
-  facet_wrap(.~Management) +
   ylim(0,30) +
-  ggtitle("") +
   xlab("Time\n ") + #
   ylab("Years since thinning\n(weigh. mean)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
+  plot_line_details()
 
 
 # ???
 # Or, what is the proportion of stands that get thinned???
 # !!!!???
-
 
 
 # Open_edge frequency
@@ -764,22 +686,11 @@ p.mean.open.edge.npi <-
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  geom_line(size = 0.9) +
-  facet_wrap(.~Management) +
   ylim(0,2) +
-  ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
   ylab("Open edge stands\n(%)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
+  plot_line_details()
+
 
 
 # Mean thinning over time
@@ -800,42 +711,15 @@ p.mean.open.edge.time <-
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  geom_line(size = 0.9) +
-  facet_wrap(.~Management) +
   ylim(0,2) +
-  ggtitle("") +
   xlab("Time\n ") + #
   ylab("Open edge stands\n(%)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
+  plot_line_details()
+  
 
 # --------------------
 # Plot all together
 # -------------------------
-
-# The log and pulp timber volume over NPI and time at one pot 
-# ggarrange(p.spruce.ratio.npi,  p.mean.H_dom.npi,  p.mean.thin.npi,  p.mean.open.edge.npi, 
-#           p.spruce.ratio.time, p.mean.H_dom.time, p.mean.thin.time, p.mean.open.edge.time,
-#           ncol = 4, nrow = 2,
-#           #widths = c(1, 1),
-#           common.legend = TRUE,
-#           align = c("hv"),
-#           legend="bottom",
-#          # labels= "AUTO",
-#           hjust = -5,
-#           vjust = 3,
-#           font.label = list(size = 10, 
-#                             face = "bold", color ="black"))
-
 
 windows(width = 7.4, height = 10)
 ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
