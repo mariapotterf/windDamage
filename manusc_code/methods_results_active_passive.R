@@ -64,7 +64,8 @@ df <-
                                 avohaakut != "SA" ~ "Active"))
 
 
-# get the % between V total and V_top
+# Calculate the proportion % between V total and V at teh top stratum 
+# -----------------------------
 df <- df %>% 
   mutate(V_prop = V_strat_max / V *100)  
 
@@ -80,36 +81,29 @@ df <- df %>%
 cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
           "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
+
 plot_line_details <- function() {
-  list( 
-    geom_line(aes(linetype = scenSimpl2, 
-                  color = scenSimpl2),
-              lwd = 0.8),
+  list(
+    geom_line(    size = 0.9),
+    facet_wrap(.~Management), 
+    ggtitle(""),
+    scale_linetype_manual(values = c( "dotted", 
+                                      "solid",  
+                                      'dashed')),
     scale_color_manual(values = cbp1),
-    labs(color = "Scenario",
-         linetype = "Scenario"), # geom_line(size = 1) + 
-    # facet_wrap(.~ twoRegm), # + 
+    scale_fill_manual(values = cbp1),
+    labs(shape = "Scenario",
+         color = "Scenario",
+         linetype = "Scenario",
+         fill = "Scenario"),
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-          legend.position = "bottom")
+          legend.position = "right",
+          strip.background =element_rect(fill="white", 
+                                         color = NA))
   )
 }
 
-plot_lineCumul_details <- function() {
-  list( 
-    geom_area(position="stack", 
-              stat="identity",
-              alpha = 0.2,
-              color = "white"), 
-    geom_line(position = "stack", 
-              size = 1.2),
-    scale_linetype_manual(values = c("solid", "dotdash")),
-    scale_color_manual(values = cbp1),
-    scale_fill_manual(values = cbp1),
-    facet_wrap(.~scenSimpl2),
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-          legend.position = "bottom")
-  )
-}
+
 
 
 
@@ -135,22 +129,23 @@ p.mean.windRisk.line.npi2 <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,0.06) +
-  ggtitle("") +
+  facet_wrap(.~Management)  + # scenSimpl2
   xlab("Net present income\n(k€/ha)") + #
   ylab("Wind damage probability\n(mean, %)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
+  plot_line_details()
+
+ # ggtitle("") +
+#  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
+ # scale_color_manual(values = cbp1) +
+  #scale_fill_manual(values = cbp1) +
+  #labs(shape = "Management",
+   #    color = "Management",
+    #   linetype = "Management",
+    #   fill = "Management") +
+#  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+ #       legend.position = "right",
+  #      strip.background =element_rect(fill="white", color = NA))
 
 
 
@@ -168,23 +163,10 @@ p.mean.windRisk.line.time2 <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(#position = "stack",
-    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,0.06) +
-  ggtitle("") +
   xlab("\nTime") + #
   ylab("Wind damage probability\n(mean, %)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
+  plot_line_details()
 
 
 
@@ -213,7 +195,6 @@ ggarrange(p.mean.windRisk.line.npi2,
 # --------------------------
 p.mean.V.log.line.npi <-
   df %>% 
-  #filter( scenSimpl2 != "ALL") %>% #Management == "active" &
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
@@ -225,22 +206,10 @@ p.mean.V.log.line.npi <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,210) +
-  ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
   ylab("Standing log volume\n(mean, m^3)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
+  plot_line_details()
 
 
 # mean V log over time
@@ -258,22 +227,10 @@ p.mean.V.log.line.time <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,210) +
-  ggtitle("") +
   xlab("Time\n ") + #
   ylab("Standing log volume\n(mean, m^3)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
+  plot_line_details()
 
 
 
@@ -293,22 +250,10 @@ p.mean.V.pulp.line.npi <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,210) +
-  ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
   ylab("Standing pulp volume\n(mean, m^3)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
+  plot_line_details()
 
 
 # mean V pulp over time
@@ -326,23 +271,10 @@ p.mean.V.pulp.line.time <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,210) +
-  ggtitle("") +
   xlab("Time\n") + #
   ylab("Standing pulp volume\n(mean, m^3)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
+  plot_line_details()
 
 # The log and pulp timber volume over NPI and time at one pot 
 windows(width = 7, height = 6)
@@ -388,23 +320,10 @@ p.mean.V.line.npi <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,350) +
-  ggtitle("") +
   xlab("NPI\n") + #
   ylab("Total stand volume\n(mean, m^3)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
+  plot_line_details()
 
 p.mean.V.line.time <-
   df %>% 
@@ -419,24 +338,10 @@ p.mean.V.line.time <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,350) +
-  ggtitle("") +
   xlab("Time\n") + #
   ylab("Total stand volume\n(mean, m^3)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
-
+  plot_line_details()
 
 
 # -----------------
@@ -456,23 +361,10 @@ p.mean.V_stratum.line.npi <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,350) +
-  ggtitle("") +
   xlab("NPI\n") + #
   ylab("Top stratum volume\n(mean, m^3)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
+  plot_line_details()
 
 p.mean.V_stratum.line.time <-
   df %>% 
@@ -487,25 +379,13 @@ p.mean.V_stratum.line.time <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,350) +
-  ggtitle("") +
   xlab("Time\n") + #
   ylab("Top stratum volume\n(mean, m^3)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
+  plot_line_details()
 
-
-
+  
+  
 # Plot proportions
 # ----------------------
 p.mean.V_prop.line.npi <-
@@ -521,22 +401,10 @@ p.mean.V_prop.line.npi <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,100) +
-  ggtitle("") +
   xlab("NPI\n") + #
   ylab("Rate top:total volume\n(mean, %)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
+  plot_line_details()
 
 
 p.mean.V_prop.line.time <-
@@ -552,29 +420,15 @@ p.mean.V_prop.line.time <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~Management)  + # scenSimpl2
   ylim(0,100) +
-  ggtitle("") +
   xlab("Time\n") + #
   ylab("Rate top:total volume\n(mean, %)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
-
-
+  plot_line_details()
 
 
 
 # The Volume proportion top vs total over NPI and time 
+# --------------------------------------------
 windows(width = 7, height = 8)
 ggarrange(p.mean.V.line.npi, p.mean.V.line.time,
           p.mean.V_stratum.line.npi, p.mean.V_stratum.line.time, 
@@ -593,7 +447,8 @@ ggarrange(p.mean.V.line.npi, p.mean.V.line.time,
 
 
 
-# get summary statistics
+# ----------------------------
+#  Get summary statistics
 # ---------------------------
 # Make a nice table including wind risk and total timber volume
 # how to show how much volume is in the top and total straum? does this change by scenario???
@@ -633,9 +488,6 @@ formated_sum_tab <-
 
 
 
-
-
-
 # -------------------------------------
 # Explain why???
 # ----------------------------------
@@ -651,10 +503,7 @@ formated_sum_tab <-
 # Spruce is the most vulnerable: frequency of spruce
 
 # Calculate the mean # of spruces!!
-# do both, over time and npi?
-
-#p.mean.H_dom.npi <-
-# Spruce is the most vulnerable: get mean frequency of spruce by scenario
+# do both, over time and npi
 
 # Calculate the mean # of spruces!! Why mean???
 # How many stand I have for each simple scen vs NPI?
