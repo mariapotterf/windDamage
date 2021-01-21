@@ -78,7 +78,7 @@ df <-
 # use summaries from the SA data in 2016
 # mean area, proportion of species, fertility, soilDept, soil type
 # # uce across for multiple numeric variables: https://www.datanovia.com/en/blog/dplyr-how-to-compute-summary-statistics-across-multiple-columns/
-# Or specify columnsL:
+# Or specify columns:
 # https://stackoverflow.com/questions/59214500/summary-table-of-numeric-and-categorical-data-in-r
 summary_df <- 
   df %>% 
@@ -95,7 +95,7 @@ summary_df <-
             mean_V      = round(mean(V, na.rm = T),     digits = 1),
             sd_V        = round(sd(  V, na.rm = T),     digits = 1),
             n           = n(), # count species
-            share_n = round(n/1470*100, digits = 1 )) 
+            share_n     = round(n/1470*100, digits = 1 )) 
   
   #nrow()
   #print(n = 100)
@@ -104,10 +104,10 @@ summary_df <-
 # Format output table
 formated_df <- 
   summary_df %>% 
-  mutate(Height      = stringr::str_glue("{mean_height}±{sd_height}"),
-         Age         = stringr::str_glue("{mean_Age}±{sd_Age}"),
-         Basal_area  = stringr::str_glue("{mean_BA}±{sd_BA}"),
-         Volume      = stringr::str_glue("{mean_V}±{sd_V}"),
+  mutate(Height        = stringr::str_glue("{mean_height}±{sd_height}"),
+         Age           = stringr::str_glue("{mean_Age}±{sd_Age}"),
+         Basal_area    = stringr::str_glue("{mean_BA}±{sd_BA}"),
+         Volume        = stringr::str_glue("{mean_V}±{sd_V}"),
          Species_share = stringr::str_glue("{n}({share_n})")) %>%  #,  {scales::percent(sd_height)}
        #Age    = stringr::str_glue("{scales::percent(share_bball, accuracy = 1)} ({count_bball} / {n})")) %>%
   tidyr::complete(species)  %>%
