@@ -5,13 +5,6 @@
 rm(list = ls())
 
 
-# Add this to your R code:
-#.libPaths(c("/projappl/project_2003256/project_rpackages", #.libPaths()))
-#libpath <- .libPaths()[1]
-
-#.libPaths(c("/projappl/project_2003256/project_rpackages", .libPaths()))
-
-
 # , eval = FALSE
 library(data.table)
 library(dplyr)
@@ -46,9 +39,6 @@ df <- fread(paste(getwd(), "output/even_flow/final_df_solution8_3.csv", sep = "/
 
 # stands geometry
 df.geom <- st_read(paste0(getwd(),"/14.534/14.534/mvj_14.534.shp"))
-
-#df.geom <- st_read("C:/MyTemp/avohaakut_db/14.534/14.534/mvj_14.534.#shp")
-
 df.geom <- subset(df.geom, select = c("KUVIO_ID"))
 names(df.geom) <- c("id", "geometry")
 df.geom$area <- st_area(df.geom)
@@ -83,6 +73,8 @@ df <-
 
 
 # Get basic characteristics of teh initial dataset
+# ---------------------------------------------------
+
 # use summaries from the SA data in 2016
 # mean area, proportion of species, fertility, soilDept, soil type
 # # uce across for multiple numeric variables: https://www.datanovia.com/en/blog/dplyr-how-to-compute-summary-statistics-across-multiple-columns/
@@ -91,8 +83,8 @@ df <-
 summary_df <- 
   df %>% 
   filter(year == 2016 & 
-           avohaakut == "SA" & 
-           landscape == '2016_./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1ALL0') %>% 
+         avohaakut == "SA" & 
+         landscape == '2016_ALL0') %>% 
   group_by(species) %>% 
   summarise(mean_height = round(mean(H_dom, na.rm = T), digits = 1),
             sd_height   = round(sd(  H_dom, na.rm = T), digits = 1),
@@ -112,10 +104,10 @@ summary_df <-
 # Format output table
 formated_df <- 
   summary_df %>% 
-  mutate(Height  = stringr::str_glue("{mean_height}±{sd_height}"),
-         Age     = stringr::str_glue("{mean_Age}±{sd_Age}"),
-         Basal_area      = stringr::str_glue("{mean_BA}±{sd_BA}"),
-         Volume       = stringr::str_glue("{mean_V}±{sd_V}"),
+  mutate(Height      = stringr::str_glue("{mean_height}±{sd_height}"),
+         Age         = stringr::str_glue("{mean_Age}±{sd_Age}"),
+         Basal_area  = stringr::str_glue("{mean_BA}±{sd_BA}"),
+         Volume      = stringr::str_glue("{mean_V}±{sd_V}"),
          Species_share = stringr::str_glue("{n}({share_n})")) %>%  #,  {scales::percent(sd_height)}
        #Age    = stringr::str_glue("{scales::percent(share_bball, accuracy = 1)} ({count_bball} / {n})")) %>%
   tidyr::complete(species)  %>%
@@ -128,10 +120,11 @@ formated_df <-
 
 
 # Count the soil conditions
+# -------------------------
 df %>% 
   filter(year == 2016 & 
          avohaakut == "SA" & 
-         landscape == '2016_./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1ALL0') %>% 
+         landscape == '2016_ALL0') %>% 
   group_by(soilType) %>% 
   summarise(n           = n(), # count species
             share_n = round(n/1470*100, digits = 1 )) 
@@ -145,20 +138,21 @@ df %>%
 
 
 # Site fertility
+# -----------------
 df %>% 
   filter(year == 2016 & 
            avohaakut == "SA" & 
-           landscape == '2016_./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1ALL0') %>% 
+           landscape == '2016_ALL0') %>% 
   group_by(siteFertility) %>% 
   summarise(n           = n(), 
             share_n = round(n/1470*100, digits = 1 )) 
 
 # Get area+- sd
-
+# ------------------------
 df %>% 
   filter(year == 2016 & 
            avohaakut == "SA" & 
-           landscape == '2016_./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1ALL0') %>% 
+           landscape == '2016_ALL0') %>% 
  # group_by(siteFertility) %>% 
   summarise(mean_area = round(mean(area, na.rm = T), digits = 1),
             sd_area   = round(sd(area, na.rm = T), digits = 1))
@@ -167,6 +161,22 @@ df %>%
 #   15244.1 16226.5
 
 
+# Get wind speed and temperature sum
+# ----------------------------
+df %>% 
+  filter(year == 2016 & 
+         avohaakut == "SA" & 
+         landscape == '2016_ALL0') %>% 
+  # group_by(siteFertility) %>% 
+  summarise(mean_wind = round(mean(windSpeed, na.rm = T), digits = 3),
+            sd_wind   = round(sd(windSpeed, na.rm = T), digits = 3),
+            mean_temp = round(mean(tempSum, na.rm = T), digits = 3),
+            sd_temp   = round(sd(tempSum, na.rm = T), digits = 3))
+
+
+
+# get wind risk  values by SA and NPI
+# ------------------------------------
 
   
  
