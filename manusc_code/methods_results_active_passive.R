@@ -1,7 +1,13 @@
 
-# ----------------------------
-# Results and methods for paper
-# -----------------------------
+
+# Put together final Figures for teh manuscript
+
+# Includes final Methods and Results for Wind risk by management paper
+
+
+# Results and methods for paper 
+
+# Read libraries ----
 rm(list = ls())
 
 
@@ -18,6 +24,7 @@ library(broom)
 #library(RColorBrewer)
 
 
+# Set themes ----
 theme_set(theme_classic())
 theme_update(panel.grid.major = element_line(colour = "grey95",
                                              size = 0.1,
@@ -27,13 +34,14 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
                                              size=0.1, 
                                              linetype="solid"))
 
+# salaal ------------------------------------------------------------------
 
 
-# Read input data
-# =========================
+
+
+# Read input data -----
 #df <- fread("/projappl/project_2003256/windDamage/output/final_df_solution8.csv")
 df <- fread(paste(getwd(), "output/even_flow/final_df_solution8_3.csv", sep = "/"))
-
 
 
 # stands geometry
@@ -44,6 +52,8 @@ df.geom$area <- st_area(df.geom)
 df.geom <- subset(df.geom, id %in% unique(df$id))
 
 
+
+# Modify input values -----
 
 # replace all NA in volume by 0 - because not volume is available there
 df<- 
@@ -56,8 +66,7 @@ df<-
   dplyr::mutate(Harvested_V_log_under_bark = replace_na(Harvested_V_log_under_bark, 0)) %>% 
   dplyr::mutate(Harvested_V_pulp_under_bark = replace_na(Harvested_V_pulp_under_bark, 0)) 
 
-# DEfine SA and no_SA regimes:
-# Create two regimes: SA and non-SA"
+# DEfine SA and no_SA regimes: Create two regimes: 
 df <- 
   df %>% 
   mutate(Management = case_when(avohaakut == "SA" ~ "Set Aside",
@@ -65,19 +74,14 @@ df <-
 
 
 # Calculate the proportion % between V total and V at teh top stratum 
-# -----------------------------
 df <- df %>% 
   mutate(V_prop = V_strat_max / V *100)  
 
 
 
+# Define the plotting ---------------------
 
-# --------------------------
-# Define the plotting 
-# --------------------------
-
-# DEfine own palette
-# color blind
+# Define own palette, color blind
 cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
           "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
@@ -108,13 +112,15 @@ plot_line_details <- function() {
 
 
 
-# -------------------------
-# make plots with means 
-# -------------------------
-# ---------------------------------
+
+
+# Make plots with means  ----------------------
+
 # try a plot where they will all be in a same plot: different color lines
 # maybe exclude SA?
-# --------------------------------
+
+
+## Wind risk plot -----
 
 p.mean.windRisk.line.npi2 <-
   df %>% 
@@ -134,18 +140,6 @@ p.mean.windRisk.line.npi2 <-
   xlab("Net present income\n(k€/ha)") + #
   ylab("Wind damage probability\n(mean, %)") +
   plot_line_details()
-
- # ggtitle("") +
-#  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
- # scale_color_manual(values = cbp1) +
-  #scale_fill_manual(values = cbp1) +
-  #labs(shape = "Management",
-   #    color = "Management",
-    #   linetype = "Management",
-    #   fill = "Management") +
-#  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
- #       legend.position = "right",
-  #      strip.background =element_rect(fill="white", color = NA))
 
 
 
@@ -170,9 +164,7 @@ p.mean.windRisk.line.time2 <-
 
 
 
-# -----------------------------
-# Plot by managed/unmanaged stands!!!
-# ===============================
+# Plot by managed/unmanaged stands 
 windows(width = 7, height=3)
 ggarrange(p.mean.windRisk.line.npi2, 
           p.mean.windRisk.line.time2,  
@@ -190,9 +182,7 @@ ggarrange(p.mean.windRisk.line.npi2,
 
 
 
-# Top layer standing timber at risk??
-# Plot log volume:
-# --------------------------
+## Top layer standing timber at risk?? Log volume ------------------
 p.mean.V.log.line.npi <-
   df %>% 
   group_by(scenSimpl2, 
@@ -213,7 +203,6 @@ p.mean.V.log.line.npi <-
 
 
 # mean V log over time
-# --------------------------
 p.mean.V.log.line.time <-
   df %>% 
   group_by(scenSimpl2, 
@@ -234,8 +223,7 @@ p.mean.V.log.line.time <-
 
 
 
-# Pulp volume
-# ===================
+## Pulp volume ===================
 
 p.mean.V.pulp.line.npi <-
   df %>% 
@@ -257,7 +245,6 @@ p.mean.V.pulp.line.npi <-
 
 
 # mean V pulp over time
-# --------------------------
 p.mean.V.pulp.line.time <-
   df %>% 
   group_by(scenSimpl2, 
@@ -276,6 +263,8 @@ p.mean.V.pulp.line.time <-
   ylab("Standing pulp volume\n(mean, m^3)") +
   plot_line_details()
 
+#### Plot log and pulp volume -------------
+
 # The log and pulp timber volume over NPI and time at one pot 
 windows(width = 7, height = 6)
 ggarrange(p.mean.V.pulp.line.npi, p.mean.V.pulp.line.time, 
@@ -293,20 +282,15 @@ ggarrange(p.mean.V.pulp.line.npi, p.mean.V.pulp.line.time,
 
 
 
-
+#### Investigate timber volume proportions  --------------
 # How does the % of the volume change between SA and regimes, and among scenarios??
-# -----------------------------------
-  
 
 # Make plots with proportions, total volum, total top volume,
 # can dgo to supplementary material
-# -----------------------------
 
 
 
-
-# Total volume
-# --------------------
+#### Total volume at risk ---------------
 p.mean.V.line.npi <-
   df %>% 
   group_by(scenSimpl2, 
@@ -324,6 +308,8 @@ p.mean.V.line.npi <-
   xlab("Net present income\n(k€/ha)") + #
   ylab("Total stand volume\n(mean, m^3)") +
   plot_line_details()
+
+
 
 p.mean.V.line.time <-
   df %>% 
@@ -344,9 +330,8 @@ p.mean.V.line.time <-
   plot_line_details()
 
 
-# -----------------
-# V at top layer
-# -----------------
+
+#### V at top layer  -----------------
 
 p.mean.V_stratum.line.npi <-
   df %>% 
@@ -365,6 +350,8 @@ p.mean.V_stratum.line.npi <-
   xlab("Net present income\n(k€/ha)") + #
   ylab("Top stratum volume\n(mean, m^3)") +
   plot_line_details()
+
+
 
 p.mean.V_stratum.line.time <-
   df %>% 
@@ -386,8 +373,7 @@ p.mean.V_stratum.line.time <-
 
   
   
-# Plot proportions
-# ----------------------
+#### Plot proportions ---------------------
 p.mean.V_prop.line.npi <-
   df %>% 
    group_by(scenSimpl2, 
@@ -427,8 +413,7 @@ p.mean.V_prop.line.time <-
 
 
 
-# The Volume proportion top vs total over NPI and time 
-# --------------------------------------------
+#### Plot the Volume proportion top vs total over NPI and time  -------------------------------------------
 windows(width = 7, height = 5.5)
 ggarrange(#p.mean.V.line.npi, p.mean.V.line.time,
           p.mean.V_stratum.line.npi, p.mean.V_stratum.line.time, 
@@ -447,9 +432,8 @@ ggarrange(#p.mean.V.line.npi, p.mean.V.line.time,
 
 
 
-# ----------------------------
-#  Get summary statistics
-# ---------------------------
+
+### Get summary statistics volumes & risk, make table ---------------------------
 # Make a nice table including wind risk and total timber volume
 # how to show how much volume is in the top and total straum? does this change by scenario???
 
@@ -488,9 +472,9 @@ formated_sum_tab <-
 
 
 
-# -------------------------------------
-# Explain why???
-# ----------------------------------
+
+
+# Plot explanatory variables # ----------------------------------
 
 # Tree species
 # tree height
@@ -498,8 +482,7 @@ formated_sum_tab <-
 # open-neighbour
 
 
-# Tree species:
-# -------------------------
+## Tree species -------------------------
 # Spruce is the most vulnerable: frequency of spruce
 
 # Calculate the mean # of spruces!!
@@ -521,7 +504,7 @@ tot.stand.n = 1470*20
 
 
 # Make plots for npi and time
-# -----------------------
+
 p.spruce.ratio.npi <-
   df %>% 
   group_by(scenSimpl2, 
@@ -567,8 +550,7 @@ p.spruce.ratio.time <-
   
  
 
-# H Dom
-# ---------------------
+## H Dom ---------------------
 p.mean.H_dom.npi <-
   df %>% 
   group_by(scenSimpl2, 
@@ -611,9 +593,7 @@ p.mean.H_dom.time <-
 
 
 
-# -----------------------
-# Time since thinning:
-# ------------------------
+## Time since thinning ------------------------
 # get the difference by landscape???
 # replace NA by 0?
 # get mean landscape differences by NPI, by time
@@ -640,8 +620,8 @@ p.mean.thin.npi <-
   ylab("Years since thinning\n(weigh. mean)") +
   plot_line_details()
 
+
 # Mean thinning over time
-# ------------------
 p.mean.thin.time <-
   df %>% 
   group_by(scenSimpl2, 
@@ -668,8 +648,7 @@ p.mean.thin.time <-
 # !!!!???
 
 
-# Open_edge frequency
-# ---------------------------
+## Open_edge frequency --------------------------
 p.mean.open.edge.npi <-
   df %>% 
   group_by(scenSimpl2, 
@@ -693,8 +672,8 @@ p.mean.open.edge.npi <-
 
 
 
-# Mean thinning over time
-# ------------------
+# Mean thinning over time 
+
 p.mean.open.edge.time <-
   df %>% 
   group_by(scenSimpl2, 
@@ -717,9 +696,8 @@ p.mean.open.edge.time <-
   plot_line_details()
   
 
-# --------------------
-# Plot all together
-# -------------------------
+
+### Plot all predictors together ----------------------
 
 windows(width = 7.4, height = 10)
 ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
@@ -740,8 +718,9 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 
 
 
-# CHeck the open_ edge counts over time??
+# Inspect open edge --------- 
 
+##### CHeck the open_ edge counts over time??
 
 #p.mean.open.edge.time <-
   df %>% 
@@ -832,10 +811,11 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 
 
 
-# -------------------------------
-# Get summary statistic tables
-# ------------------------------
-# get summary statistics
+
+
+# Get summary statistic tables ----
+
+  
 #sum_tab_vars<-
   df %>% 
   group_by(scenSimpl2,  
@@ -848,9 +828,8 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 
 
 
-# ------------------------------------
-# Make a plot of volume development by NPI and Years
-# -----------------------------------
+  
+# Make a plot of volume development by NPI and Years -----------------------------------
 
 #p.mean.V.pulp.line.time <-
   df %>% 
@@ -919,44 +898,13 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
           strip.background =element_rect(fill="white", color = NA))
   
   
-  
  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 
   
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  # --------------------------------------
-  
-  
-  
-  # ---------------------------------------
-  # does standing timber volume predict wind risk???
-  # ---------------------------------------
+
+# does standing timber volume predict wind risk??? ---------------------------------------
   
   # sample the data
   # Sample  random rows:
@@ -995,10 +943,9 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
   #facet_grid(scenSimpl2 ~ scenNumb)
   
   
-  # --------------------------
+
   # Make models by groups:
-  # does  the volume correlate with risk?
-  # ------------------------
+# does  the volume correlate with risk?# ------------------------
   # https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r
   
   fitted_models <- 
@@ -1066,7 +1013,7 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
   
   
   
-  # ------------------------
+
   
   windows(width = 7, height = 2.5)
   ggarrange(p.lm.pulp, p.lm.log, 
