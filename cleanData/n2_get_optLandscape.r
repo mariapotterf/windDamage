@@ -150,8 +150,15 @@ df.sim.all2 <-
     stringr::str_detect(scenario, "CCF") ~ "CCF"))
 
 
+df.sim.all2 %>% 
+  group_by(landscape) %>% 
+  tally() %>% 
+  print(n = 1300)
+
 # write the table
 fwrite(df.sim.all2, "C:/MyTemp/myGitLab/windDamage/output/df_sim_opt.csv")
+
+fwrite(df.sim.all2, "C:/MyTemp/myGitLab/windDamage/output/even_flow/df_sim_opt.csv")
 
 
 
