@@ -138,9 +138,15 @@ fwrite(merged.df, "C:/MyTemp/myGitLab/windDamage/output/even_flow/df_landscape_o
 
 # ---------------
 # continue form here to get the height differences between stands
-df.sim = land.ls[[4]]
-nbrs[[4]]
+df.sim = land.ls[[5]]
+nbrs[[2]]
 
+
+
+# loop over both features and get the central id
+get_nbrs_H <- function(nbrs, df, ...) {
+  
+}
 
 
 
@@ -154,29 +160,74 @@ get_nbrs_H <- function(nbrs,
   
   
   for (i in seq_along(nbrs)) {
-
+  #  i=1299
+   # i = 100
+    print(i)
     # get ids of the central stand and neighbors
     central_id <- as.character(unique(nbrs[[i]]$central))
     # Get neighbors
     nbrs_id    <- unique(nbrs[[i]]$nbrs)
+    
+    # Define variables for output df:
+    landscape = unique(df.sim$landscape)
+    nn        = length(nbrs_id)
+    central_H = rep(subset(df.sim, id %in% central_id)$H_dom, nn)
+    
+     
+    # What if no neighbors are there?
+    if (nbrs_id == 0) {
+      #print("no neigbors")
+
+      # Get table
+      nbrs_ls[[i]] <- data.frame(landscape = rep(landscape, nn),
+                                 central_id = rep(central_id, nn),
+                                 central_H = central_H,
+                                 nbrs_id = NA,
+                                 nbrs_H = NA)
+    } else {
+      nbrs_H    = subset(df.sim, id %in% nbrs_id)$H_dom
+
+      # Get the stand height from simulated data for central stand and
+      # neighbors
+      nbrs_ls[[i]] <- data.frame(landscape = rep(landscape, nn),
+                                 central_id = rep(central_id, nn),
+                                 central_H = central_H,
+                                 nbrs_id = nbrs_id,
+                                 nbrs_H = nbrs_H)
+
+    }
   
-   # Get the stand height from simulated data for central stand and 
-    # neighbors 
-    central_H = rep(subset(df.sim, id %in% central_id)$H_dom, 
-                    length(nbrs_id))
-    nbrs_H    = subset(df.sim, id %in% nbrs_id)$H_dom
-    landscape = subset(df.sim, id %in% nbrs_id)$landscape
-    nbrs_ls[[i]] <- data.frame(landscape,
-                               central_id, 
-                               central_H, 
-                               nbrs_id, 
-                               nbrs_H)
-  
+   
+  }
   df<- as.data.frame(do.call("rbind", nbrs_ls))
   #  names(df) <- c("id", "open_edge")
   return(df)
-  }
+ 
 }
+
+
+
+# the function is super slow, likely due to the warning. can be updated later!
+
+
+
+
+
+
+
+
+
+
+# run example on one stand
+#ddd <- get_nbrs_H(nbrs, df.sim)
+
+
+# example ifelse
+a = c(5,9,2,9)
+ifelse(a == 2, 'TRUE', "False")
+
+
+
 
 
 # get difference between neighbors on one landscape ----------------------
