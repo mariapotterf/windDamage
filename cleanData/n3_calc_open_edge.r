@@ -166,7 +166,6 @@ get_nbrs_H <- function(nbrs,
                     length(nbrs_id))
     nbrs_H    = subset(df.sim, id %in% nbrs_id)$H_dom
     landscape = subset(df.sim, id %in% nbrs_id)$landscape
-    #print(nbrs_H)
     nbrs_ls[[i]] <- data.frame(landscape,
                                central_id, 
                                central_H, 
