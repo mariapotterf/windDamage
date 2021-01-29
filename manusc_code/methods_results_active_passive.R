@@ -487,9 +487,9 @@ p.mean.H_diff.line.npi <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  ylim(0,11) +
+  ylim(0,10) +
   xlab("Net present income\n(k€/ha)") + #
-  ylab("Height difference\nbetween neighbors (mean, m)") +
+  ylab("Height difference\nneighbors (mean, m)") +
   plot_line_details()
 
 
@@ -507,9 +507,9 @@ p.mean.H_diff.line.time <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  ylim(0,11) +
+  ylim(0,10) +
   xlab("Time\n") + #
-  ylab("Height difference\nbetween neighbors(mean, m)") +
+  ylab("Height difference\nneighbors(mean, m)") +
   plot_line_details()
 
 
@@ -805,7 +805,8 @@ windows(width = 7.4, height = 10)
 ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
           p.mean.H_dom.npi,   p.mean.H_dom.time,
           p.mean.thin.npi,    p.mean.thin.time,
-          p.mean.open.edge.npi, p.mean.open.edge.time,
+         # p.mean.open.edge.npi, p.mean.open.edge.time,
+          p.mean.H_diff.line.npi, p.mean.H_diff.line.time, 
           ncol = 2, nrow = 4,
           #widths = c(1, 1),
           common.legend = TRUE,
