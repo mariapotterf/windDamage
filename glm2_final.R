@@ -37,6 +37,8 @@ library(RColorBrewer)
 df.sim <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/df_sim_opt.csv", 
                             data.table=FALSE)
 
+
+
 # Read data with calculated open_edge
 df.open <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/df_landscape_open_edge.csv", 
                         data.table=FALSE)
@@ -45,6 +47,9 @@ df.open <- subset(df.open, select = -c(H_dom))  # remove H+_dom because have dif
 # Read raster derived input variables: average wind, temperature, ...
 df.rst <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/df_glm_raster.csv", 
                             data.table=FALSE)
+
+#length(unique(df.rst$standid)) # 1482
+
 
 
 # ---------------------------------
@@ -64,7 +69,6 @@ names(df.rst) <- c("id",
 df <- df.sim %>%
   left_join(df.open, by = c("id", "landscape")) %>% # , , "H_dom"
   left_join(df.rst, by = ("id")) 
-
 
 
 
@@ -99,6 +103,9 @@ df.all<-
   mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
   mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
   mutate_if(is.character, as.factor)    # convert all characters to factor
+
+
+
 
 
 # -----------------------------------
@@ -343,8 +350,13 @@ df <-
 
 fwrite(df, "output/even_flow/final_df_solution8_3.csv")
 
+df %>% 
+  group_by(landscape) %>% 
+  tally() %>% 
+  print(n = 1300)
 
-
+# HereI end up with 1470 stands. Important to calculate open edge with the 
+# original data, not with the processed one containing GLM wind risk
 
   
 
