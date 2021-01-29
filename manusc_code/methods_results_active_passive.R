@@ -44,10 +44,10 @@ df <- fread(paste(getwd(), "output/even_flow/final_df_solution8_3.csv", sep = "/
 # Get list of neigbors by scenarios
 df.nbrs <-  fread(paste(getwd(), "output/even_flow/df_nbrs_diff.csv", sep = "/"))
 
-df.nbrs %>% 
-  group_by(landscape) %>% 
-  tally() %>% 
-  print(n = 1300)
+#df.nbrs %>% 
+ # group_by(landscape) %>% 
+  #tally() %>% 
+  #print(n = 1300)
 
 # seems correct
 
@@ -68,14 +68,6 @@ df.geom <- subset(df.geom, id %in% unique(df$id))
 
 
 
-# CHeck the number of stands by landscape
-# ---------------------------------------
-df %>% 
-  group_by(landscape) %>% 
-  tally() %>% 
-  print(n = 1300)
-
-
 # Modify input values -----
 
 # replace all NA in volume by 0 - because not volume is available there
@@ -88,6 +80,7 @@ df<-
   dplyr::mutate(V_strat_max_pulp = replace_na(V_strat_max_pulp, 0)) %>% 
   dplyr::mutate(Harvested_V_log_under_bark = replace_na(Harvested_V_log_under_bark, 0)) %>% 
   dplyr::mutate(Harvested_V_pulp_under_bark = replace_na(Harvested_V_pulp_under_bark, 0)) 
+
 
 # DEfine SA and no_SA regimes: Create two regimes: 
 df <- 
@@ -102,7 +95,29 @@ df <- df %>%
 
 
 
-# Define the plotting ---------------------
+
+#
+
+# Process & merge neighbors data --------------------------------------------------
+
+# calculate ab differences in H_dom between central and neighbors
+# get mean by landscape and central_id
+# merge this value with the df containing all datas
+# neighbors data are in meters!!!! (not in dm, in dm it is for the glm need)
+
+nbrs.mean <- df.nbrs %>% 
+  mutate(abs_H_diff = abs(central_H - nbrs_H)) %>% 
+  group_by(landscape, central_id) %>% 
+  summarize(mean_H_diff = mean(abs_H_diff, rm.na = TRUE)) %>% 
+  rename(id = central_id)
+
+# Merge neighbors heights with all data 
+
+df<- df %>% 
+  left_join(nbrs.mean, by = c("id", "landscape"))
+
+
+# Define the plotting ------------------------------------------------------
 
 # Define own palette, color blind
 cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
@@ -451,6 +466,70 @@ ggarrange(#p.mean.V.line.npi, p.mean.V.line.time,
           vjust = 3,
           font.label = list(size = 10, 
                             face = "bold", color ="black"))
+
+
+
+
+
+# Plot neighboring stand difference ---------------------------------------
+
+
+p.mean.H_diff.line.npi <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,11) +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Height difference\nbetween neighbors (mean, m)") +
+  plot_line_details()
+
+
+
+p.mean.H_diff.line.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% 
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,11) +
+  xlab("Time\n") + #
+  ylab("Height difference\nbetween neighbors(mean, m)") +
+  plot_line_details()
+
+
+
+
+windows(width = 7, height = 5.5)
+ggarrange(#p.mean.V.line.npi, p.mean.V.line.time,
+  p.mean.H_diff.line.npi, p.mean.H_diff.line.time, 
+  #p.mean.V_prop.line.npi, p.mean.V_prop.line.time, 
+  ncol = 2, nrow = 1,
+  #widths = c(1, 1),
+  common.legend = TRUE,
+  align = c("hv"),
+  legend="bottom",
+  labels= "AUTO",
+  hjust = -5,
+  vjust = 3,
+  font.label = list(size = 10, 
+                    face = "bold", color ="black"))
+
 
 
 
