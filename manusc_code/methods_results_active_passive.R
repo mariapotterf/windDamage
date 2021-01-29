@@ -34,15 +34,29 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
                                              size=0.1, 
                                              linetype="solid"))
 
-# salaal ------------------------------------------------------------------
-
-
 
 
 # Read input data -----
-#df <- fread("/projappl/project_2003256/windDamage/output/final_df_solution8.csv")
+# includes optimal scenario, raster data, windRisk
+# has 1470 stands (removed stands with extreme values)
 df <- fread(paste(getwd(), "output/even_flow/final_df_solution8_3.csv", sep = "/"))
 
+# Get list of neigbors by scenarios
+df.nbrs <-  fread(paste(getwd(), "output/even_flow/df_nbrs_diff.csv", sep = "/"))
+
+df.nbrs %>% 
+  group_by(landscape) %>% 
+  tally() %>% 
+  print(n = 1300)
+
+# seems correct
+
+#df %>% 
+ # group_by(landscape) %>% 
+  #tally() %>% 
+  #print(n = 1300)
+
+# stands by landscape: 1470
 
 # stands geometry
 df.geom <- st_read(paste0(getwd(),"/14.534/14.534/mvj_14.534.shp"))
@@ -51,6 +65,15 @@ names(df.geom) <- c("id", "geometry")
 df.geom$area <- st_area(df.geom)
 df.geom <- subset(df.geom, id %in% unique(df$id))
 
+
+
+
+# CHeck the number of stands by landscape
+# ---------------------------------------
+df %>% 
+  group_by(landscape) %>% 
+  tally() %>% 
+  print(n = 1300)
 
 
 # Modify input values -----
@@ -720,7 +743,15 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 
 # Inspect open edge --------- 
 
-##### CHeck the open_ edge counts over time??
+# CHeck the open_ edge counts over time??
+
+
+# Create new list to have a table of the central stnad and its neighbors, and to keep the 
+# their heights
+
+
+
+
 
 #p.mean.open.edge.time <-
   df %>% 
@@ -759,7 +790,7 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 
 
 # how does the range of tree height changes oevr time???
-  # get range of values, does it lowers ove time???
+# get range of values, does it lowers ove time???
 
   df %>% 
     group_by(scenSimpl2, 
@@ -806,13 +837,168 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
   
   
 # How to illustrate teh difference in tre heights distributions over time??
+
+  
+# Check data from the neighbors comparison:
+# what is the mean height difference between neighboring stands?
+
+# split landscape in multiple strings:
+df.nbrs2 <- 
+  df.nbrs %>%
+  separate(landscape, c("year", "scenSimpl"), sep = "_") %>% 
+  separate(scenSimpl, c("scen", "intens"), sep = "(?<=[A-Za-z])(?=[0-9])") #%>% 
   
 
 
+# Calculate mean by central_id
+df.nbrs2 %>% 
+  group_by(scen, intens, central_id) %>% 
+  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
+  mutate(a_H_diff_nbr = abs(H_diff_nbr)) %>% 
+  summarize(a_H_diff_mean = mean(a_H_diff_nbr)) %>% 
+  group_by(scen, intens) %>%
+  summarize(a_H_diff_mean = mean(a_H_diff_mean, na.rm = T)) %>% 
+  ggplot(aes(y = a_H_diff_mean, 
+             x = intens, 
+             shape = scen,
+             color = scen,
+             linetype = scen,
+             group = scen,
+             fill = scen)) +
+  geom_line(size = 0.9) 
+ 
 
 
 
 
+
+# Calculate mean by central_id
+# ------------------------------
+df.nbrs2 %>% 
+  group_by(year, intens, central_id) %>% 
+  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
+  mutate(a_H_diff_nbr = abs(H_diff_nbr)) %>% 
+  summarize(a_H_diff_mean = mean(a_H_diff_nbr)) %>% 
+  ungroup() %>% 
+  group_by(scen, year) %>%
+  summarize(a_H_diff_mean = mean(a_H_diff_mean, na.rm = T)) %>% 
+  ggplot(aes(y = a_H_diff_mean, 
+             x = intens, 
+             shape = scen,
+             color = scen,
+             linetype = scen,
+             group = scen,
+             fill = scen)) +
+  geom_line(size = 0.9) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Get 
+dd <- df.nbrs2 %>% 
+  group_by(scen, intens, central_id) %>% 
+  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
+  mutate(a_H_diff_nbr = abs(H_diff_nbr)) %>% 
+  summarize(a_H_diff_mean = mean(a_H_diff_nbr))
+
+
+
+
+
+
+
+
+
+
+
+
+dd %>% 
+  ggplot(aes(y = a_H_diff_mean, 
+             x = intens, 
+             shape = scen,
+             color = scen,
+             linetype = scen,
+             group = scen,
+             fill = scen)) +
+  geom_line(size = 0.9) 
+
+
+
+
+
+
+
+dd.intens <- df.nbrs2 %>%
+  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
+  group_by(scen, intens) %>% 
+  summarise(H_diff = mean(H_diff_nbr, na.rm = T))
+
+
+
+dd.intens2 <- df.nbrs2 %>%
+  group_by(scen, intens) %>% 
+  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
+  group_by(scen, intens) %>% 
+  summarise(H_diff = mean(H_diff_nbr, na.rm = T))
+
+
+
+
+dd.year <- df.nbrs2 %>%
+  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
+  group_by(scen, year) %>% 
+  summarise(H_diff = mean(H_diff_nbr, na.rm = T))
+
+
+
+dd.intens %>% 
+   ggplot(aes(y = H_diff, 
+             x = intens, 
+             shape = scen,
+             color = scen,
+             linetype = scen,
+             group = scen,
+             fill = scen)) +
+  geom_line(size = 0.9) 
+
+
+
+dd.year %>% 
+  ggplot(aes(y = H_diff, 
+             x = year, 
+             shape = scen,
+             color = scen,
+             linetype = scen,
+             group = scen,
+             fill = scen)) +
+  geom_line(size = 0.9) 
+
+
+
+
+
+
+
+
+
+dd %>% 
+  ggplot(aes(y = H_diff, 
+             x = year, 
+             shape = scen,
+             color = scen,
+             linetype = scen,
+             group = scen,
+             fill = scen)) +
+  geom_line(size = 0.9) 
 # Get summary statistic tables ----
 
   
