@@ -138,15 +138,10 @@ fwrite(merged.df, "C:/MyTemp/myGitLab/windDamage/output/even_flow/df_landscape_o
 
 # ---------------
 # continue form here to get the height differences between stands
-df.sim = land.ls[[5]]
-nbrs[[2]]
+#df.sim = land.ls[[5]]
+#nbrs[[2]]
 
 
-
-# loop over both features and get the central id
-get_nbrs_H <- function(nbrs, df, ...) {
-  
-}
 
 
 
@@ -221,10 +216,6 @@ get_nbrs_H <- function(nbrs,
 # run example on one stand
 #ddd <- get_nbrs_H(nbrs, df.sim)
 
-
-# example ifelse
-a = c(5,9,2,9)
-ifelse(a == 2, 'TRUE', "False")
 
 
 
