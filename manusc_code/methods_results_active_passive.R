@@ -576,7 +576,7 @@ formated_sum_tab <-
 
 
 
-# Plot explanatory variables # ----------------------------------
+# Plot explanatory variables # ---------------------------------------------
 
 # Tree species
 # tree height
@@ -592,6 +592,8 @@ formated_sum_tab <-
 
 # Calculate the mean # of spruces!! Why mean???
 # How many stand I have for each simple scen vs NPI?
+# what I want to show? how does the share of teh spruce changes over 
+# harvest and time gradient??
 
 
 df %>% 
@@ -701,6 +703,8 @@ p.mean.H_dom.time <-
 # get mean landscape differences by NPI, by time
 # how to calculate the time since thinning? for NPi, for time??
 # calculate weighted mean??
+# get the sum of area and then calculate? yes, seems working and has the same results are using n
+
 
 p.mean.thin.npi <-
   df %>% 
@@ -708,8 +712,10 @@ p.mean.thin.npi <-
            NPI, 
            Management,
            difference) %>% 
-  tally() %>%
-  summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
+  summarize(s_area = sum(area)) %>% 
+  summarize(my_y = weighted.mean(difference,  s_area, na.rm = T))  %>% 
+ # tally() %>%
+ # summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
   ggplot(aes(y = my_y, 
              x = NPI, 
              shape = scenSimpl2,
@@ -730,8 +736,8 @@ p.mean.thin.time <-
            year, 
            Management,
            difference) %>% 
-  tally()  %>%
-  summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
+  summarize(s_area = sum(area)) %>% 
+  summarize(my_y = weighted.mean(difference,  s_area, na.rm = T))  %>% 
   ggplot(aes(y = my_y, 
              x = year, 
              shape = scenSimpl2,
@@ -745,9 +751,6 @@ p.mean.thin.time <-
   plot_line_details()
 
 
-# ???
-# Or, what is the proportion of stands that get thinned???
-# !!!!???
 
 
 ## Open_edge frequency --------------------------
@@ -799,7 +802,7 @@ p.mean.open.edge.time <-
   
 
 
-### Plot all predictors together ----------------------
+### Plot all predictors together --------------------------------------------
 
 windows(width = 7.4, height = 10)
 ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
