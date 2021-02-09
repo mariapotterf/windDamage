@@ -12,7 +12,6 @@
 rm(list = ls())
 
 
-setwd("C:/MyTemp/myGitLab/windDamage")
 
 # Read libraries
 library(ggplot2)
@@ -32,23 +31,39 @@ library(RColorBrewer)
 
 
 
-# Set working directory
+# Set working directory --------------------------------------------
+setwd("C:/MyTemp/myGitLab/windDamage/output/even_flow")
+
+
+
+# Read data ---------------------------------------------------------------
+
+
 # Read simulated optimal landscape
-df.sim <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/df_sim_opt.csv", 
+df.sim <- data.table::fread(paste(getwd(), "df_sim_opt.csv", sep = "/"),
                             data.table=FALSE)
 
-
-
 # Read data with calculated open_edge
-df.open <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/df_landscape_open_edge.csv", 
+df.open <- data.table::fread(paste(getwd(), "df_landscape_open_edge.csv", sep = "/"),
                         data.table=FALSE)
 df.open <- subset(df.open, select = -c(H_dom))  # remove H+_dom because have different number of decimals than other one and causes problems later
 
 # Read raster derived input variables: average wind, temperature, ...
-df.rst <- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/df_glm_raster.csv", 
+df.rst <- data.table::fread(paste(getwd(),  "df_glm_raster.csv", sep = "/"), 
                             data.table=FALSE)
 
-#length(unique(df.rst$standid)) # 1482
+# Read NPI data (multifunctionnality values over)
+df.npi <- read.csv("C:/MyTemp/myGitLab/windDamage/params/MF_NPI.csv")
+
+
+# Store output ------------------------------------------------------------
+
+# export simplified table
+outTab = "final_df_solution8_3.csv"
+
+# fwrite(df, "output/even_flow/final_df_solution8_3.csv")
+
+
 
 
 
@@ -212,7 +227,7 @@ range(df.all$windRisk, na.rm = T) #
 # 2.220446e-16 9.591686e-01
 
 range(df.all$windRisk)  # na.rm = T
-
+hist(df.all$windRisk)
 
 
 # Add string with indication of the optimla scenarioL: 0-20 from teh SA%
@@ -222,13 +237,13 @@ range(df.all$windRisk)  # na.rm = T
 # -----------------------------------------------
 df.all2 <- 
   df.all %>% 
-  mutate(scenario = gsub("./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1", '', scenario)) %>% 
-  mutate(landscape = gsub("./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1", '', landscape)) %>% 
+#  mutate(scenario = gsub("./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1", '', scenario)) %>% 
+#  mutate(landscape = gsub("./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1", '', landscape)) %>% 
   tidyr::extract(scenario, 
                  c('scenSimpl2', 'scenNumb'), 
-                 '(.*?)(\\d+)', 
-                 remove = FALSE) %>% 
-  mutate(scenNumb = as.numeric(scenNumb))
+                '(.*?)(\\d+)', 
+                remove = FALSE) %>% 
+ mutate(scenNumb = as.numeric(scenNumb))
 
 
 
@@ -277,11 +292,8 @@ df.geom <- subset(df.geom, id %in% unique(df.all$id))
 tot.area = as.numeric(sum(df.geom$area))
 
 
-# Read NPI values:
-# -------------------------
+# Add NPI values to simulated data -------------------------
 # get the NPVI&NPI values over scenarios 
-#df.npi <- fread("C:/MyTemp/myGitLab/windDamage/params/MF_NPI.csv")
-df.npi <- read.csv("C:/MyTemp/myGitLab/windDamage/params/MF_NPI.csv")
 
 # reorganize teh data to correspond to simulated scenarios:
 df.npi <- 
@@ -301,7 +313,7 @@ df.npi <-
 # remove excessive columns from simulated data
 # add NPI & MF values
 # ------------------------------
-df <-
+df.out <-
   df.all2 %>% 
   # remove excessive columns
   dplyr::select(-c(AREA, V_total_deadwood, 
@@ -331,7 +343,7 @@ df <-
 
 # Calculate the % of SA and add to table:
 df.SA_prop <-
-  df %>% 
+  df.out %>% 
   group_by(scenSimpl2, scenNumb, avohaakut) %>% 
   distinct(id) %>% 
   summarise(stands_n = n()) %>%
@@ -341,14 +353,17 @@ df.SA_prop <-
 
 
 # Add SA % (frequency) to the simulated data table
-df <- 
-  df %>% 
+df.out <- 
+  df.out %>% 
   left_join(df.SA_prop, by = c("scenSimpl2", "scenNumb"))# %>% 
   #mutate(scenSimpl2 = simpleScen)
 
-# export simplified table
 
-fwrite(df, "output/even_flow/final_df_solution8_3.csv")
+# Export simplified table ----------------------------------------------
+fwrite(df.out, paste(getwd(), outTab, sep = "/"))
+
+
+
 
 df %>% 
   group_by(landscape) %>% 
