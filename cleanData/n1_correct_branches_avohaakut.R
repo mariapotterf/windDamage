@@ -19,16 +19,42 @@ library(stringr)
 library(data.table)
 
 
+
+#  Set wd -----------------------------------------------------------------
+
 myPathAll = "C:/MyTemp/myGitLab/windDamage/input"
 setwd(myPathAll)
 
+
+
+
+#  Input data -------------------------------------------------------------
 
 # ^ anchor the beginning (if you begin with power, you end up with money (Evan Misshula, ))
 # https://r4ds.had.co.nz/strings.html#basic-matches
 df.names = list.files(myPathAll,
                         pattern=".csv$") # ends with .csv$, \\. matches .
 
+
+# Manually corrected & completed scenarios
+regim_names <- read.csv("C:/MyTemp/myGitLab/windDamage/params/regimes_BAU_avohak.csv", 
+                        sep = ",", 
+                        stringsAsFactors = FALSE)
+
+
+# Output data -------------------------------------------------------------
+
+# Export the final table with corrected branching names and avohaakut regimes names
+
+outTab = "simulated_AVK_regimes.csv"
+outPath = "C:/MyTemp/myGitLab/windDamage/output/even_flow"
+  
+
+#  Process data -----------------------------------------------------------
+
+# Check files to read
 (df.names)   
+
 # Read all dataframes in a loop
 my.df.list = lapply(df.names, function(x) {
                      read.csv(x, sep = ";", stringsAsFactors = FALSE)
@@ -121,10 +147,6 @@ df.av <- rbind(df.no.sa,
 #    following Avohaakut
 # ----------------------------------------------
 
-# Manually corrected & completed scenarios
-regim_names <- read.csv("C:/MyTemp/myGitLab/windDamage/params/regimes_BAU_avohak.csv", 
-                        sep = ",", 
-                        stringsAsFactors = FALSE)
 
 # Add the avohaakut names of the regimes
 df.av <- df.av %>%
@@ -141,7 +163,7 @@ unique(df.av$branching_new) # 58 - great!!
 
 
 # Export the final table with corrected branching names and avohaakut regimes names
-data.table::fwrite(df.av, "C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regimes.csv")
+data.table::fwrite(df.av, paste(outPath, outTab, sep = "/" )) #C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regimes.csv")
 
 
 
