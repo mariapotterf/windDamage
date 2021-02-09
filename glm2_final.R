@@ -61,11 +61,6 @@ df.npi <- read.csv("C:/MyTemp/myGitLab/windDamage/params/MF_NPI.csv")
 # export simplified table
 outTab = "final_df_solution8_3.csv"
 
-# fwrite(df, "output/even_flow/final_df_solution8_3.csv")
-
-
-
-
 
 # ---------------------------------
 # Merge the optimal simulated dataset, open_edge and raster data
@@ -365,7 +360,7 @@ fwrite(df.out, paste(getwd(), outTab, sep = "/"))
 
 
 
-df %>% 
+df.out %>% 
   group_by(landscape) %>% 
   tally() %>% 
   print(n = 1300)
