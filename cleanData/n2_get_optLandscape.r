@@ -20,33 +20,42 @@ require(data.table)
 library(tidyr)
 
 
-stands.remove <- c(13243875,
-                   13243879,
-                   13243881)
+
+# Read input files --------------------------------------------------------
+# not set wd because data are read from different sources
 
 # Read corrected simulated names:
-df.sim<- data.table::fread("C:/MyTemp/avohaakut_db/analyzed/simulated_AVK_regimes.csv", 
+path = "C:/MyTemp/myGitLab/windDamage/output/even_flow"
+df.sim<- data.table::fread(paste(path, "simulated_AVK_regimes.csv", sep = "/"), 
                            data.table=FALSE, 
                            stringsAsFactors = FALSE)
-
-df.sim <- subset(df.sim, !id %in% stands.remove)
-
-
-
-# -----------------------------
-# Read optimal solution:
-# -----------------------------
-
-source("C:/MyTemp/myGitLab/windDamage/myFunctions.r")
-
 
 # Read all optimal solutions to 
 # see applied regimes?? 
 # -------------------------------
 setwd("C:/MyTemp/avohaakut_db/Solutions_2")
+
+# read optimal solutions, needs few functions:
+
+source("C:/MyTemp/myGitLab/windDamage/myFunctions.r")
+
 df.optim = list.files(pattern=".csv$",
                       full.names = TRUE) # ends with .csv$, \\. matches .
 
+
+# Save output -------------------------------------------------------------
+outTab = "df_sim_opt.csv"
+
+
+# Process data ------------------------------------------------------------
+# filter simulated data
+stands.remove <- c(13243875,
+                   13243879,
+                   13243881)
+
+df.sim <- subset(df.sim, !id %in% stands.remove)
+
+# process optimal solutions
 
 # Replace names indications by simpler way 
 
@@ -156,9 +165,9 @@ df.sim.all2 %>%
   print(n = 1300)
 
 # write the table
-fwrite(df.sim.all2, "C:/MyTemp/myGitLab/windDamage/output/df_sim_opt.csv")
+#fwrite(df.sim.all2, "C:/MyTemp/myGitLab/windDamage/output/df_sim_opt.csv")
 
-fwrite(df.sim.all2, "C:/MyTemp/myGitLab/windDamage/output/even_flow/df_sim_opt.csv")
+fwrite(df.sim.all2, paste(path, outTab, sep = "/"))
 
 
 
