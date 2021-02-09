@@ -26,22 +26,24 @@ stands.remove <- c(13243875,
 
 
 # read optimal simulated data
-df<- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/df_sim_opt.csv",
+path = "C:/MyTemp/myGitLab/windDamage/output/even_flow" 
+
+df<- data.table::fread(paste(path, "df_sim_opt.csv", sep = "/"),
                        data.table=FALSE, 
                        stringsAsFactors = FALSE)
 
 
+# Out data
+outTab_edge      = "df_landscape_open_edge.csv"
+outTab_nbr_diff  = "df_nbrs_diff.csv"
 
-#df<- data.table::fread("C:/MyTemp/myGitLab/windDamage/output/df_sim_opt.csv",
- #                      data.table=FALSE, 
-  #                     stringsAsFactors = FALSE)
-
-
+# Process data
 
 df <- subset(df, !id %in% stands.remove)
 
 
 keep_id <- unique(df$id)
+
 
 # Read stand geometry - subset twice
 # -----------------------------
@@ -60,9 +62,6 @@ df <- df %>%
   mutate(scenario = gsub("./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1", '', scenario)) %>% 
   mutate(landscape = gsub("./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1", '', landscape)) #%>% 
   
-
-
-
 
 
 # Calculate open_edges
@@ -130,7 +129,8 @@ merged.df %>%
 
 
 # write the table
-fwrite(merged.df, "C:/MyTemp/myGitLab/windDamage/output/even_flow/df_landscape_open_edge.csv")
+#fwrite(merged.df, "C:/MyTemp/myGitLab/windDamage/output/even_flow/df_landscape_open_edge.csv")
+fwrite(merged.df, paste(path, outTab_edge, sep = "/")) # "C:/MyTemp/myGitLab/windDamage/output/even_flow/df_landscape_open_edge.csv")
 
 
 
@@ -228,8 +228,8 @@ nbrs.ls <- lapply(land.ls, function(df) get_nbrs_H(nbrs, df))
 merged.nbrs.df <- do.call(rbind, nbrs.ls)
   
 # write the table
-fwrite(merged.nbrs.df, "C:/MyTemp/myGitLab/windDamage/output/even_flow/df_nbrs_diff.csv")
-  
+#fwrite(merged.nbrs.df, "C:/MyTemp/myGitLab/windDamage/output/even_flow/df_nbrs_diff.csv")
+fwrite(merged.nbrs.df, paste(path, outTab_nbr_diff , sep = "/"))  
   
   
   
