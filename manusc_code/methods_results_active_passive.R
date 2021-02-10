@@ -44,7 +44,10 @@ setwd("C:/MyTemp/myGitLab/windDamage/output/even_flow")
 
 # includes optimal scenario, raster data, windRisk
 # has 1470 stands (removed stands with extreme values)
-df <- fread(paste(getwd(), "final_df_solution8_3.csv", sep = "/"))
+#df <- fread(paste(getwd(), "final_df_solution8_3.csv", sep = "/"))
+df <- fread(paste(getwd(), "final_df_solution8.csv", sep = "/"))
+
+
 
 # Get list of neigbors by scenarios
 df.nbrs <-  fread(paste(getwd(), "df_nbrs_diff.csv", sep = "/"))
@@ -62,7 +65,9 @@ df %>%
   print(n = 1300)
 
 # stands by landscape: 1470
+# number of stand is different here, need to rerun the whole code again with Solutions_8
 
+# But, for now I should process with thae mauscript
 # stands geometry
 # df.geom <- st_read(paste0(getwd(),"/14.534/14.534/mvj_14.534.shp"))
 # df.geom <- subset(df.geom, select = c("KUVIO_ID"))
@@ -203,10 +208,12 @@ p.mean.windRisk.line.time2 <-
 
 
 # Plot by managed/unmanaged stands 
-windows(width = 7, height=3)
+windows(width = 7, height=6)
 ggarrange(p.mean.windRisk.line.npi2, 
           p.mean.windRisk.line.time2,  
-          ncol = 2, nrow = 1,
+          p.mean.V.line.npi, 
+          p.mean.V.line.time,
+          ncol = 2, nrow = 2,
           widths = c(1, 1),
           common.legend = TRUE,
           align = c("hv"),
@@ -479,7 +486,8 @@ p.mean.H_diff.line.npi <-
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
-  summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  #summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  summarize(my_y = weighted.mean(mean_H_diff,  area, na.rm = T))  %>% 
   ggplot(aes(y = my_y, 
              x = NPI, 
              shape = scenSimpl2,     
@@ -499,7 +507,8 @@ p.mean.H_diff.line.time <-
   group_by(scenSimpl2, 
            year, 
            Management) %>% 
-  summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% 
+  #summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% 
+  summarize(my_y = weighted.mean(mean_H_diff,  area, na.rm = T))  %>% 
   ggplot(aes(y = my_y, 
              x = year, 
              shape = scenSimpl2,     
@@ -535,46 +544,6 @@ ggarrange(#p.mean.V.line.npi, p.mean.V.line.time,
 
 
 
-### Get summary statistics volumes & risk, make table ---------------------------
-# Make a nice table including wind risk and total timber volume
-# how to show how much volume is in the top and total straum? does this change by scenario???
-
-sum_tab<-
-  df %>% 
-  group_by(scenSimpl2,  
-           Management) %>% 
-  summarize(mean_risk    = round(mean(windRisk,    na.rm = T),  3),
-            sd_risk      = round(sd(  windRisk,    na.rm = T),  3),
-            mean_V       = round(mean(V,           na.rm = T),  1),
-            sd_V         = round(sd(  V,           na.rm = T),  1),
-            mean_V_strat = round(mean(V_strat_max, na.rm = T),  1),
-            sd_V_strat   = round(sd(  V_strat_max, na.rm = T),  1),
-            mean_V_prop  = round(mean(V_prop,      na.rm = T),  1),
-            sd_V_prop    = round(sd(  V_prop,      na.rm = T),  1),
-            mean_log     = round(mean(V_strat_max_log, na.rm = T), 1),
-            sd_log       = round(sd(  V_strat_max_log, na.rm = T), 1), 
-            mean_pulp    = round(mean(V_strat_max_pulp,na.rm = T), 1),
-            sd_pulp      = round(sd(  V_strat_max_pulp,na.rm = T), 1))
-  
-
-
-
-# Format table nicely
-formated_sum_tab <- 
-  sum_tab %>% 
-  mutate(windRisk       = stringr::str_glue("{mean_risk}±{sd_risk}"),
-         Volume         = stringr::str_glue("{mean_V}±{sd_V}"),
-         Volume_top     = stringr::str_glue("{mean_V_strat}±{sd_V_strat} ({mean_V_prop}±{sd_V_prop})"),
-         Volume_log     = stringr::str_glue("{mean_log}±{sd_log}"),
-         Volume_pulp    = stringr::str_glue("{mean_pulp}±{sd_pulp}")) %>%  #,  {scales::percent(sd_height)}
-  tidyr::complete(scenSimpl2, Management)  %>%
-  dplyr::select(scenSimpl2, Management, windRisk, 
-                Volume, Volume_top, Volume_log, Volume_pulp)
-
-
-
-
-
 
 #  Plot windRisk againt multifunctionnality  -----------------------------------------------
 
@@ -598,12 +567,13 @@ df %>%
 # Plot explanatory variables # ---------------------------------------------
 
 # Tree species
-# tree height
+# Tree height
 # Time since thinning
 # open-neighbour
 
 
 ## Tree species -------------------------
+
 # Spruce is the most vulnerable: frequency of spruce
 
 # Calculate the mean # of spruces!!
@@ -644,13 +614,11 @@ p.spruce.ratio.npi <-
              group = scenSimpl2,
              fill = scenSimpl2)) +
   xlab("Net present income\n(k€/ha)") + #
-  ylab("Tree height\n(mean, dm)") +
-  ylim(0,40) +
-  xlab("Net present income\n(k€/ha)") + #
   ylab("Spruce proportion\n(%)") +
+  ylim(0,50) +
   plot_line_details()
 
-
+# to calulate how many landscapes I have over time:
 p.spruce.ratio.time <-
   df %>% 
   group_by(scenSimpl2, 
@@ -666,7 +634,7 @@ p.spruce.ratio.time <-
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  ylim(0,40) +
+  ylim(0,50) +
   xlab("Time\n") + #
   ylab("Spruce proportion\n(%)") +
   plot_line_details()
@@ -679,7 +647,9 @@ p.mean.H_dom.npi <-
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
-  summarize(my_y = mean(H_dom))  %>%
+  #summarize(s_area = sum(area)) %>% 
+  summarize(my_y = weighted.mean(H_dom,  area, na.rm = T))  %>% 
+ # summarize(my_y = mean(H_dom))  %>%
   ggplot(aes(y = my_y, 
              x = NPI, 
              shape = scenSimpl2,
@@ -690,7 +660,7 @@ p.mean.H_dom.npi <-
   ylim(0,300) +
   ggtitle("") +
   xlab("Net present income\n(k€/ha)") + #
-  ylab("Tree height\n(mean, cm)") +
+  ylab("Tree height\n(w.mean, cm)") +
   plot_line_details()
 
 
@@ -700,7 +670,8 @@ p.mean.H_dom.time <-
   group_by(scenSimpl2, 
            year, 
            Management) %>% 
-  summarize(my_y = mean(H_dom ))  %>%
+  #summarize(my_y = mean(H_dom ))  %>%
+  summarize(my_y = weighted.mean(H_dom,  area, na.rm = T))  %>% 
   ggplot(aes(y = my_y, 
              x = year, 
              shape = scenSimpl2,
@@ -711,7 +682,7 @@ p.mean.H_dom.time <-
   ylim(0,300) +
   ggtitle("") +
   xlab("Time\n ") + #
-  ylab("Tree height\n(mean, cm)") +
+  ylab("Tree height\n(w. mean, cm)") +
   plot_line_details()
 
 
@@ -853,91 +824,6 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 
 
 
-
-
-#p.mean.open.edge.time <-
-  df %>% 
-    filter(scenNumb == 10) %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management,
-           open_edge) %>%
-  tally() %>%
-  filter(open_edge == TRUE) %>% 
-  summarize(my_y = n ) %>% # /1470/20 
-  ggplot(aes(y = my_y, 
-             x = year, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  geom_line(size = 0.9) +
-  facet_wrap(.~Management) +
- # ylim(0,2) +
-  ggtitle("") +
-  xlab("Time\n ") + #
-  ylab("Open edge stands\n(%)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-
-
-
-# how does the range of tree height changes oevr time???
-# get range of values, does it lowers ove time???
-
-  df %>% 
-    group_by(scenSimpl2, 
-             NPI, 
-             Management ) %>%  #,
-    #open_edge) %>%
-    summarise(H_min = min(H_dom, na.rm = T),
-              H_max = max(H_dom, na.rm = T)) %>% 
-    mutate(H_diff = H_max - H_min) %>% 
-    ggplot(aes(y = H_diff, 
-               x = NPI, 
-               shape = scenSimpl2,
-               color = scenSimpl2,
-               linetype = scenSimpl2,
-               group = scenSimpl2,
-               fill = scenSimpl2)) +
-    geom_line(size = 0.9) +
-    facet_wrap(.~Management) + #+
-    ylim(0, 350)
-  
-  
-  
-  
-  
-  
-  df %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management ) %>%  #,
-           #open_edge) %>%
-  summarise(H_min = min(H_dom, na.rm = T),
-            H_max = max(H_dom, na.rm = T)) %>% 
-  mutate(H_diff = H_max - H_min) %>% 
-  ggplot(aes(y = H_diff, 
-             x = year, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  geom_line(size = 0.9) +
-  facet_wrap(.~Management) + #+
-  ylim(0, 350)
-  
-  
 # How to illustrate teh difference in tre heights distributions over time??
 
   
@@ -999,119 +885,48 @@ df.nbrs2 %>%
 
 
 
+### Get summary statistics volumes & risk, make table ---------------------------
+# Make a nice table including wind risk and total timber volume
+# how to show how much volume is in the top and total straum? does this change by scenario???
 
-
-
-
-
-
-# Get 
-dd <- df.nbrs2 %>% 
-  group_by(scen, intens, central_id) %>% 
-  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
-  mutate(a_H_diff_nbr = abs(H_diff_nbr)) %>% 
-  summarize(a_H_diff_mean = mean(a_H_diff_nbr))
-
-
-
-
-
-
-
-
-
-
-
-
-dd %>% 
-  ggplot(aes(y = a_H_diff_mean, 
-             x = intens, 
-             shape = scen,
-             color = scen,
-             linetype = scen,
-             group = scen,
-             fill = scen)) +
-  geom_line(size = 0.9) 
-
-
-
-
-
-
-
-dd.intens <- df.nbrs2 %>%
-  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
-  group_by(scen, intens) %>% 
-  summarise(H_diff = mean(H_diff_nbr, na.rm = T))
-
-
-
-dd.intens2 <- df.nbrs2 %>%
-  group_by(scen, intens) %>% 
-  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
-  group_by(scen, intens) %>% 
-  summarise(H_diff = mean(H_diff_nbr, na.rm = T))
-
-
-
-
-dd.year <- df.nbrs2 %>%
-  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
-  group_by(scen, year) %>% 
-  summarise(H_diff = mean(H_diff_nbr, na.rm = T))
-
-
-
-dd.intens %>% 
-   ggplot(aes(y = H_diff, 
-             x = intens, 
-             shape = scen,
-             color = scen,
-             linetype = scen,
-             group = scen,
-             fill = scen)) +
-  geom_line(size = 0.9) 
-
-
-
-dd.year %>% 
-  ggplot(aes(y = H_diff, 
-             x = year, 
-             shape = scen,
-             color = scen,
-             linetype = scen,
-             group = scen,
-             fill = scen)) +
-  geom_line(size = 0.9) 
-
-
-
-
-
-
-
-
-
-dd %>% 
-  ggplot(aes(y = H_diff, 
-             x = year, 
-             shape = scen,
-             color = scen,
-             linetype = scen,
-             group = scen,
-             fill = scen)) +
-  geom_line(size = 0.9) 
-# Get summary statistic tables ----
-
-  
-#sum_tab_vars<-
+sum_tab<-
   df %>% 
   group_by(scenSimpl2,  
            Management) %>% 
-  summarize(mean_H_dom = round(mean(H_dom),1),
-            sd_H_dom = round(sd(H_dom),1) ) #, 
-            #mean_pulp = round(mean(V_strat_max_pulp),1),
-            #sd_pulp = round(sd(V_strat_max_pulp), 1))
+  summarize(mean_risk    = round(mean(windRisk,    na.rm = T),  3),
+            sd_risk      = round(sd(  windRisk,    na.rm = T),  3),
+            mean_V       = round(mean(V,           na.rm = T),  1),
+            sd_V         = round(sd(  V,           na.rm = T),  1),
+            mean_V_strat = round(mean(V_strat_max, na.rm = T),  1),
+            sd_V_strat   = round(sd(  V_strat_max, na.rm = T),  1),
+            mean_V_prop  = round(mean(V_prop,      na.rm = T),  1),
+            sd_V_prop    = round(sd(  V_prop,      na.rm = T),  1),
+            mean_log     = round(mean(V_strat_max_log, na.rm = T), 1),
+            sd_log       = round(sd(  V_strat_max_log, na.rm = T), 1), 
+            mean_pulp    = round(mean(V_strat_max_pulp,na.rm = T), 1),
+            sd_pulp      = round(sd(  V_strat_max_pulp,na.rm = T), 1))
+
+
+
+
+# Format table nicely
+formated_sum_tab <- 
+  sum_tab %>% 
+  mutate(windRisk       = stringr::str_glue("{mean_risk}±{sd_risk}"),
+         Volume         = stringr::str_glue("{mean_V}±{sd_V}"),
+         Volume_top     = stringr::str_glue("{mean_V_strat}±{sd_V_strat} ({mean_V_prop}±{sd_V_prop})"),
+         Volume_log     = stringr::str_glue("{mean_log}±{sd_log}"),
+         Volume_pulp    = stringr::str_glue("{mean_pulp}±{sd_pulp}")) %>%  #,  {scales::percent(sd_height)}
+  tidyr::complete(scenSimpl2, Management)  %>%
+  dplyr::select(scenSimpl2, Management, windRisk, 
+                Volume, Volume_top, Volume_log, Volume_pulp)
+
+
+
+
+
+
+
 
 
 
