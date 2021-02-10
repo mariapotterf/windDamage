@@ -36,13 +36,18 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 
 
 
-# Read input data -----
+# Set wd ------------------------------------------------------------------
+
+setwd("C:/MyTemp/myGitLab/windDamage/output/even_flow")
+
+# Read input data ----------------------------------------------------
+
 # includes optimal scenario, raster data, windRisk
 # has 1470 stands (removed stands with extreme values)
-df <- fread(paste(getwd(), "output/even_flow/final_df_solution8_3.csv", sep = "/"))
+df <- fread(paste(getwd(), "final_df_solution8_3.csv", sep = "/"))
 
 # Get list of neigbors by scenarios
-df.nbrs <-  fread(paste(getwd(), "output/even_flow/df_nbrs_diff.csv", sep = "/"))
+df.nbrs <-  fread(paste(getwd(), "df_nbrs_diff.csv", sep = "/"))
 
 #df.nbrs %>% 
  # group_by(landscape) %>% 
@@ -51,19 +56,19 @@ df.nbrs <-  fread(paste(getwd(), "output/even_flow/df_nbrs_diff.csv", sep = "/")
 
 # seems correct
 
-#df %>% 
- # group_by(landscape) %>% 
-  #tally() %>% 
-  #print(n = 1300)
+df %>% 
+  group_by(landscape) %>% 
+  tally() %>% 
+  print(n = 1300)
 
 # stands by landscape: 1470
 
 # stands geometry
-df.geom <- st_read(paste0(getwd(),"/14.534/14.534/mvj_14.534.shp"))
-df.geom <- subset(df.geom, select = c("KUVIO_ID"))
-names(df.geom) <- c("id", "geometry")
-df.geom$area <- st_area(df.geom)
-df.geom <- subset(df.geom, id %in% unique(df$id))
+# df.geom <- st_read(paste0(getwd(),"/14.534/14.534/mvj_14.534.shp"))
+# df.geom <- subset(df.geom, select = c("KUVIO_ID"))
+# names(df.geom) <- c("id", "geometry")
+# df.geom$area <- st_area(df.geom)
+# df.geom <- subset(df.geom, id %in% unique(df$id))
 
 
 
@@ -94,10 +99,6 @@ df <- df %>%
   mutate(V_prop = V_strat_max / V *100)  
 
 
-
-
-#
-
 # Process & merge neighbors data --------------------------------------------------
 
 # calculate ab differences in H_dom between central and neighbors
@@ -112,7 +113,6 @@ nbrs.mean <- df.nbrs %>%
   rename(id = central_id)
 
 # Merge neighbors heights with all data 
-
 df<- df %>% 
   left_join(nbrs.mean, by = c("id", "landscape"))
 
@@ -570,6 +570,63 @@ formated_sum_tab <-
   tidyr::complete(scenSimpl2, Management)  %>%
   dplyr::select(scenSimpl2, Management, windRisk, 
                 Volume, Volume_top, Volume_log, Volume_pulp)
+
+
+
+
+
+
+#  Plot windRisk againt multifunctionnality  -----------------------------------------------
+
+df %>%
+  sample_n(100000) %>% 
+  ggplot(aes(y = windRisk,
+             x = MF,
+             group = scenSimpl2)) +
+  geom_point()
+  
+
+
+
+#p.mean.V.log.line.npi <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(my_y = mean(V_strat_max_log ))  %>%
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,210) +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Standing log volume\n(mean, m^3)") +
+  plot_line_details()
+
+
+# mean V log over time
+p.mean.V.log.line.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(my_y = mean(V_strat_max_log))  %>%
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,210) +
+  xlab("Time\n ") + #
+  ylab("Standing log volume\n(mean, m^3)") +
+  plot_line_details()
+
+
 
 
 
