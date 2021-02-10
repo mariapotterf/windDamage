@@ -579,58 +579,20 @@ formated_sum_tab <-
 #  Plot windRisk againt multifunctionnality  -----------------------------------------------
 
 df %>%
-  sample_n(100000) %>% 
-  ggplot(aes(y = windRisk,
-             x = MF,
-             group = scenSimpl2)) +
-  geom_point()
+  group_by(scenSimpl2, 
+           MF, 
+           Management) %>% 
+  summarize(my_y = mean(windRisk ))  %>%
   
-
-
-
-#p.mean.V.log.line.npi <-
-  df %>% 
-  group_by(scenSimpl2, 
-           NPI, 
-           Management) %>% 
-  summarize(my_y = mean(V_strat_max_log ))  %>%
-  ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,210) +
-  xlab("Net present income\n(k€/ha)") + #
-  ylab("Standing log volume\n(mean, m^3)") +
+  #sample_n(100000) %>% 
+  ggplot(aes(y = my_y,
+             x = MF, #"as.factor(MF)",
+             group = scenSimpl2,
+             color = scenSimpl2)) +
   plot_line_details()
-
-
-# mean V log over time
-p.mean.V.log.line.time <-
-  df %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management) %>% 
-  summarize(my_y = mean(V_strat_max_log))  %>%
-  ggplot(aes(y = my_y, 
-             x = year, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,210) +
-  xlab("Time\n ") + #
-  ylab("Standing log volume\n(mean, m^3)") +
-  plot_line_details()
-
-
-
-
-
-
+  #geom_point() +
+  #facet_grid(.~ Management)
+  
 
 
 # Plot explanatory variables # ---------------------------------------------
