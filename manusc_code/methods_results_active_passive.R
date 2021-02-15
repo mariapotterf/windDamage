@@ -881,7 +881,78 @@ df.nbrs2 %>%
 
 
 
+# Inspect SA characteristics ----------------------------------------------
 
+# subset ony SA stands in 2016
+# check H_dom, timber volume by NPI group
+
+p.H_dom2016  <-df %>% 
+  filter(year == 2016) %>% 
+  group_by(scenSimpl2, 
+           NPI,
+           Management) %>% 
+  #summarize(s_area = sum(area)) %>% 
+  #summarize(my_y = weighted.mean(H_dom,  s_area, na.rm = T)) # %>% 
+  summarize(my_y = mean(H_dom,  na.rm = T))  %>% 
+  # tally() %>%
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+#geom_line() +
+ ylim(0,180) +
+  #xlab("Net present income\n(k€/ha)") + #
+ ylab("H_dom in SA") +
+  plot_line_details()
+
+
+p.V_2016  <-df %>% 
+  filter(year == 2016) %>% 
+  group_by(scenSimpl2, 
+           NPI,
+           Management) %>% 
+  #summarize(s_area = sum(area)) %>% 
+  #summarize(my_y = weighted.mean(H_dom,  s_area, na.rm = T)) # %>% 
+  summarize(my_y = mean(V,  na.rm = T))  %>% 
+  # tally() %>%
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  #geom_line() +
+  ylim(0,180) +
+  #xlab("Net present income\n(k€/ha)") + #
+  ylab("V") +
+  plot_line_details()
+
+# age
+p.age_2016  <-df %>% 
+  filter(year == 2016) %>% 
+  group_by(scenSimpl2, 
+           NPI,
+           Management) %>% 
+  #summarize(s_area = sum(area)) %>% 
+  #summarize(my_y = weighted.mean(H_dom,  s_area, na.rm = T)) # %>% 
+  summarize(my_y = mean(Age,  na.rm = T))  %>% 
+  # tally() %>%
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  #geom_line() +
+  ylim(0,60) +
+  #xlab("Net present income\n(k€/ha)") + #
+  ylab("Age") +
+  plot_line_details()
 
 
 
