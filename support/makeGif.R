@@ -21,17 +21,18 @@ library("ggspatial")
 
 
 # Set working directory
-setwd("U:/projects/2019_windthrowModel/Janita/outSimulated")
-
+#setwd("U:/projects/2019_windthrowModel/Janita/outSimulated")
+path = "C:/MyTemp/myGitLab/windDamage/support/clearCutGif"
 
 # Read input data: no wind
-df <- read.csv( "rsl_without_MV_Pori.csv", sep = ";") 
+df <- read.csv(paste(path, "rsl_without_MV_Pori.csv", sep = "/"), 
+               sep = ";") 
 
 # Read geometry
 #stands.all = readOGR(dsn = getwd(),
 #                   layer = "MV_Pori")
 
-stands.all = read_sf("MV_Pori.shp")
+stands.all = read_sf(paste(path, "MV_Pori.shp", sep = "/"))
 
 
 # Get the standid of unique stands:
@@ -46,7 +47,7 @@ stands.sub <- subset(stands.all,
 
 
 # Plot attribute information:
-windows()
+#windows()
 ggplot(stands.sub) + geom_sf(aes(fill = soiltyp))
 
 
@@ -186,7 +187,7 @@ ggplot(stand.all) +
 
 
 # Save at gif:
-anim_save("pori_BAU.gif")
+#anim_save("pori_BAU.gif")
 
 
 
