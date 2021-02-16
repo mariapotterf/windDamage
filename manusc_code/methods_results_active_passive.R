@@ -881,8 +881,8 @@ df.nbrs2 %>%
 
 
 
-# Inspect SA characteristics ----------------------------------------------
-
+# Inspect SA characteristics in 2016 ----------------------------------------------
+# were selected SA consistentlly worse then actively managed stands??
 # subset ony SA stands in 2016
 # check H_dom, timber volume by NPI group
 
@@ -891,10 +891,7 @@ p.H_dom2016  <-df %>%
   group_by(scenSimpl2, 
            NPI,
            Management) %>% 
-  #summarize(s_area = sum(area)) %>% 
-  #summarize(my_y = weighted.mean(H_dom,  s_area, na.rm = T)) # %>% 
   summarize(my_y = mean(H_dom,  na.rm = T))  %>% 
-  # tally() %>%
   ggplot(aes(y = my_y, 
              x = NPI, 
              shape = scenSimpl2,
@@ -902,10 +899,7 @@ p.H_dom2016  <-df %>%
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-#geom_line() +
- ylim(0,180) +
-  #xlab("Net present income\n(k€/ha)") + #
- ylab("H_dom in SA") +
+ ylab("H_dom") +
   plot_line_details()
 
 
@@ -914,10 +908,7 @@ p.V_2016  <-df %>%
   group_by(scenSimpl2, 
            NPI,
            Management) %>% 
-  #summarize(s_area = sum(area)) %>% 
-  #summarize(my_y = weighted.mean(H_dom,  s_area, na.rm = T)) # %>% 
-  summarize(my_y = mean(V,  na.rm = T))  %>% 
-  # tally() %>%
+   summarize(my_y = mean(V,  na.rm = T))  %>% 
   ggplot(aes(y = my_y, 
              x = NPI, 
              shape = scenSimpl2,
@@ -925,9 +916,6 @@ p.V_2016  <-df %>%
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  #geom_line() +
-  ylim(0,180) +
-  #xlab("Net present income\n(k€/ha)") + #
   ylab("V") +
   plot_line_details()
 
@@ -937,10 +925,7 @@ p.age_2016  <-df %>%
   group_by(scenSimpl2, 
            NPI,
            Management) %>% 
-  #summarize(s_area = sum(area)) %>% 
-  #summarize(my_y = weighted.mean(H_dom,  s_area, na.rm = T)) # %>% 
   summarize(my_y = mean(Age,  na.rm = T))  %>% 
-  # tally() %>%
   ggplot(aes(y = my_y, 
              x = NPI, 
              shape = scenSimpl2,
@@ -948,11 +933,97 @@ p.age_2016  <-df %>%
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  #geom_line() +
-  ylim(0,60) +
-  #xlab("Net present income\n(k€/ha)") + #
   ylab("Age") +
   plot_line_details()
+
+
+tot.stand.n = 1470*20
+
+
+# Make plots for npi and time
+p.spruce.2016 <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  filter(species == "spruce" & year == 2016) %>% 
+  tally() %>%
+  mutate(spruce_prop = n/1470*100)  %>%  # get the proportion of spruce from all stands over 20 years 
+  ggplot(aes(y = spruce_prop, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Spruce proportion\n(%)") +
+  ylim(0,50) +
+  plot_line_details()
+
+
+p.pine.2016 <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  filter(species == "pine" & year == 2016) %>% 
+  tally() %>%
+  mutate(spruce_prop = n/1470*100)  %>%  # get the proportion of spruce from all stands over 20 years 
+  ggplot(aes(y = spruce_prop, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Pine proportion\n(%)") +
+ # ylim(0,50) +
+  plot_line_details()
+  
+
+p.other.2016 <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  filter(species == "other" & year == 2016) %>% 
+  tally() %>%
+  mutate(spruce_prop = n/1470*100)  %>%  # get the proportion of spruce from all stands over 20 years 
+  ggplot(aes(y = spruce_prop, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Other proportion\n(%)") +
+  ylim(0,50) +
+  plot_line_details()
+  
+  
+
+
+
+windows(width = 7.4, height = 10)
+ggarrange(p.H_dom2016, p.age_2016, p.V_2016,
+          p.spruce.2016, p.pine.2016, p.other.2016,
+          ncol = 3, nrow = 2,
+          #widths = c(1, 1),
+          common.legend = TRUE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          vjust = 3,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+
+
+
 
 
 
