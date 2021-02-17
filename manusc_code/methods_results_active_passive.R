@@ -882,14 +882,63 @@ df.nbrs2 %>%
 
 
 # Inspect SA characteristics in 2016 ----------------------------------------------
--df %>% 
-  filter(year == 2016) %>% 
+# get distribution of tree heights by species
+# check the freqency of species selected in SA management by NPI
+# use Scen 1 instead of  scen 0 because scen 0 has no Actively managed stands
+windows()
+df %>% 
+  filter(year == 2016 & (scenNumb == 1 | scenNumb == 20)) %>% 
+  #distinct(year)
+  #tally()
+  #filter(year == 2016) %>% 
   group_by(scenSimpl2, 
            NPI,
-           Management) %>% 
-  summarize(my_y = mean(H_dom,  na.rm = T))  %>% 
+           Management, 
+           species) %>%
+  tally() %>% 
+  print(n = 40)
+#ggplot(aes(species)) + 
+  ggplot(aes(y=Age,
+             group = interaction(species, Management),
+             #colour = Management)) + 
+             colour = interaction(species,Management))) + 
+  #geom_histogram() +
+  scale_color_brewer(palette="Spectral") + # Use diverging color scheme
+  geom_freqpoly(stat = "count")+
+  facet_grid(scenSimpl2 ~ scenNumb)
+  
+  
+  # Calculate the differences between counts of species between scenario 1 and 20
+# The least intensive scenario
+  df1 <- df %>% 
+  filter(year == 2016 & (scenNumb == 1 )) %>% 
+  group_by(scenSimpl2, 
+           NPI,
+           Management, 
+           species) %>%
+  tally() %>%
+    rename(n_1 = n) 
+  
+# The most intensive scenario
+df20 <- df %>% 
+  filter(year == 2016 & (scenNumb == 20 )) %>% 
+  group_by(scenSimpl2, 
+           NPI,
+           Management, 
+           species) %>%
+  tally() %>%
+  rename(n_20 = n)
 
+# Join two tables together and get differences
 
+df1 %>% 
+  left_join(df20, by = c("scenSimpl2", "Management", "species")) %>% 
+  mutate(diff = n_1 - n_20)# %>% 
+  ggplot(aes(x = species,
+             y = diff,
+             group = Management, 
+             color = Management)) + 
+  geom_line()
 
 
 # were selected SA consistentlly worse then actively managed stands??
