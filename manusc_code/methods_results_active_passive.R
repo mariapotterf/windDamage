@@ -882,6 +882,16 @@ df.nbrs2 %>%
 
 
 # Inspect SA characteristics in 2016 ----------------------------------------------
+-df %>% 
+  filter(year == 2016) %>% 
+  group_by(scenSimpl2, 
+           NPI,
+           Management) %>% 
+  summarize(my_y = mean(H_dom,  na.rm = T))  %>% 
+
+
+
+
 # were selected SA consistentlly worse then actively managed stands??
 # subset ony SA stands in 2016
 # check H_dom, timber volume by NPI group
