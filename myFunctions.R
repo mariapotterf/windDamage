@@ -137,6 +137,26 @@ open_edge_by_nbrs <- function(nbrs,
 
 
 
+# --------------------------
+# Subset by polygon (watershed)
+# --------------------------
+
+# watershged is a shp
+# forest is a stand geometry from GPKG
+
+subsetByPolygon <- function(watershed, forest) {
+  
+  library(rgeos)
+  
+  # subset the stands within the watershed
+  # do not touch the watershed border
+  outForest = forest[which(rgeos::gContains(watershed,
+                                            forest,
+                                            byid=TRUE)),]
+  
+  return(outForest)
+}
+
 
 
 
