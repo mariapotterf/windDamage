@@ -160,8 +160,30 @@ subsetByPolygon <- function(watershed, forest) {
 
 
 
+# Plot line details -------------------------------------------------------
 
-
+plot_line_details <- function() {
+  list(
+    geom_line(    size = 0.9),
+    facet_wrap(.~Management), 
+    ggtitle(""),
+    scale_linetype_manual(values = c( "dotted", 
+                                      "solid",  
+                                      'dashed')),
+    scale_color_manual(values = cbp1),
+    scale_fill_manual(values = cbp1),
+    labs(shape = "Scenario",
+         color = "Scenario",
+         linetype = "Scenario",
+         fill = "Scenario"),
+    theme(axis.title  = element_text(size = 10, face="plain", family = "sans"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
+          axis.text.y = element_text(face="plain", size = 9, family = "sans"),
+          legend.position = "right",
+          strip.background =element_rect(fill="white", 
+                                         color = NA))
+  )
+}
 
 
 
