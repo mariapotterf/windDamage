@@ -48,12 +48,12 @@ source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 # ----------------------
 
 # Read corrected simulated names:
-df.no <- data.table::fread("C:/MyTemp/myGitLab/windDamage/manuscript_regimes/input_CC/CC45_SA_MV_Korsnas_rsu.csv", 
+df.no <- data.table::fread("C:/MyTemp/myGitLab/windDamage/manuscript_regimes/input_CC/without_MV_Korsnas_rsu.csv", 
                        data.table=FALSE, 
                        stringsAsFactors = FALSE)
 
 # Stands geometry
-df.geom <- st_read("C:/MyTemp/Ellinoora_CC/input/watershedsToSIMO/watershedsToSIMO/output/MV_Korsnäs.shp")
+df.geom <- st_read(paste(getwd(), "manuscript_regimes/input_shp/Korsnas.shp", sep = "/"))
 #df.geom <- subset(df.geom, select = c("KUVIO_ID"))
 #names(df.geom) <- c("id", "geometry")
 
@@ -72,3 +72,5 @@ shared.stands = intersect(unique(df.no$id), unique(df.geom$standid))
 # check values in CCF
 unique(df.no$THIN)
 unique(df.no$regime)
+
+
