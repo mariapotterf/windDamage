@@ -57,28 +57,15 @@ df.nbrs <-  fread(paste(getwd(), "df_nbrs_diff.csv", sep = "/"))
   #tally() %>% 
   #print(n = 1300)
 
-# seems correct
-
-df %>% 
-  group_by(landscape) %>% 
-  tally() %>% 
-  print(n = 1300)
-
-# stands by landscape: 1470
-# number of stand is different here, need to rerun the whole code again with Solutions_8
-
-# But, for now I should process with thae mauscript
-# stands geometry
-# df.geom <- st_read(paste0(getwd(),"/14.534/14.534/mvj_14.534.shp"))
-# df.geom <- subset(df.geom, select = c("KUVIO_ID"))
-# names(df.geom) <- c("id", "geometry")
-# df.geom$area <- st_area(df.geom)
-# df.geom <- subset(df.geom, id %in% unique(df$id))
 
 
+# Export table ------------------------------------------------------------
+
+outTable = "finalFoPlotting.csv"
+outPath = paste(getwd(), outTable, sep = "/")
 
 
-# Modify input values -----
+# Modify input values -----------------------------------------------------
 
 # replace all NA in volume by 0 - because not volume is available there
 df<- 
@@ -96,7 +83,8 @@ df<-
 df <- 
   df %>% 
   mutate(Management = case_when(avohaakut == "SA" ~ "Set Aside",
-                                avohaakut != "SA" ~ "Active"))
+                                avohaakut != "SA" ~ "Active")) %>% 
+  mutate(landscape = str_replace(landscape, "_./Bundles_2_nocow_INCOME_MANAGE_price_three_0_0_1_1", "_"))
 
 
 # Calculate the proportion % between V total and V at teh top stratum 
@@ -120,6 +108,13 @@ nbrs.mean <- df.nbrs %>%
 # Merge neighbors heights with all data 
 df<- df %>% 
   left_join(nbrs.mean, by = c("id", "landscape"))
+
+head(df)
+
+
+# Export final table -------------------------------------------------------
+data.table::fwrite(df, outPath)
+
 
 
 # Define the plotting ------------------------------------------------------
@@ -149,11 +144,6 @@ plot_line_details <- function() {
                                          color = NA))
   )
 }
-
-
-
-
-
 
 
 
