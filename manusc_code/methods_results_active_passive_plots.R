@@ -182,7 +182,7 @@ p.mean.V_prop.line.npi <-
              fill = scenSimpl2 )) +  
   ylim(0,100) +
   xlab("NPI (k€/ha)") + #
-  ylab("Rate top:total volume\n(mean, %)") +
+  ylab("Ratio top:total\nvolume (mean, %)") +
   plot_line_details()
 
 
@@ -201,7 +201,7 @@ p.mean.V_prop.line.time <-
              fill = scenSimpl2 )) +  
   ylim(0,100) +
   xlab("Time") + #
-  ylab("Rate top:total volume\n(mean, %)") +
+  ylab("Ratio top:total\nvolume(mean, %)") +
   plot_line_details()
 
 
@@ -234,93 +234,34 @@ ggarrange(p.mean.windRisk.line.npi2, p.mean.windRisk.line.time2,
 
 
 
-# Plot neighboring stand difference ---------------------------------------
-
-
-p.mean.H_diff.line.npi <-
-  df %>% 
-  group_by(scenSimpl2, 
-           NPI, 
-           Management) %>% 
-  #summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
-  summarize(my_y = weighted.mean(mean_H_diff,  area, na.rm = T))  %>% 
-  ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,10) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Height difference\nneighbors (mean, m)") +
-  plot_line_details()
-
-
-
-p.mean.H_diff.line.time <-
-  df %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management) %>% 
-  #summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% 
-  summarize(my_y = weighted.mean(mean_H_diff,  area, na.rm = T))  %>% 
-  ggplot(aes(y = my_y, 
-             x = year, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,10) +
-  xlab("Time") + #
-  ylab("Height difference\nneighbors(mean, m)") +
-  plot_line_details()
-
-
-
-
-windows(width = 7, height = 5.5)
-ggarrange(#p.mean.V.line.npi, p.mean.V.line.time,
-  p.mean.H_diff.line.npi, p.mean.H_diff.line.time, 
-  #p.mean.V_prop.line.npi, p.mean.V_prop.line.time, 
-  ncol = 2, nrow = 1,
-  #widths = c(1, 1),
-  common.legend = TRUE,
-  align = c("hv"),
-  legend="bottom",
-  labels= "AUTO",
-  hjust = -5,
-  vjust = 3,
-  font.label = list(size = 10, 
-                    face = "bold", color ="black"))
-
-
-
-
-
-
-
-#  Plot windRisk againt multifunctionnality  -----------------------------------------------
-
-df %>%
-  group_by(scenSimpl2, 
-           MF, 
-           Management) %>% 
-  summarize(my_y = mean(windRisk ))  %>%
-  
-  #sample_n(100000) %>% 
-  ggplot(aes(y = my_y,
-             x = MF, #"as.factor(MF)",
-             group = scenSimpl2,
-             color = scenSimpl2)) +
-  plot_line_details()
-  #geom_point() +
-  #facet_grid(.~ Management)
-  
 
 
 # Plot explanatory variables # ---------------------------------------------
+
+
+
+plot_line_details_act <- function() {
+  list(
+    geom_line(    size = 0.9),
+   # facet_wrap(.~Management), 
+    ggtitle(""),
+    scale_linetype_manual(values = c( "dotted", 
+                                      "solid",  
+                                      'dashed')),
+    scale_color_manual(values = cbp1),
+    scale_fill_manual(values = cbp1),
+    labs(shape = "Scenario",
+         color = "Scenario",
+         linetype = "Scenario",
+         fill = "Scenario"),
+    theme(axis.title  = element_text(size = 10, face="plain", family = "sans"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
+          axis.text.y = element_text(face="plain", size = 9, family = "sans"),
+          legend.position = "right",
+          strip.background =element_rect(fill="white", 
+                                         color = NA))
+  )
+}
 
 # Tree species
 # Tree height
@@ -356,6 +297,7 @@ tot.stand.n = 1470*20
 
 p.spruce.ratio.npi <-
   df %>% 
+  filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
@@ -372,11 +314,12 @@ p.spruce.ratio.npi <-
   xlab("NPI (k€/ha)") + #
   ylab("Spruce proportion\n(%)") +
   ylim(0,50) +
-  plot_line_details()
+  plot_line_details_act()
 
 # to calulate how many landscapes I have over time:
 p.spruce.ratio.time <-
   df %>% 
+  filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
            year, 
            Management) %>% #, species
@@ -393,13 +336,14 @@ p.spruce.ratio.time <-
   ylim(0,50) +
   xlab("Time") + #
   ylab("Spruce proportion\n(%)") +
-  plot_line_details()
+  plot_line_details_act()
   
  
 
 ## H Dom ---------------------
 p.mean.H_dom.npi <-
   df %>% 
+  filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
@@ -417,12 +361,13 @@ p.mean.H_dom.npi <-
   ggtitle("") +
   xlab("NPI (k€/ha)") + #
   ylab("Tree height\n(w.mean, cm)") +
-  plot_line_details()
+  plot_line_details_act()
 
 
 
 p.mean.H_dom.time <-
   df %>% 
+  filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
            year, 
            Management) %>% 
@@ -439,7 +384,7 @@ p.mean.H_dom.time <-
   ggtitle("") +
   xlab("Time ") + #
   ylab("Tree height\n(w. mean, cm)") +
-  plot_line_details()
+  plot_line_details_act()
 
 
 
@@ -454,6 +399,7 @@ p.mean.H_dom.time <-
 
 p.mean.thin.npi <-
   df %>% 
+  filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
            NPI, 
            Management,
@@ -472,12 +418,13 @@ p.mean.thin.npi <-
   ylim(0,30) +
   xlab("NPI (k€/ha)") + #
   ylab("Years since thinning\n(weigh. mean)") +
-  plot_line_details()
+  plot_line_details_act()
 
 
 # Mean thinning over time
 p.mean.thin.time <-
   df %>% 
+  filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
            year, 
            Management,
@@ -494,338 +441,84 @@ p.mean.thin.time <-
   ylim(0,30) +
   xlab("Time ") + #
   ylab("Years since thinning\n(weigh. mean)") +
-  plot_line_details()
+  plot_line_details_act()
 
 
 
+# Plot neighboring stand difference ---------------------------------------
 
-## Open_edge frequency --------------------------
-p.mean.open.edge.npi <-
+
+p.mean.H_diff.line.npi <-
   df %>% 
+ # filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
            NPI, 
-           Management,
-           open_edge) %>%
-  tally() %>%
-  filter(open_edge == TRUE) %>% 
-  summarize(my_y = n/1470/20) %>% 
+           Management) %>% 
+  #summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  summarize(my_y = weighted.mean(mean_H_diff,  area, na.rm = T))  %>% 
   ggplot(aes(y = my_y, 
              x = NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  ylim(0,2) +
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,10) +
   xlab("NPI (k€/ha)") + #
-  ylab("Open edge stands\n(%)") +
+  ylab("Height difference\nneighbors (mean, m)") +
   plot_line_details()
 
 
 
-# Mean thinning over time 
-
-p.mean.open.edge.time <-
+p.mean.H_diff.line.time <-
   df %>% 
+ # filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
            year, 
-           Management,
-           open_edge) %>%
-  tally() %>%
-  filter(open_edge == TRUE) %>% 
-  summarize(my_y = n/1470/20) %>% 
+           Management) %>% 
+  #summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% 
+  summarize(my_y = weighted.mean(mean_H_diff,  area, na.rm = T))  %>% 
   ggplot(aes(y = my_y, 
              x = year, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  ylim(0,2) +
-  xlab("Time ") + #
-  ylab("Open edge stands\n(%)") +
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,10) +
+  xlab("Time") + #
+  ylab("Height difference\nneighbors(mean, m)") +
   plot_line_details()
-  
 
 
-### Plot all predictors together --------------------------------------------
 
-windows(width = 7.4, height = 10)
-ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
-          p.mean.H_dom.npi,   p.mean.H_dom.time,
-          p.mean.thin.npi,    p.mean.thin.time,
-         # p.mean.open.edge.npi, p.mean.open.edge.time,
-          p.mean.H_diff.line.npi, p.mean.H_diff.line.time, 
-          ncol = 2, nrow = 4,
-          #widths = c(1, 1),
+
+
+
+
+
+### Plot spruce prop, H_dom, thinning frequency ffor actively managed stands
+# (SA goes to Supplementary material)
+#  --------------------------------------------
+
+windows(width = 7, height = 5)
+ggarrange(p.spruce.ratio.npi, p.mean.H_dom.npi, p.mean.thin.npi, 
+          p.spruce.ratio.time, p.mean.H_dom.time,p.mean.thin.time,
+          ncol = 3, nrow = 2,
           common.legend = TRUE,
           align = c("hv"),
           legend="bottom",
           labels= "AUTO",
-          hjust = -5,
-          vjust = 3,
+          hjust = -2,
+          vjust = 2,
           font.label = list(size = 10, 
                             face = "bold", color ="black"))
 
 
-
-
-# Inspect open edge --------- 
-
-# CHeck the open_ edge counts over time??
-
-
-# Create new list to have a table of the central stnad and its neighbors, and to keep the 
-# their heights
-
-
-
-# How to illustrate teh difference in tre heights distributions over time??
-
-  
-# Check data from the neighbors comparison:
-# what is the mean height difference between neighboring stands?
-
-# split landscape in multiple strings:
-df.nbrs2 <- 
-  df.nbrs %>%
-  separate(landscape, c("year", "scenSimpl"), sep = "_") %>% 
-  separate(scenSimpl, c("scen", "intens"), sep = "(?<=[A-Za-z])(?=[0-9])") #%>% 
-  
-
-
-# Calculate mean by central_id
-df.nbrs2 %>% 
-  group_by(scen, intens, central_id) %>% 
-  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
-  mutate(a_H_diff_nbr = abs(H_diff_nbr)) %>% 
-  summarize(a_H_diff_mean = mean(a_H_diff_nbr)) %>% 
-  group_by(scen, intens) %>%
-  summarize(a_H_diff_mean = mean(a_H_diff_mean, na.rm = T)) %>% 
-  ggplot(aes(y = a_H_diff_mean, 
-             x = intens, 
-             shape = scen,
-             color = scen,
-             linetype = scen,
-             group = scen,
-             fill = scen)) +
-  geom_line(size = 0.9) 
- 
-
-
-
-
-
-# Calculate mean by central_id
-# ------------------------------
-df.nbrs2 %>% 
-  group_by(year, intens, central_id) %>% 
-  mutate(H_diff_nbr = central_H - nbrs_H) %>% 
-  mutate(a_H_diff_nbr = abs(H_diff_nbr)) %>% 
-  summarize(a_H_diff_mean = mean(a_H_diff_nbr)) %>% 
-  ungroup() %>% 
-  group_by(scen, year) %>%
-  summarize(a_H_diff_mean = mean(a_H_diff_mean, na.rm = T)) %>% 
-  ggplot(aes(y = a_H_diff_mean, 
-             x = intens, 
-             shape = scen,
-             color = scen,
-             linetype = scen,
-             group = scen,
-             fill = scen)) +
-  geom_line(size = 0.9) 
-
-
-
-# Inspect SA characteristics in 2016 ----------------------------------------------
-# get distribution of tree heights by species
-# check the freqency of species selected in SA management by NPI
-# use Scen 1 instead of  scen 0 because scen 0 has no Actively managed stands
-windows()
-df %>% 
-  filter(year == 2016 & (scenNumb == 1 | scenNumb == 20)) %>% 
-  #distinct(year)
-  #tally()
-  #filter(year == 2016) %>% 
-  group_by(scenSimpl2, 
-           NPI,
-           Management, 
-           species) %>%
-  tally() %>% 
-  print(n = 40)
-#ggplot(aes(species)) + 
-  ggplot(aes(y=Age,
-             group = interaction(species, Management),
-             #colour = Management)) + 
-             colour = interaction(species,Management))) + 
-  #geom_histogram() +
-  scale_color_brewer(palette="Spectral") + # Use diverging color scheme
-  geom_freqpoly(stat = "count")+
-  facet_grid(scenSimpl2 ~ scenNumb)
-  
-  
-  # Calculate the differences between counts of species between scenario 1 and 20
-# The least intensive scenario
-  df1 <- df %>% 
-  filter(year == 2016 & (scenNumb == 1 )) %>% 
-  group_by(scenSimpl2, 
-           NPI,
-           Management, 
-           species) %>%
-  tally() %>%
-    rename(n_1 = n) 
-  
-# The most intensive scenario
-df20 <- df %>% 
-  filter(year == 2016 & (scenNumb == 20 )) %>% 
-  group_by(scenSimpl2, 
-           NPI,
-           Management, 
-           species) %>%
-  tally() %>%
-  rename(n_20 = n)
-
-# Join two tables together and get differences
-
-df1 %>% 
-  left_join(df20, by = c("scenSimpl2", "Management", "species")) %>% 
-  mutate(diff = n_1 - n_20)# %>% 
-  ggplot(aes(x = species,
-             y = diff,
-             group = Management, 
-             color = Management)) + 
-  geom_line()
-
-
-# were selected SA consistentlly worse then actively managed stands??
-# subset ony SA stands in 2016
-# check H_dom, timber volume by NPI group
-
-p.H_dom2016  <-df %>% 
-  filter(year == 2016) %>% 
-  group_by(scenSimpl2, 
-           NPI,
-           Management) %>% 
-  summarize(my_y = mean(H_dom,  na.rm = T))  %>% 
-  ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
- ylab("H_dom") +
-  plot_line_details()
-
-
-p.V_2016  <-df %>% 
-  filter(year == 2016) %>% 
-  group_by(scenSimpl2, 
-           NPI,
-           Management) %>% 
-   summarize(my_y = mean(V,  na.rm = T))  %>% 
-  ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  ylab("V") +
-  plot_line_details()
-
-# age
-p.age_2016  <-df %>% 
-  filter(year == 2016) %>% 
-  group_by(scenSimpl2, 
-           NPI,
-           Management) %>% 
-  summarize(my_y = mean(Age,  na.rm = T))  %>% 
-  ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  ylab("Age") +
-  plot_line_details()
-
-
-tot.stand.n = 1470*20
-
-
-# Make plots for npi and time
-p.spruce.2016 <-
-  df %>% 
-  group_by(scenSimpl2, 
-           NPI, 
-           Management) %>% 
-  filter(species == "spruce" & year == 2016) %>% 
-  tally() %>%
-  mutate(spruce_prop = n/1470*100)  %>%  # get the proportion of spruce from all stands over 20 years 
-  ggplot(aes(y = spruce_prop, 
-             x = NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Spruce proportion\n(%)") +
-  ylim(0,50) +
-  plot_line_details()
-
-
-p.pine.2016 <-
-  df %>% 
-  group_by(scenSimpl2, 
-           NPI, 
-           Management) %>% 
-  filter(species == "pine" & year == 2016) %>% 
-  tally() %>%
-  mutate(spruce_prop = n/1470*100)  %>%  # get the proportion of spruce from all stands over 20 years 
-  ggplot(aes(y = spruce_prop, 
-             x = NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Pine proportion\n(%)") +
- # ylim(0,50) +
-  plot_line_details()
-  
-
-p.other.2016 <-
-  df %>% 
-  group_by(scenSimpl2, 
-           NPI, 
-           Management) %>% 
-  filter(species == "other" & year == 2016) %>% 
-  tally() %>%
-  mutate(spruce_prop = n/1470*100)  %>%  # get the proportion of spruce from all stands over 20 years 
-  ggplot(aes(y = spruce_prop, 
-             x = NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Other proportion\n(%)") +
-  ylim(0,50) +
-  plot_line_details()
-  
-  
-
-
-
-windows(width = 7.4, height = 10)
-ggarrange(p.H_dom2016, p.age_2016, p.V_2016,
-          p.spruce.2016, p.pine.2016, p.other.2016,
-          ncol = 3, nrow = 2,
+# Plot  height difference ------------------------ 
+windows(width = 7.4, height = 2.7)
+ggarrange(p.mean.H_diff.line.npi, p.mean.H_diff.line.time, 
+          ncol = 2, nrow = 1,
           #widths = c(1, 1),
           common.legend = TRUE,
           align = c("hv"),
