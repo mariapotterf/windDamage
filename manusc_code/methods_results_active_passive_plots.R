@@ -122,7 +122,7 @@ p.mean.windRisk.line.time2 <-
 
 
 
-
+library(ggtext)
 
 #### V at top layer  -----------------
 
@@ -141,7 +141,11 @@ p.mean.V_stratum.line.npi <-
              fill = scenSimpl2 )) +  
   ylim(0,350) +
   xlab("NPI (k€/ha)") + #
-  ylab("Top stratum volume\n(mean, m^3)") +
+  ylab("Top stratum volume\n(mean m^3/ha)") +
+  #ylab(expression(paste("Top stratum volume ", "\n(mean ", m^3, "/ha)")))  +
+  #ylab(expression('Top stratum volume\n'^2'moment'^2'moment')) +
+  #ylab(expression(paste("Top stratum volume\n(mean, m^3/ha)"))) +  
+  #ylab(expression(paste("y axis ", ^2))) +
   plot_line_details()
 
 
@@ -161,7 +165,7 @@ p.mean.V_stratum.line.time <-
              fill = scenSimpl2 )) +  
   ylim(0,350) +
   xlab("Time") + #
-  ylab("Top stratum volume\n(mean, m^3)") +
+  ylab("Top stratum volume\n(mean, m^3/ha)") +
   plot_line_details()
 
   
