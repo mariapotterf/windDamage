@@ -1,7 +1,9 @@
 ---
-title: "Supplementary material"
-subtitle: "this is my subtitle"
-author: "Maria Potterf"
+title: "Interpreting wind damage - How management impacts standing timber at risk of wind felling"
+subtitle: "Supplementary Material"
+author: "Mária Potterf,Kyle Eyvindson,Clemens Blattert,Daniel Burgas, Mikko Mönkkönen"
+
+
 date: "March 10, 2021"
 output:
   pdf_document: default
@@ -20,13 +22,8 @@ knitr::opts_knit$set(root.dir = "C:/MyTemp/myGitLab/windDamage/output/even_flow"
 
 ```
 
-## R Markdown
-
-Supplementary material for the manuscript Interpreting wind damage - How management impacts standing timber at risk of wind felling. 
 
 ```{r read-libs, eval = T, echo = F, warning = F, message = F, include = F }
-
-
 
 
 library(data.table)
