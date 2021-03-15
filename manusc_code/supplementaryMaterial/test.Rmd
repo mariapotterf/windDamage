@@ -1,7 +1,7 @@
 ---
 title: "Interpreting wind damage - How management impacts standing timber at risk of wind felling"
 subtitle: "Supplementary Material"
-author: "Mária Potterf,Kyle Eyvindson,Clemens Blattert,Daniel Burgas, Mikko Mönkkönen"
+author: "Mária Potterf, Kyle Eyvindson, Clemens Blattert, Daniel Burgas, Mikko Mönkkönen"
 
 
 date: "March 10, 2021"
@@ -75,7 +75,7 @@ df <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/finalFoPlotting.csv"
 source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
 ```
-```{r hist-Suvanto-values, eval = T, echo = F, warning = F, message = F, include = T}
+```{r hist-Suvanto-values, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 5, fig.height = 2.7, fig.cap = "\\label{fig:fig_meanRisk_time_NPI} Wind damage probabilities (%) for forest stands located in the watershed (number 14.358) from original Suvanto's raster and from our simulated data in 2016. "}
 
 # Read extracted  raster Suvanto data to get histogram
 # subset my data for 2016
@@ -102,31 +102,25 @@ df_comp <- rbind(suvanto_df,
                  df_risk  )
 
 # make a plot
-#ggplot(df_comp, aes(x = windRisk,
- #                   fill = cat)) + 
-#  geom_density(alpha = .5)
-
 ggplot(df_comp, aes(x = cat,
                     y = windRisk,
                     fill = cat,
                     group = cat)) + 
-  geom_violin(alpha = .5) + 
-  #geom_pointrange()
-  stat_summary() + # mean +- se 
+  geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+  stat_summary(geom = "point", color = "red") + # mean +- se 
   ylab("Wind damage probability (%)") + 
-  labs(fill = "Data source")
+  labs(fill = "Data source") +
+  xlab("") + 
+  ylim(0, 0.10)
 
 ```
 
 
-Fig. S1: The total stand volume at the risk of wind damage. Mean by scenario and set aside and actively managed stands. 
 
-Figure S1 Mean total stand  timber volume (m3/ha)  for landscapes under RF, CCF and ALL  scenarios over harvest intensity gradient (NPI, net present income, left column) and over time (right column) for actively managed stands and set asides.  
+```{r plot-total-V, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 3, fig.cap = "\\label{fig:plot-total-V} Mean total stand timber volume (m3/ha) for landscapes under RF, CCF and ALL scenarios over harvest intensity gradient (NPI, net present income, left column) and over time (right column) for actively managed stands and set asides."}
 
 
-```{r plot-total-V, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 3}
-
-#"\\label{fig:fig_meanRisk_time_NPI} Mean wind risk damage for three types of management #regimes over A: harvest intensity gradient and B: over time."
 
 #### Total volume at risk ---------------
 p.mean.V.line.npi <-
@@ -189,7 +183,7 @@ ggarrange(p.mean.V.line.npi,
 
 
 
-```{r plot-dynamic-vars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 9.5, fig.cap = "\\label{fig:fig_meanRisk_time_NPI} Mean wind risk damage for three types of management regimes over A: harvest intensity gradient and B: over time." }
+```{r plot-dynamic-vars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 9.5, fig.cap = "\\label{fig:plot-dynamic-vars} FINISH THIS ONE!!!s."}
 
 # Plot explanatory variables # ---------------------------------------------
 
@@ -422,20 +416,57 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 ```
 
 
-```{r  plot-SA-chars}
+```{r  plot-SA-chars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 2.7, fig.cap = "\\label{fig:fig_meanRisk_time_NPI} FINISH THIS ONE !!!"}
 # plot V, tree height, age
 
 df_sub <- df %>% 
-  filter(year == 2016) %>% 
-  filter(scenNumb == 0 | scenNumb == 20 )#%>% 
+  filter(year == 2016 & Management == "Set Aside") %>% 
+  filter(scenNumb == 1 | scenNumb == 20 ) %>%
+  mutate(fc_scenNumb = factor(scenNumb, 
+                              labels = c('Min', 'Max')))  # %>%
+ # mutate(fc_scenNumb = factor(fc_scenNumb, 
+   #                           levels = rev(levels(fc_scenNumb))))
+  
 
-df_sub %>% 
+
+# Make plots
+p.1<-df_sub %>% 
   ggplot(aes(y = H_dom,
-             x = scenNumb,
-             group = scenNumb)) +
-  geom_violin() +
-  stat_summary(fun.data=mean_sdl, geom="pointrange", color="red")
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+  stat_summary(fun.data=mean_sdl, geom="point", color="red")+
+  facet_grid(.~Management) +
+  ylab("Tree height (cm)") + 
+  xlab("NPI (k€/ha)")
 
+p.2<-df_sub %>% 
+ # mutate(scenNumb = factor(scenNumb)) %>% 
+  ggplot(aes(y = V_strat_max,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA              ) + 
+  stat_summary(fun.data=mean_sdl, geom="point", color="red")+
+  facet_grid(.~Management) +
+  ylab("Top stratum volume (m3/ha)") +
+  xlab("NPI (k€/ha)")
+
+
+ggarrange(p.1, p.2, 
+          ncol = 2, nrow = 1,
+          widths = c(1, 1),
+          common.legend = FALSE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          vjust = 3,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
 
 
 ```
