@@ -61,8 +61,8 @@ df.nbrs <-  fread(paste(getwd(), "df_nbrs_diff.csv", sep = "/"))
 
 # Export table ------------------------------------------------------------
 
-outTable = "finalFoPlotting.csv"
-outPath = paste(getwd(), outTable, sep = "/")
+outDFtoPlot = "finalFoPlotting.csv"
+outPath = paste(getwd(), outDFtoPlot, sep = "/")
 
 
 # Modify input values -----------------------------------------------------
@@ -1346,4 +1346,38 @@ formated_sum_tab <-
     geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 3)) #+ 
   # geom_smooth() #+  # se=FALSE
   #facet_wrap(scenSimpl2 ~ .)
+  
+
+  
+  
+
+# Compare Suvanto;s values with mine --------------------------------------
+
+  # Read Suvanto's objects:
+  
+  load("C:/MyTemp/myGitLab/windDamage/suvantoVals/models_update_DDclass_3.RData", ex <- new.env())
+  #ls.str(ex)
+  
+  #ls(ex) # list the objects in a Rdata
+  
+  #ls(ex$glm1)  # list what is within the glm1 object
+  
+  # Specify number of digits for coefficients
+  #print(summary(ex$glm1)$coefficients,digits=20)
+  
+  
+  hist(ex$glm1$fitted.values)
+  
+  # get my and Suvanto;s data together in one table
+  
+  df_suvanto = data.frame(risk = ex$glm1$fitted.values, 
+                          cat = 'suvanto')
+  df_SIMO    = data.frame(risk = df$windRisk, 
+                          cat = 'SIMO')
+  
+  df_compare = rbind(df_suvanto, df_SIMO)   
+  
+  
+  
+fwrite(df_compare, "C:/MyTemp/myGitLab/windDamage/output/even_flow/compare_risk.csv")
   
