@@ -75,9 +75,53 @@ df <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/finalFoPlotting.csv"
 source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
 ```
+```{r hist-Suvanto-values, eval = T, echo = F, warning = F, message = F, include = T}
+
+# Read extracted  raster Suvanto data to get histogram
+# subset my data for 2016
+# merge data in one dataframe to create a plot
+
+library(raster)
+
+suvanto_risk <- raster("C:/MyTemp/mapWindRisk/tuuliSuvanto/extract_pred_N4.tif")
+
+suvanto_df <- as.data.frame(suvanto_risk, na.rm = T)
+suvanto_df$cat = "Suvanto"  # add new column
+names(suvanto_df) <- c("windRisk", "cat")
+
+
+# Subset simulated data for 2016
+df_risk <- df %>% 
+  filter(year == 2016) %>% 
+  dplyr::select(windRisk) %>% 
+  mutate(cat = "SIMO")
+
+
+#Merge data together
+df_comp <- rbind(suvanto_df,
+                 df_risk  )
+
+# make a plot
+#ggplot(df_comp, aes(x = windRisk,
+ #                   fill = cat)) + 
+#  geom_density(alpha = .5)
+
+ggplot(df_comp, aes(x = cat,
+                    y = windRisk,
+                    fill = cat,
+                    group = cat)) + 
+  geom_violin(alpha = .5) + 
+  #geom_pointrange()
+  stat_summary() + # mean +- se 
+  ylab("Wind damage probability (%)") + 
+  labs(fill = "Data source")
+
+```
 
 
 Fig. S1: The total stand volume at the risk of wind damage. Mean by scenario and set aside and actively managed stands. 
+
+Figure S1 Mean total stand  timber volume (m3/ha)  for landscapes under RF, CCF and ALL  scenarios over harvest intensity gradient (NPI, net present income, left column) and over time (right column) for actively managed stands and set asides.  
 
 
 ```{r plot-total-V, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 3}
@@ -373,6 +417,25 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
           vjust = 3,
           font.label = list(size = 10, 
                             face = "bold", color ="black"))
+
+
+```
+
+
+```{r  plot-SA-chars}
+# plot V, tree height, age
+
+df_sub <- df %>% 
+  filter(year == 2016) %>% 
+  filter(scenNumb == 0 | scenNumb == 20 )#%>% 
+
+df_sub %>% 
+  ggplot(aes(y = H_dom,
+             x = scenNumb,
+             group = scenNumb)) +
+  geom_violin() +
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="red")
+
 
 
 ```
