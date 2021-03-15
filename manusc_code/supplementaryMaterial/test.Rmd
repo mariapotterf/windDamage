@@ -87,14 +87,14 @@ suvanto_risk <- raster("C:/MyTemp/mapWindRisk/tuuliSuvanto/extract_pred_N4.tif")
 
 suvanto_df <- as.data.frame(suvanto_risk, na.rm = T)
 suvanto_df$cat = "Suvanto"  # add new column
-names(suvanto_df) <- c("windRisk", "cat")
+names(suvanto_df) <- c("windRisk", "Source")
 
 
 # Subset simulated data for 2016
 df_risk <- df %>% 
   filter(year == 2016) %>% 
   dplyr::select(windRisk) %>% 
-  mutate(cat = "SIMO")
+  mutate(Source = "Simulated")
 
 
 #Merge data together
@@ -102,10 +102,10 @@ df_comp <- rbind(suvanto_df,
                  df_risk  )
 
 # make a plot
-ggplot(df_comp, aes(x = cat,
+ggplot(df_comp, aes(x = Source,
                     y = windRisk,
-                    fill = cat,
-                    group = cat)) + 
+                    fill = Source,
+                    group = Source)) + 
   geom_boxplot(alpha = .5, 
                outlier.shape = NA) + 
   stat_summary(geom = "point", color = "red") + # mean +- se 
@@ -416,7 +416,7 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 ```
 
 
-```{r  plot-SA-chars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 2.7, fig.cap = "\\label{fig:fig_meanRisk_time_NPI} FINISH THIS ONE !!!"}
+```{r  plot-SA-chars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 2.7, fig.cap = "\\label{fig:plot-SA-chars} FINISH THIS ONE !!!"}
 # plot V, tree height, age
 
 df_sub <- df %>% 
@@ -424,9 +424,7 @@ df_sub <- df %>%
   filter(scenNumb == 1 | scenNumb == 20 ) %>%
   mutate(fc_scenNumb = factor(scenNumb, 
                               labels = c('Min', 'Max')))  # %>%
- # mutate(fc_scenNumb = factor(fc_scenNumb, 
-   #                           levels = rev(levels(fc_scenNumb))))
-  
+
 
 
 # Make plots
@@ -437,29 +435,28 @@ p.1<-df_sub %>%
              fill = fc_scenNumb)) +
  geom_boxplot(alpha = .5, 
                outlier.shape = NA) + 
-  stat_summary(fun.data=mean_sdl, geom="point", color="red")+
-  facet_grid(.~Management) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
   ylab("Tree height (cm)") + 
-  xlab("NPI (k€/ha)")
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
 
 p.2<-df_sub %>% 
- # mutate(scenNumb = factor(scenNumb)) %>% 
   ggplot(aes(y = V_strat_max,
              x = fc_scenNumb,
              group = fc_scenNumb,
              fill = fc_scenNumb)) +
  geom_boxplot(alpha = .5, 
                outlier.shape = NA              ) + 
-  stat_summary(fun.data=mean_sdl, geom="point", color="red")+
-  facet_grid(.~Management) +
-  ylab("Top stratum volume (m3/ha)") +
-  xlab("NPI (k€/ha)")
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Top stratum volume\n(m3/ha)") +
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
 
 
 ggarrange(p.1, p.2, 
           ncol = 2, nrow = 1,
           widths = c(1, 1),
-          common.legend = FALSE,
+          common.legend = TRUE,
           align = c("hv"),
           legend="bottom",
           labels= "AUTO",
