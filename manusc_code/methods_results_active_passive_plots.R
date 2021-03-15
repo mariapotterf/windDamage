@@ -47,12 +47,6 @@ setwd("C:/MyTemp/myGitLab/windDamage/output/even_flow")
 df <- fread(paste(getwd(), "finalFoPlotting.csv", sep = "/"))
 
 
-# Export table ------------------------------------------------------------
-
-#outTable = "finalFoPlotting.csv"
-#outPath = paste(getwd(), outTable, sep = "/")
-
-
 # Define the plotting ------------------------------------------------------
 
 # Define own palette, color blind
