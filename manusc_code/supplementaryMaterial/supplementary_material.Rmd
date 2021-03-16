@@ -86,8 +86,8 @@ library(raster)
 suvanto_risk <- raster("C:/MyTemp/mapWindRisk/tuuliSuvanto/extract_pred_N4.tif")
 
 suvanto_df <- as.data.frame(suvanto_risk, na.rm = T)
-suvanto_df$cat = "Suvanto"  # add new column
-names(suvanto_df) <- c("windRisk", "Source")
+suvanto_df$Source = "Suvanto"  # add new column
+colnames(suvanto_df) <- c("windRisk", "Source")
 
 
 # Subset simulated data for 2016
@@ -107,7 +107,8 @@ ggplot(df_comp, aes(x = Source,
                     fill = Source,
                     group = Source)) + 
   geom_boxplot(alpha = .5, 
-               outlier.shape = NA) + 
+               outlier.shape = NA) +
+  scale_fill_manual(values = cbp1) +
   stat_summary(geom = "point", color = "red") + # mean +- se 
   ylab("Wind damage probability (%)") + 
   labs(fill = "Data source") +
@@ -183,7 +184,7 @@ ggarrange(p.mean.V.line.npi,
 
 
 
-```{r plot-dynamic-vars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 9.5, fig.cap = "\\label{fig:plot-dynamic-vars} FINISH THIS ONE!!!s."}
+```{r plot-dynamic-vars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 9.5, fig.cap = "\\label{fig:plot-dynamic-vars} 4 Dynamic wind damage risk predictors spruce proportion (%), tree height  and years since thinning (count) averaged over harvest intensity gradient (NPI = Net present income) and time for RF, CCFs and ALL scenarios for actively managed stands and for set asides."}
 
 # Plot explanatory variables # ---------------------------------------------
 
@@ -192,17 +193,6 @@ ggarrange(p.mean.V.line.npi,
 # Time since thinning
 # open-neighbour
 ## Tree species -------------------------
-
-# Spruce is the most vulnerable: frequency of spruce
-
-# Calculate the mean # of spruces!!
-# over time and npi
-
-# Calculate the mean # of spruces!! Why mean???
-# How many stand I have for each simple scen vs NPI?
-# what I want to show? how does the share of teh spruce changes over 
-# harvest and time gradient??
-
 # different number of stands by combination
 # ranges from 29400 to 29280 - caulculate the % from the 29400 stands
 tot.stand.n = 1470*20
@@ -416,7 +406,7 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 ```
 
 
-```{r  plot-SA-chars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 2.7, fig.cap = "\\label{fig:plot-SA-chars} FINISH THIS ONE !!!"}
+```{r  plot-SA-chars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 2.3, fig.cap = "\\label{fig:plot-SA-chars} Boxplots of the initial stands conditions if set aside at the minimal (min) and maximal (max) harvest intensity gradient (NPI) at the beginning of simulation period (2016)  for A: tree height (cm), B: top stratum volume (m3/ha) and C: age  (years)."}
 # plot V, tree height, age
 
 df_sub <- df %>% 
@@ -435,6 +425,7 @@ p.1<-df_sub %>%
              fill = fc_scenNumb)) +
  geom_boxplot(alpha = .5, 
                outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
   stat_summary(fun.data=mean_sdl, geom="point", color="red") +
   ylab("Tree height (cm)") + 
   xlab("NPI (k€/ha)") +
@@ -446,22 +437,37 @@ p.2<-df_sub %>%
              group = fc_scenNumb,
              fill = fc_scenNumb)) +
  geom_boxplot(alpha = .5, 
-               outlier.shape = NA              ) + 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
   stat_summary(fun.data=mean_sdl, geom="point", color="red") +
   ylab("Top stratum volume\n(m3/ha)") +
   xlab("NPI (k€/ha)") +
     theme(legend.position = "none")
 
 
-ggarrange(p.1, p.2, 
-          ncol = 2, nrow = 1,
+p.3<-df_sub %>% 
+  ggplot(aes(y = Age,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Age") +
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
+
+
+ggarrange(p.1, p.2, p.3, 
+          ncol = 3, nrow = 1,
           widths = c(1, 1),
-          common.legend = TRUE,
+          common.legend = FALSE,
           align = c("hv"),
-          legend="bottom",
+          legend = NULL,
           labels= "AUTO",
-          hjust = -5,
-          vjust = 3,
+          hjust = -2,
+          vjust = 3, #3,
           font.label = list(size = 10, 
                             face = "bold", color ="black"))
 
