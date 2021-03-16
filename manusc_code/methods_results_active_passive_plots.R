@@ -47,6 +47,68 @@ setwd("C:/MyTemp/myGitLab/windDamage/output/even_flow")
 df <- fread(paste(getwd(), "finalFoPlotting.csv", sep = "/"))
 
 
+
+
+# does CCF thinning affect tree height after? -----------------------------
+
+# subset one stand with thinning under CCF
+# see if tree  height lowers after thinning
+unique(df$branching_new)
+
+# Calculate back when thinning has happened
+df$thin_year = df$year - df$difference
+
+# Check the development:
+df %>% 
+  filter(branching_new == "Selection cut_1") %>% 
+  filter(id == 19104636) %>% 
+  dplyr::select(year, THIN, H_dom, difference, thin_year) #%>% 
+
+# Make plots
+# thinning time is indicated by red  line
+p.H<- 
+  df %>% 
+  filter(branching_new == "Selection cut_1") %>% 
+  filter(id == 19104636) %>% 
+  dplyr::select(year, THIN, H_dom, thin_year) %>% 
+  ggplot(aes(x = year,
+             y = H_dom)) + 
+  geom_line() + 
+  geom_vline(aes(xintercept = thin_year), colour = "red", linetype = "dashed") +
+  ylim(150,280)
+
+p.n<- df %>% 
+  filter(branching_new == "Selection cut_1") %>% 
+  filter(id == 19104636) %>% 
+  dplyr::select(year, THIN, H_dom, N,  thin_year) %>% 
+  ggplot(aes(x = year,
+             y = N)) + 
+  geom_line() +
+  geom_vline(aes(xintercept = thin_year), colour = "red", linetype = "dashed") 
+
+p.V_strat<- df %>% 
+  filter(branching_new == "Selection cut_1") %>% 
+  filter(id == 19104636) %>% 
+  dplyr::select(year, THIN, H_dom, V_strat_max,thin_year ) %>% 
+  ggplot(aes(x = year,
+             y = V_strat_max)) + 
+  geom_vline(aes(xintercept = thin_year), colour = "red", linetype = "dashed") +
+  geom_line()# + 
+  #ylim(150,280)
+
+p.BA<- df %>% 
+  filter(branching_new == "Selection cut_1") %>% 
+  filter(id == 19104636) %>% 
+  dplyr::select(year, THIN, H_dom, BA,thin_year) %>% 
+  ggplot(aes(x = year,
+             y = BA)) + 
+  geom_vline(aes(xintercept = thin_year), colour = "red", linetype = "dashed") +
+  geom_line()# + 
+
+  
+ggarrange(p.H, p.n, p.V_strat, p.BA, nrow = 2, ncol = 2)
+
+
 # Define the plotting ------------------------------------------------------
 
 # Define own palette, color blind
