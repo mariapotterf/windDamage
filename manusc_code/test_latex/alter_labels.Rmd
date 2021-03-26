@@ -10,40 +10,13 @@ output:
 
 ```{r, include=F}
 library(captioner)
-#tables <- captioner(prefix = "Table S", 
- #                   suffix = ". ",
- #                   style="b", style_prefix=TRUE, 
- #                   auto_space = FALSE)
-#figures <- captioner(prefix = "Figure S", suffix = ". ", style="b", style_prefix=TRUE, auto_space = FALSE)
 
-figS<- captioner(prefix = "Figure S", auto_space = TRUE, levels = 1, type = NULL,
-  infix = ".")
-tabS<- captioner(prefix = "Table S", auto_space = TRUE, levels = 1, type = NULL,
-  infix = ".")
+figS<- captioner(prefix = "Figure S", auto_space = TRUE, levels = 1, type = NULL,  infix = ".")
 
-figS("Xray1", "Single-crystal X-ray structure of some text (1)", display=FALSE)
-figS("Xray2", "Single-crystal X-ray structure of some text (2)", display=FALSE)
-#figures("Xray3", "Single-crystal X-ray structure of some text (3)", display=FALSE)
+#figS("Figure S1", "Single-crystal X-ray structure of some text (1)", #display=FALSE)
+
 ```
 
-## Reaction of etc.
-Some text. Some text followed by `r figS("Xray1", display="cite")`, which is the same figure as  `r figS("Xray3", display="cite")` but comes after `r figS("Xray2", display="cite")`.
-
-```{r Xray, fig.cap=figS("Xray1"), echo=FALSE}
+```{r Xray, fig.cap=figS("This is my figure description"), echo=FALSE}
 plot(cars)
-```
-
-```{r Xray2, fig.cap=figS("Xray2"), echo=FALSE}
-plot(cars)
-```
-
-
-Some text etc. followed by `r tabS("tab-DipUVvis", display="cite")`:
-
-```{r DipUVvis, echo=FALSE}
-df<-data.frame(Entry=c('AMM 51$3^a$','AMM 52^*a*^'),
-               Precat=c('[FeBr~2~(dpbz)~2~] (4.00)','[FeBr~2~(dpbz)~2~] 
-(2.00)'))
-
-#knitr::kable(head(df), caption=tables("tab-DipUVvis", "Table Caption"))
 ```
