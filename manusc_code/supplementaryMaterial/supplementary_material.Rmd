@@ -6,8 +6,14 @@ author: "Mária Potterf, Kyle Eyvindson, Clemens Blattert, Daniel Burgas, Mikko 
 
 date: "March 10, 2021"
 output:
-  pdf_document: default
-  html_document: default
+  pdf_document:
+   
+header-includes:
+  - \renewcommand{\figurename}{Figure S}
+  - \makeatletter
+  - \def\fnum@figure{\figurename\thefigure}
+  - \makeatother
+
 ---
 
 ```{r setup, include=FALSE}
@@ -61,11 +67,6 @@ cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
 
 ```{r read-data, eval = T, echo = F, warning = F, message = F, include = F }
 
-# Set wd ------------------------------------------------------------------
-#require("knitr")
-#opts_knit$set(root.dir = "C:/MyTemp/myGitLab/windDamage/output/even_flow")
-#getwd()
-#setwd("C:/MyTemp/myGitLab/windDamage/output/even_flow")
 
 # Read input data ----------------------------------------------------
 
@@ -75,7 +76,8 @@ df <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/finalFoPlotting.csv"
 source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
 ```
-```{r hist-Suvanto-values, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 5, fig.height = 2.7, fig.cap = "\\label{fig:fig_meanRisk_time_NPI} Wind damage probabilities (%) for forest stands located in the watershed (number 14.358) from original Suvanto's raster and from our simulated data in 2016. "}
+
+```{r hist-Suvanto-values, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 5, fig.height = 2.7, fig.cap ="Wind damage probabilities (%) for forest stands located in the watershed (number 14.358) from original Suvanto's raster and from simulated data in 2016."}
 
 # Read extracted  raster Suvanto data to get histogram
 # subset my data for 2016
@@ -107,7 +109,9 @@ ggplot(df_comp, aes(x = Source,
                     fill = Source,
                     group = Source)) + 
   geom_boxplot(alpha = .5, 
-               outlier.shape = NA) +
+               outlier.shape = 16,
+               outlier.alpha = 0.3,
+               outlier.size = 0.7) +
   scale_fill_manual(values = cbp1) +
   stat_summary(geom = "point", color = "red") + # mean +- se 
   ylab("Wind damage probability (%)") + 
@@ -119,7 +123,7 @@ ggplot(df_comp, aes(x = Source,
 
 
 
-```{r plot-total-V, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 3, fig.cap = "\\label{fig:plot-total-V} Mean total stand timber volume (m3/ha) for landscapes under RF, CCF and ALL scenarios over harvest intensity gradient (NPI, net present income, left column) and over time (right column) for actively managed stands and set asides."}
+```{r plot-total-V, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 3, fig.cap = "Mean total stand timber volume (m3/ha) for landscapes under RF, CCF and ALL scenarios over A) harvest intensity gradient (NPI, net present income) and B) over time for actively managed stands and set asides."}
 
 
 
@@ -184,7 +188,7 @@ ggarrange(p.mean.V.line.npi,
 
 
 
-```{r plot-dynamic-vars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 9.5, fig.cap = "\\label{fig:plot-dynamic-vars} 4 Dynamic wind damage risk predictors spruce proportion (%), tree height  and years since thinning (count) averaged over harvest intensity gradient (NPI = Net present income) and time for RF, CCFs and ALL scenarios for actively managed stands and for set asides."}
+```{r plot-dynamic-vars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 9.2, fig.cap = "Dynamic wind damage risk predictors: A,B) proportion of stands dominated by Norway spruce (%), C,D) tree height, E,F) years since thinning (count), and G,H) mean heigt differences between neighboring stands averaged over harvest intensity gradient (NPI, Net present income, right column) and time (right column) for RF, CCF and ALL scenarios for actively managed stands and for set asides. Thinning is missing from Set aside stands (E,F). "}
 
 # Plot explanatory variables # ---------------------------------------------
 
@@ -406,7 +410,7 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 ```
 
 
-```{r  plot-SA-chars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 2.3, fig.cap = "\\label{fig:plot-SA-chars} Boxplots of the initial stands conditions if set aside at the minimal (min) and maximal (max) harvest intensity gradient (NPI) at the beginning of simulation period (2016)  for A: tree height (cm), B: top stratum volume (m3/ha) and C: age  (years)."}
+```{r  plot-SA-chars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 2.3, fig.cap = "Initial conditions of the stands selected as set asides at minimal (min) and maximal (max) harvest intensity gradient (NPI, Net present income) at the beginning of simulation period (2016)  for A) tree height (cm), B) top stratum volume (m3/ha) and C) age  (years)."}
 # plot V, tree height, age
 
 df_sub <- df %>% 
