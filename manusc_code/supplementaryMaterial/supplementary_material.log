@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7140 64-bit) (preloaded format=pdflatex 2020.7.15)  26 MAR 2021 08:37
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7140 64-bit) (preloaded format=pdflatex 2020.7.15)  29 MAR 2021 11:19
 entering extended mode
 **./supplementary_material.tex
 (supplementary_material.tex
@@ -645,14 +645,14 @@ Package pdftex.def Info: supplementary_material_files/figure-latex/plot-dynamic
 LaTeX Warning: Float too large for page by 39.09952pt on input line 116.
 
 <supplementary_material_files/figure-latex/plot-SA-chars-1.pdf, id=6, 505.89pt 
-x 165.61874pt>
+x 289.08pt>
 File: supplementary_material_files/figure-latex/plot-SA-chars-1.pdf Graphic fil
 e (type pdf)
 <use supplementary_material_files/figure-latex/plot-SA-chars-1.pdf>
 Package pdftex.def Info: supplementary_material_files/figure-latex/plot-SA-char
 s-1.pdf  used on input line 120.
-(pdftex.def)             Requested size: 469.76265pt x 153.79134pt.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 127.
+(pdftex.def)             Requested size: 469.76265pt x 268.43579pt.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 128.
 [1
 
 {C:/Users/mpotterf/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map} <./supple
@@ -660,14 +660,14 @@ mentary_material_files/figure-latex/hist-Suvanto-values-1.pdf>] [2 <./supplemen
 tary_material_files/figure-latex/plot-total-V-1.pdf>] [3 <./supplementary_mater
 ial_files/figure-latex/plot-dynamic-vars-1.pdf>] [4 <./supplementary_material_f
 iles/figure-latex/plot-SA-chars-1.pdf>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 127.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 128.
 (supplementary_material.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 127.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 127.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 128.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 128.
 Package rerunfilecheck Info: File `supplementary_material.out' has not changed.
 
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 127.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 128.
  ) 
 Here is how much of TeX's memory you used:
  12189 strings out of 492891
@@ -681,7 +681,7 @@ Here is how much of TeX's memory you used:
 iKTeX 2.9/fonts/type1/public/lm/lmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/ty
 pe1/public/lm/lmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr1
 7.pfb>
-Output written on supplementary_material.pdf (4 pages, 213106 bytes).
+Output written on supplementary_material.pdf (4 pages, 214421 bytes).
 PDF statistics:
  78 PDF objects out of 1000 (max. 8388607)
  9 named destinations out of 1000 (max. 500000)

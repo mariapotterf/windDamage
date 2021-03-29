@@ -410,7 +410,7 @@ ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
 ```
 
 
-```{r  plot-SA-chars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 2.3, fig.cap = "Initial conditions of the stands selected as set asides at minimal (min) and maximal (max) harvest intensity gradient (NPI, Net present income) at the beginning of simulation period (2016)  for A) tree height (cm), B) top stratum volume (m3/ha) and C) age  (years)."}
+```{r  plot-SA-chars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 4, fig.cap = "Initial conditions of the stands selected as set asides at minimal (min) and maximal (max) harvest intensity gradient (NPI, Net present income) at the beginning (2016, top row) and end of the simulation period (2111)  for A) tree height (cm), B) top stratum volume (m3/ha) and C) age  (years). Note different scale in y axis."}
 # plot V, tree height, age
 
 df_sub <- df %>% 
@@ -463,17 +463,90 @@ p.3<-df_sub %>%
     theme(legend.position = "none")
 
 
-ggarrange(p.1, p.2, p.3, 
-          ncol = 3, nrow = 1,
+# ggarrange(p.1, p.2, p.3, 
+#           ncol = 3, nrow = 1,
+#           widths = c(1, 1),
+#           common.legend = FALSE,
+#           align = c("hv"),
+#           legend = NULL,
+#           labels= "AUTO",
+#           hjust = -2,
+#           vjust = 3, #3,
+#           font.label = list(size = 10, 
+#                             face = "bold", color ="black"))
+# 
+
+
+
+# get plot at the end of  simulation time
+# --------------------------------------------------------
+
+df_end <- df %>% 
+  filter(year == 2111 & Management == "Set Aside") %>% 
+  filter(scenNumb == 1 | scenNumb == 20 ) %>%
+  mutate(fc_scenNumb = factor(scenNumb, 
+                              labels = c('Min', 'Max')))  # %>%
+
+
+
+# Make plots
+p.end.1<-df_end %>% 
+  ggplot(aes(y = H_dom,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Tree height (cm)") + 
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
+
+p.end.2<-df_end %>% 
+  ggplot(aes(y = V_strat_max,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Top stratum volume\n(m3/ha)") +
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
+
+
+p.end.3<-df_end %>% 
+  ggplot(aes(y = Age,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Age") +
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
+
+
+ggarrange(p.1, p.2, p.3,
+          p.end.1, p.end.2, p.end.3, 
+          ncol = 3, nrow = 2,
           widths = c(1, 1),
           common.legend = FALSE,
           align = c("hv"),
           legend = NULL,
           labels= "AUTO",
           hjust = -2,
-          vjust = 3, #3,
+          vjust = 1, #3,
           font.label = list(size = 10, 
                             face = "bold", color ="black"))
+
+
+
+
 
 
 ```
