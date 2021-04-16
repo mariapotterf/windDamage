@@ -99,7 +99,7 @@ rm(wind.r)
 
 
 
-# Safe dataframe
+# Save dataframe
 df.raster <- df.geom
 
 # get rid of geometry, keep only the data
