@@ -116,12 +116,30 @@ classifyTHIN <- function(df, ...) {
   return(df.out)
 }
 
-df.no_2 <- classifyTHIN(df.no)
-df.cc45_2 <- classifyTHIN(df.no)
-df.cc85_2 <- classifyTHIN(df.no)
+
+# Get thinning values
+df.no_2   <- classifyTHIN(df.no)
+df.cc45_2 <- classifyTHIN(df.cc45)
+df.cc85_2 <- classifyTHIN(df.cc85)
+
+# add CC indicator
+df.no_2$climChange   <- "no"
+df.cc45_2$climChange <- "cc45"
+df.cc85_2$climChange <- "cc85"
+
+# no CC has no SOIl_CLASS values
+# get list of id from CC scenarios with SOIL_class category
+
+df.soil.class <- df.cc45 %>% 
+  dplyr::select(id, SOIL_CLASS) %>% 
+  distinct()
 
 
-# Get table with thinnings
+# Add this to no CC scenario
+df.no_2 <- df.no_2 %>% 
+  right_join(df.soil.class, by = c('id'))
+
+# Get table with thinnings ---------------------
 #df.no2<- 
  #df.no %>% 
   # mutate(THIN = na_if(THIN, 0))  %>% 
@@ -143,6 +161,11 @@ df.cc85_2 <- classifyTHIN(df.no)
   #               -regime.x,
    #              -regime.y)
  
+
+
+# Inspect data ------------------------------------------------------------
+
+
 # test if data calculated are equal:
 all(df.noTEST == df.no2)
 identical(df.noTEST,df.no2)
@@ -264,17 +287,33 @@ df.no_2 %>%
 
 
 
-# Generate fake open_edge data --------------------------------------------
-# calculate wind risk for individual regimes for 3 CC 
-# -----------------------------------------------
 
-# function to adjust table
+
+# Generate fake open_edge data --------------------------------------------
+
+# calculate wind risk for individual regimes for 3 CC  -----------------------------------------------
+
+# Get vector of columns names to keep for statistics ------------------
+glm.colnames <- c("species",
+                  "H_dom",
+                  "time_thinning",
+                  "windSpeed",
+                  "open_edge",
+                  "soilType",
+                  "soilDepthLess30",
+                  "siteFertility",   # siteFertility
+                  "tempSum")
+
+
+# function to adjust table ---------------
 formatWindRisk <- function(df, ...) {
   
   library(dplyr)
-  
+#   df<- df.cc45_2
   # add new column
   df$open_edge = "TRUE"
+  df$avgTemp   = 12.19653  # update this value later
+  df$windSpeed = 10.84851  # update this value later
   
   # Recalssify values
   # # Reclassify values:
@@ -284,7 +323,9 @@ formatWindRisk <- function(df, ...) {
                               PEAT == 1 ~ "peat"))  %>%
     mutate(SC.v = case_when(SC %in% 1:3 ~ "fertile",
                             SC %in% 4:6 ~ "poor")) %>%                 # COMPLETE SOIL CALSS to get mineral coarse/fine??
+  
     mutate(soil_depth_less30 = ifelse(SOIL_CLASS == 1, TRUE,FALSE)) %>%
+    
     mutate(soilType = case_when(SOIL_CLASS == 0 ~ "organic",
                                 SOIL_CLASS %in% 1:4 ~ "mineral coarse",
                                 SOIL_CLASS %in% 5:7 ~ "mineral fine")) %>% 
@@ -293,8 +334,8 @@ formatWindRisk <- function(df, ...) {
                                TRUE ~ "other")) %>% 
     mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
     mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
-    mutate_if(is.character, as.factor)    # convert all characters to factor
-  
+    mutate_if(is.character, as.factor) #%>%    # convert all characters to factor
+     # head()
   
   # try if I can calculate the preidtcion based on subset data
   # to make sure that data did not get randomly reorganized
@@ -305,23 +346,7 @@ formatWindRisk <- function(df, ...) {
                   siteFertility   = SC.v,
                   tempSum         = avgTemp)
   
-  
-  
-  # Get vector of columns names to keep for statistics
-#  glm.colnames <- c("species", 
- #                   "H_dom", 
-  #                  "time_thinning", 
-   #                 "windSpeed", 
-    #                "open_edge",
-     #               "soilType",
-      #              "soilDepthLess30", 
-       #             "siteFertility",   # siteFertility
-        #            "tempSum")
-  
-  
-  
-  
-  # -----------------------------------------
+   # -----------------------------------------
   #          Correct the factor levels 
   #          for categoric variables
   # ------------------------------------
@@ -347,10 +372,228 @@ formatWindRisk <- function(df, ...) {
   df.all$siteFertility    <- factor(df.all$siteFertility,
                                     levels = c("poor", 
                                                "fertile"))
-  df.all$tempSum          <- df.all$tempSum/100   # according to Susane 
+ # df.all$tempSum          <- df.all$tempSum/100   # according to Susane 
   
   return(df.all)
 }
 
+# Format the table ------------------------------
+
+dd<- formatWindRisk(df.cc45_2)
+
+
+# Calculate wind risk ------------------------------
+
+# For temperature sum, I have single value: not variabilit over the landscape: 1299.273
+dd$windRisk <- predict.glm(windRisk.m,
+                               subset(dd, select = glm.colnames),
+                               type="response")
+
+
+# apply functions on the list of dfs ------------
+# each df for each climate change scenario
+df.list <- list(df.no_2, df.cc45_2, df.cc85_2) 
+
+# format the tables according to glm calculation
+df.list.format <- lapply(df.list, formatWindRisk)
+
+# apply the glm formula to calulate wind risk 
+df.risk.ls <- lapply(df.list.format, function(df) {df$windRisk <- predict.glm(windRisk.m,
+                                                           subset(df, select = glm.colnames),
+                                                           type="response")
+                  return(df)})
+
+# inspect values
+lapply(df.risk.ls, function(df) range(df$windRisk))
+
+# merge data into one ----------------------
+# Merge optimal data in one files, filter for incorrect stands
+df.out <- do.call(rbind, df.risk.ls)
+
+
+# check risk for regimes
+df.out %>% 
+  ggplot(aes(x = climChange,
+             y= windRisk,
+             group = climChange,
+             fill = climChange)) +
+  geom_boxplot() +
+  ylim(0, 0.25) +
+  facet_grid(. ~ regime)
+
+# climate change increases wind risk
+
+# classify for type of modification ------------------
+# shorten or extent
+# get regimes:
+unique(df.out$regime)
+
+
+# Classify the type of regime, type of adjustement (extension or shortening)
+# and change in time (how many years)
+df.out2 <- 
+  df.out %>% 
+  mutate(modif = case_when(
+    grepl('_m5' , regime) ~ 'shorten',
+    grepl('_m20', regime) ~ 'shorten',
+    grepl('_m20', regime) ~ 'shorten',
+    grepl('_5'  , regime) ~ 'extended',
+    grepl('_10' , regime) ~ 'extended',
+    grepl('_15' , regime) ~ 'extended',
+    grepl('_30' , regime) ~ 'extended',
+    TRUE~ 'normal')) %>% 
+  mutate(change_time = case_when(
+    grepl("15", regime) ~ "15",
+    grepl("5",  regime) ~ "5",
+    grepl("10", regime) ~ "10",
+    grepl("30", regime) ~ "30",
+    grepl("20", regime) ~ "20",
+    TRUE~'0')) %>% 
+ # mutate(change_time = replace_na(change_time, 0)) %>% 
+  mutate(mainType = case_when(
+    grepl("SA", regime) ~ "SA",
+    grepl("BAU", regime) ~ "BAU",
+    grepl("CCF", regime) ~ "CCF"))
+    
+head(df.out2)
+
+unique(df.out2$modif)
+unique(df.out2$change_time)
+unique(df.out2$mainType)
+
+# HOw does modification of management regime affect wind risk?
+
+# Change order of change time
+df.out2$change_time <-factor(df.out2$change_time, 
+                         levels = c("0",  "5",  "10", "15","20", "30"))
+
+
+# check risk for regimes
+df.out2 %>% 
+  ggplot(aes(x = climChange,
+             y= windRisk,
+             group = climChange,
+             fill = climChange)) +
+  geom_boxplot() +
+  stat_summary(fun = mean, geom="point", col = "red") +
+  ylim(0, 0.25) +
+  facet_grid(. ~ modif) +
+  theme(legend.position = "none")
+
+# check the risk by time delay
+# Make plots for change time -----------------------------------------------------------------
+p.extended<- 
+  df.out2 %>% 
+  filter(modif == "extended" | modif == "normal") %>% 
+  ggplot(aes(x = change_time,
+             y= windRisk
+             #group = climChange,
+             )) +
+  geom_boxplot(aes(fill = climChange), position=position_dodge(.9)) +
+  ylim(0, 0.20) +
+  stat_summary(aes(group =climChange ), position=position_dodge(.9), 
+               fun = mean, geom="point", col = "red") +
+
+  #facet_grid(climChange ~ year) +
+  #theme(legend.position = "none") + 
+  ggtitle("a) extended")
+  
+
+p.shorten<- 
+  df.out2 %>% 
+  filter(modif == "shorten" | modif == "normal") %>% 
+  ggplot(aes(x = change_time,
+             y= windRisk
+             #group = climChange,
+  )) +
+  geom_boxplot(aes(fill = climChange), position=position_dodge(.9)) +
+  ylim(0, 0.20) +
+  stat_summary(aes(group =climChange ), position=position_dodge(.9), 
+               fun = mean, geom="point", col = "red") +
+  
+  #facet_grid(climChange ~ year) +
+  #theme(legend.position = "none") +
+  ggtitle("b) shortened")
+
+library(ggpubr)
+ggarrange(p.extended, p.shorten, common.legend = TRUE, legend="bottom")
+
+
+
+# Plots for Climate change ------------------------------------------------
+
+p.extended<- 
+  df.out2 %>% 
+  filter(modif == "extended" | modif == "normal") %>% 
+  ggplot(aes(x = climChange, 
+             y= windRisk
+             #group = ,
+  )) +
+  geom_boxplot(aes(fill = change_time), position=position_dodge(.9)) +
+  ylim(0, 0.20) +
+  stat_summary(aes(group =change_time ), position=position_dodge(.9), 
+               fun = mean, geom="point", col = "red") +
+  
+  #facet_grid(climChange ~ year) +
+  #theme(legend.position = "none") + 
+  ggtitle("a) extended")
+
+
+p.shorten<- 
+  df.out2 %>% 
+  filter(modif == "shorten" | modif == "normal") %>% 
+  ggplot(aes(x = climChange,
+             y= windRisk
+             #group = ,
+  )) +
+  geom_boxplot(aes(fill = change_time), position=position_dodge(.9)) +
+  ylim(0, 0.20) +
+  stat_summary(aes(group =change_time ), position=position_dodge(.9), 
+               fun = mean, geom="point", col = "red") +
+  
+  #facet_grid(climChange ~ year) +
+  #theme(legend.position = "none") +
+  ggtitle("b) shortened")
+
+library(ggpubr)
+ggarrange(p.extended, p.shorten, common.legend = FALSE, legend="bottom")
+
+# What regime is the most sensitive to shortening/extension? -----------------
+
+p.extended<- 
+  df.out2 %>% 
+  filter(modif == "extended" | modif == "normal") %>% 
+  ggplot(aes(x = change_time,
+             y= windRisk
+             #group = climChange,
+  )) +
+  geom_boxplot(aes(fill = climChange), position=position_dodge(.9)) +
+  ylim(0, 0.20) +
+  stat_summary(aes(group =climChange ), position=position_dodge(.9), 
+               fun = mean, geom="point", col = "red") +
+  
+  #facet_grid(climChange ~ year) +
+  #theme(legend.position = "none") + 
+  ggtitle("a) extended")
+
+
+p.shorten<- 
+  df.out2 %>% 
+  filter(modif == "shorten"  & mainType == "BAU") %>% 
+  ggplot(aes(x = change_time,
+             y= windRisk
+             #group = climChange,
+  )) +
+  geom_boxplot(aes(fill = climChange), position=position_dodge(.9)) +
+  ylim(0, 0.20) +
+  stat_summary(aes(group =climChange ), position=position_dodge(.9), 
+               fun = mean, geom="point", col = "red") +
+  facet_grid(.~ regime) +
+    ggtitle("b) shortened")
+
+library(ggpubr)
+ggarrange(p.extended, p.shorten, common.legend = TRUE, legend="bottom")
+
+# need to compare specific regime with its modification:
 
 
