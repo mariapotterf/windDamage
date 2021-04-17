@@ -49,3 +49,6 @@ without_SA_MV_Voyri_rsu.csv
 CC45_MV_Korsnas_rsu.csv
 CC85_MV_Korsnas_rsu.csv
 without_MV_Korsnas_rsu.csv
+df_raster_Korsnas.csv
+df_raster_Raasepori.csv
+df_raster_Simo.csv

@@ -56,47 +56,69 @@ source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
 # get data
 # ----------------------
+inPath = "C:/MyTemp/myGitLab/windDamage/manuscript_regimes"
 
 # Read corrected simulated names:
-df.no <- data.table::fread("C:/MyTemp/myGitLab/windDamage/manuscript_regimes/input_CC/without_MV_Korsnas_rsu.csv", 
+df.no <- data.table::fread(paste(inPath, "input_CC/without_MV_Korsnas_rsu.csv", sep = "/"),
                        data.table=FALSE, 
                        stringsAsFactors = FALSE)
-df.cc45 <- data.table::fread("C:/MyTemp/myGitLab/windDamage/manuscript_regimes/input_CC/CC45_MV_Korsnas_rsu.csv", 
+df.cc45 <- data.table::fread(paste(inPath, "input_CC/CC45_MV_Korsnas_rsu.csv", sep = "/"),
                            data.table=FALSE, 
                            stringsAsFactors = FALSE)
-df.cc85 <- data.table::fread("C:/MyTemp/myGitLab/windDamage/manuscript_regimes/input_CC/CC85_MV_Korsnas_rsu.csv", 
+df.cc85 <- data.table::fread(paste(inPath, "input_CC/CC85_MV_Korsnas_rsu.csv", sep = "/"),
                              data.table=FALSE, 
                              stringsAsFactors = FALSE)
 
 
 # Stands geometry
-df.geom <- st_read(paste(getwd(), "manuscript_regimes/input_shp/Korsnas.shp", sep = "/"))
-#df.geom <- subset(df.geom, select = c("KUVIO_ID"))
+df.geom <- st_read(paste(inPath, "input_shp/stands/MV_Korsnäs.shp", sep = "/"))
+df.geom <- subset(df.geom, select = c("standid"))
 #names(df.geom) <- c("id", "geometry")
+
+
+# Get values for wind speed and temps sum
+df.raster <-   data.table::fread(paste(inPath, "input_CC/df_raster_Korsnas.csv", sep = "/"),
+                                 data.table=FALSE, 
+                                 stringsAsFactors = FALSE)
 
 # Explore data --------------------
 
-
 # Check if they have the same stand id
 length(unique(df.no$id))
-length(unique(df.geom$standid))
+#length(unique(df.geom$standid))
 
 # keep  only the overlapping standid
 shared.stands = intersect(unique(df.no$id), unique(df.geom$standid))
 
 
+# add missing SOIL_CLASS data to no clim change data
+df.soil.class <- df.cc45 %>% 
+  dplyr::select(id, SOIL_CLASS) %>% 
+  distinct()
 
+
+# Add this to no CC scenario
+df.no <- df.no %>% 
+  right_join(df.soil.class, by = c('id'))
+
+
+
+# Make list of input df (with and without CC) -----------------------------------
+df.ls <- list(df.no, df.cc45, df.cc85)
+
+# Add raster values: temp sum and avgWind speed
+# indication for raster values
+# add temperature and wind speed values to each table by id
+df.ls <- lapply(df.ls, function(df) df %>%  right_join(df.raster, 
+                                                        by = c('id' = 'standid')))
 # Calculate thinning values
 # ---------------------------------------------
-# check values in CCF
-unique(df.no$THIN)
-unique(df.no$regime)
 
 
 # Make a check: select one stand and one regime with thinning
-df.no %>% 
-  filter(regime == "BAUwT") %>% 
-  distinct(id)
+#df.no %>% 
+ # filter(regime == "BAUwT") %>% 
+  #distinct(id)
 
 classifyTHIN <- function(df, ...) {
   library(dplyr)
@@ -117,27 +139,14 @@ classifyTHIN <- function(df, ...) {
 }
 
 
-# Get thinning values
-df.no_2   <- classifyTHIN(df.no)
-df.cc45_2 <- classifyTHIN(df.cc45)
-df.cc85_2 <- classifyTHIN(df.cc85)
+# Classify values
+df.ls.thin = lapply(df.ls, classifyTHIN)
 
-# add CC indicator
-df.no_2$climChange   <- "no"
-df.cc45_2$climChange <- "cc45"
-df.cc85_2$climChange <- "cc85"
-
-# no CC has no SOIl_CLASS values
-# get list of id from CC scenarios with SOIL_class category
-
-df.soil.class <- df.cc45 %>% 
-  dplyr::select(id, SOIL_CLASS) %>% 
-  distinct()
+# Indicate climate change category
+clim.cat = c("no", "cc45", "cc85")
+df.ls.thin = mapply(cbind, df.ls.thin, "climChange"=clim.cat, SIMPLIFY=F)
 
 
-# Add this to no CC scenario
-df.no_2 <- df.no_2 %>% 
-  right_join(df.soil.class, by = c('id'))
 
 # Get table with thinnings ---------------------
 #df.no2<- 
@@ -312,8 +321,8 @@ formatWindRisk <- function(df, ...) {
 #   df<- df.cc45_2
   # add new column
   df$open_edge = "TRUE"
-  df$avgTemp   = 12.19653  # update this value later
-  df$windSpeed = 10.84851  # update this value later
+  #df$avgTemp   = 12.19653  # update this value later
+ # df$windSpeed = 10.84851  # update this value later
   
   # Recalssify values
   # # Reclassify values:
@@ -372,39 +381,34 @@ formatWindRisk <- function(df, ...) {
   df.all$siteFertility    <- factor(df.all$siteFertility,
                                     levels = c("poor", 
                                                "fertile"))
- # df.all$tempSum          <- df.all$tempSum/100   # according to Susane 
+  df.all$tempSum          <- df.all$tempSum/100   # according to Susane 
   
   return(df.all)
 }
 
 # Format the table ------------------------------
-
-dd<- formatWindRisk(df.cc45_2)
+df.ls.glm<- lapply(df.ls.thin, formatWindRisk)
 
 
 # Calculate wind risk ------------------------------
 
 # For temperature sum, I have single value: not variabilit over the landscape: 1299.273
+
+dd<- df.ls.glm[[2]]
+
 dd$windRisk <- predict.glm(windRisk.m,
                                subset(dd, select = glm.colnames),
                                type="response")
 
 
-# apply functions on the list of dfs ------------
-# each df for each climate change scenario
-df.list <- list(df.no_2, df.cc45_2, df.cc85_2) 
-
-# format the tables according to glm calculation
-df.list.format <- lapply(df.list, formatWindRisk)
-
 # apply the glm formula to calulate wind risk 
-df.risk.ls <- lapply(df.list.format, function(df) {df$windRisk <- predict.glm(windRisk.m,
+df.risk.ls <- lapply(df.ls.glm, function(df) {df$windRisk <- predict.glm(windRisk.m,
                                                            subset(df, select = glm.colnames),
                                                            type="response")
                   return(df)})
 
 # inspect values
-lapply(df.risk.ls, function(df) range(df$windRisk))
+lapply(df.risk.ls, function(df) range(df$windRisk, na.rm = T))
 
 # merge data into one ----------------------
 # Merge optimal data in one files, filter for incorrect stands
@@ -595,5 +599,7 @@ library(ggpubr)
 ggarrange(p.extended, p.shorten, common.legend = TRUE, legend="bottom")
 
 # need to compare specific regime with its modification:
+
+
 
 
