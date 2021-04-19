@@ -70,6 +70,9 @@ df.cc85 <- data.table::fread(paste(inPath, "input_CC/CC85_MV_Korsnas_rsu.csv", s
                              stringsAsFactors = FALSE)
 
 
+# seems that 5 stands id: 3576410,  3576082, 3576632, 3576696, 3576723 have no values
+df.cc85 %>% filter(id == 3576723) #%>% distinct(regime)
+
 # Stands geometry
 df.geom <- st_read(paste(inPath, "input_shp/stands/MV_Korsnäs.shp", sep = "/"))
 df.geom <- subset(df.geom, select = c("standid"))
@@ -80,6 +83,9 @@ df.geom <- subset(df.geom, select = c("standid"))
 df.raster <-   data.table::fread(paste(inPath, "input_CC/df_raster_Korsnas.csv", sep = "/"),
                                  data.table=FALSE, 
                                  stringsAsFactors = FALSE)
+
+length(unique(df.raster$standid))  # 302 
+
 
 # Explore data --------------------
 
@@ -410,6 +416,15 @@ df.risk.ls <- lapply(df.ls.glm, function(df) {df$windRisk <- predict.glm(windRis
 # inspect values
 lapply(df.risk.ls, function(df) range(df$windRisk, na.rm = T))
 
+# check why there is NA values in my results?
+df.risk.ls[[3]] %>% 
+  filter(is.na(windRisk)) %>% 
+  distinct(id)
+
+# some data are missing for 5 stands; simpy remove the standid that do not have any regime
+# from initial data
+
+
 # merge data into one ----------------------
 # Merge optimal data in one files, filter for incorrect stands
 df.out <- do.call(rbind, df.risk.ls)
@@ -457,14 +472,19 @@ df.out2 <-
   mutate(mainType = case_when(
     grepl("SA", regime) ~ "SA",
     grepl("BAU", regime) ~ "BAU",
-    grepl("CCF", regime) ~ "CCF"))
+    grepl("CCF", regime) ~ "CCF")) %>% 
+  mutate(thinning = case_when(
+    grepl("wG|wT", regime) ~ "thin_YES",
+    grepl("woT", regime) ~ "thin_NO",
+    TRUE~'no'))
+    
     
 head(df.out2)
 
 unique(df.out2$modif)
 unique(df.out2$change_time)
 unique(df.out2$mainType)
-
+unique(df.out2$thinning)
 # HOw does modification of management regime affect wind risk?
 
 # Change order of change time
@@ -474,6 +494,22 @@ df.out2$change_time <-factor(df.out2$change_time,
 
 # check risk for regimes
 df.out2 %>% 
+  filter(mainType == "BAU"  ) %>% 
+  ggplot(aes(x = modif, #climChange,
+             y= windRisk,
+             group = modif, #climChange,
+             fill = modif)) + #, climChange)) +
+  geom_boxplot() +
+  stat_summary(fun = mean, geom="point", col = "red") +
+ # ylim(0, 0.25) +
+  facet_grid(thinning ~ climChange) +
+  theme(legend.position = "none") + 
+  ggtitle("BAU")
+
+
+windows()
+df.out2 %>% 
+  filter(mainType == "CCF") %>% 
   ggplot(aes(x = climChange,
              y= windRisk,
              group = climChange,
@@ -482,7 +518,9 @@ df.out2 %>%
   stat_summary(fun = mean, geom="point", col = "red") +
   ylim(0, 0.25) +
   facet_grid(. ~ modif) +
-  theme(legend.position = "none")
+  theme(legend.position = "none") + 
+  ggtitle("CCF")
+
 
 # check the risk by time delay
 # Make plots for change time -----------------------------------------------------------------
@@ -598,7 +636,44 @@ p.shorten<-
 library(ggpubr)
 ggarrange(p.extended, p.shorten, common.legend = TRUE, legend="bottom")
 
+
+
 # need to compare specific regime with its modification:
+df.out2 %>% 
+  filter(modif == "shorten"  & mainType == "BAU") %>% 
+  ggplot(aes(x = change_time,
+             y= windRisk
+             #group = climChange,
+  )) +
+  geom_boxplot(aes(fill = climChange), position=position_dodge(.9)) +
+  ylim(0, 0.20) +
+  stat_summary(aes(group =climChange ), position=position_dodge(.9), 
+               fun = mean, geom="point", col = "red") +
+  facet_grid(.~ regime) +
+  ggtitle("b) shortened")
+
+
+# Get the line plot, for one regime over years
+df.out2 %>% 
+  filter(mainType == "BAU" & modif == "extended" ) %>%  #
+  group_by(year, climChange, change_time) %>% 
+  summarise(my_y = mean(windRisk, na.rm = T)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = year )) +
+  #geom_line(aes(y = my_y))
+  geom_ribbon(
+    data = ~ pivot_wider(., 
+                         names_from = climChange, 
+                         values_from = my_y),
+    aes(ymin = no, 
+        ymax = cc85), fill="red",alpha=0.4) +
+  geom_line(aes(y = my_y,
+                #color = "black",     
+                linetype = climChange),
+            lwd  = 1)  +
+  theme_bw()  +
+  facet_grid(.~change_time)
+
 
 
 
