@@ -133,6 +133,105 @@ open_edge_by_nbrs <- function(nbrs,
 
 
 
+# ------------------------------------------------
+# Format wind risk Table
+# ------------------------------------------------
+# function to adjust table ---------------
+# gegenartes the same open_edge values!!!
+formatWindRiskTable <- function(df, ...) {
+  
+  library(dplyr)
+  #   df<- df.cc45_2
+  # add new column
+  df$open_edge = "TRUE"
+  #df$avgTemp   = 12.19653  # update this value later
+  # df$windSpeed = 10.84851  # update this value later
+  
+  # Recalssify values
+  # # Reclassify values:
+  df.all<-
+    df %>% 
+    mutate(PEAT.v = case_when(PEAT == 0 ~ "mineral soil",
+                              PEAT == 1 ~ "peat"))  %>%
+    mutate(SC.v = case_when(SC %in% 1:3 ~ "fertile",
+                            SC %in% 4:6 ~ "poor")) %>%                 # COMPLETE SOIL CALSS to get mineral coarse/fine??
+    
+    mutate(soil_depth_less30 = ifelse(SOIL_CLASS == 1, TRUE,FALSE)) %>%
+    
+    mutate(soilType = case_when(SOIL_CLASS == 0 ~ "organic",
+                                SOIL_CLASS %in% 1:4 ~ "mineral coarse",
+                                SOIL_CLASS %in% 5:7 ~ "mineral fine")) %>% 
+    mutate(species = case_when(MAIN_SP == 1 ~ "pine",
+                               MAIN_SP == 2 ~ "spruce",
+                               TRUE ~ "other")) %>% 
+    mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
+    mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
+    mutate_if(is.character, as.factor) #%>%    # convert all characters to factor
+  # head()
+  
+  # try if I can calculate the preidtcion based on subset data
+  # to make sure that data did not get randomly reorganized
+  df.all <-
+    df.all %>% 
+    dplyr::rename(time_thinning   = since_thin,             # new.name = old.name
+                  soilDepthLess30 = soil_depth_less30,
+                  siteFertility   = SC.v,
+                  tempSum         = avgTemp)
+  
+  # -----------------------------------------
+  #          Correct the factor levels 
+  #          for categoric variables
+  # ------------------------------------
+  df.all$species          <- factor(df.all$species, 
+                                    levels = c("pine", 
+                                               "spruce", 
+                                               "other"))
+  
+  df.all$time_thinning    <- factor(df.all$time_thinning, 
+                                    levels = c("0-5", 
+                                               "6-10", 
+                                               ">10"))
+  df.all$open_edge        <- factor(df.all$open_edge,
+                                    levels = c("FALSE", 
+                                               "TRUE"))
+  df.all$soilType         <- factor(df.all$soilType,
+                                    levels = c("mineral coarse", 
+                                               "mineral fine",
+                                               "organic"))
+  df.all$soilDepthLess30  <- factor(df.all$soilDepthLess30, 
+                                    levels = c("FALSE", 
+                                               "TRUE"))
+  df.all$siteFertility    <- factor(df.all$siteFertility,
+                                    levels = c("poor", 
+                                               "fertile"))
+  df.all$tempSum          <- df.all$tempSum/100   # according to Susane 
+  
+  return(df.all)
+}
+
+
+
+# ------------------------------------------------
+# Classify THIN
+# ------------------------------------------------
+
+classifyTHIN <- function(df, ...) {
+  library(dplyr)
+  df.out <- 
+    df %>% 
+    mutate(THIN = na_if(THIN, 0))  %>% 
+    mutate(THIN2 = substring(THIN,0,4)) %>%  # keep the first 4 characters from CCF regimes, datum in format "2016-04-16" -> to "2016"
+    group_by(id, regime) %>% 
+    mutate(THIN_filled_lagged = lag(THIN2)) %>%
+    mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
+    tidyr::fill(THIN_filled_lagged) %>% 
+    mutate(difference = year - THIN_filled_lagged) %>% 
+    mutate(since_thin = case_when(is.na(difference) | difference < 0 ~ ">10",
+                                  difference %in% c(0:5) ~ "0-5",
+                                  difference %in% c(6:10) ~ "6-10",
+                                  difference > 10 ~ ">10")) 
+  return(df.out)
+}
 
 
 
