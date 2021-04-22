@@ -74,8 +74,8 @@ df.cc85 <- data.table::fread(paste(inPath, "input_CC/CC85_MV_Korsnas_rsu.csv", s
 df.cc85 %>% filter(id == 3576723) #%>% distinct(regime)
 
 # Stands geometry
-df.geom <- st_read(paste(inPath, "input_shp/stands/MV_Korsnäs.shp", sep = "/"))
-df.geom <- subset(df.geom, select = c("standid"))
+#df.geom <- st_read(paste(inPath, "input_shp/stands/MV_Korsnäs.shp", sep = "/"))
+#df.geom <- subset(df.geom, select = c("standid"))
 #names(df.geom) <- c("id", "geometry")
 
 
@@ -94,7 +94,11 @@ length(unique(df.no$id))
 #length(unique(df.geom$standid))
 
 # keep  only the overlapping standid
-shared.stands = intersect(unique(df.no$id), unique(df.geom$standid))
+shared.stands = intersect(unique(df.no$id), unique(df.raster$standid))
+
+# Subset df.raster data to only simulated stands
+df.raster <- df.raster %>% 
+  filter(standid %in% shared.stands)
 
 
 # add missing SOIL_CLASS data to no clim change data
@@ -106,6 +110,47 @@ df.soil.class <- df.cc45 %>%
 # Add this to no CC scenario
 df.no <- df.no %>% 
   right_join(df.soil.class, by = c('id'))
+
+
+# include the respective SA values in 2016 to other data as 2015 to have a common start
+# SA values need to be according to CCF;
+# make as function to first extract values and then it to original dataset;
+# need to expand it for all regimes
+df.no.sa <- df.no %>% 
+  filter(regime == "SA_DWextract" & year == 2016) %>% 
+  mutate(year = 2015) #%>% 
+
+# get vector of regimes and multiply it 
+regime.v <- df.no %>% 
+  filter(regime != "SA_DWextract") %>% 
+  distinct(regime) %>% 
+  pull(regime)
+
+regime.n = length(regime.v)
+
+regime.v2 = rep()
+
+
+# Make example: have a df. multiply df as many times as vector and 
+# add each vector as new column
+
+dd<- data.frame(id = c(1,2,3,4,5))
+vec <- c("a", "b", "d")
+
+
+rbind(dd, dd,dd)
+
+  
+aa<- right_join(df.no.sa, regime.df, by = c("regime"))
+
+# get table of unique regimes
+head(aa)
+unique(aa$regime)
+unique(aa$year)
+  
+
+df.no <- rbind(df.no.sa, df.no)
+  
 
 
 
@@ -125,24 +170,6 @@ df.ls <- lapply(df.ls, function(df) df %>%  right_join(df.raster,
 #df.no %>% 
  # filter(regime == "BAUwT") %>% 
   #distinct(id)
-
-classifyTHIN <- function(df, ...) {
-  library(dplyr)
-  df.out <- 
-    df %>% 
-    mutate(THIN = na_if(THIN, 0))  %>% 
-    mutate(THIN2 = substring(THIN,0,4)) %>%  # keep the first 4 characters from CCF regimes, datum in format "2016-04-16" -> to "2016"
-    group_by(id, regime) %>% 
-    mutate(THIN_filled_lagged = lag(THIN2)) %>%
-    mutate(THIN_filled_lagged = as.numeric(THIN_filled_lagged)) %>%
-    tidyr::fill(THIN_filled_lagged) %>% 
-    mutate(difference = year - THIN_filled_lagged) %>% 
-    mutate(since_thin = case_when(is.na(difference) | difference < 0 ~ ">10",
-                                  difference %in% c(0:5) ~ "0-5",
-                                  difference %in% c(6:10) ~ "6-10",
-                                  difference > 10 ~ ">10")) 
-  return(df.out)
-}
 
 
 # Classify values
@@ -181,128 +208,6 @@ df.ls.thin = mapply(cbind, df.ls.thin, "climChange"=clim.cat, SIMPLIFY=F)
 # Inspect data ------------------------------------------------------------
 
 
-# test if data calculated are equal:
-all(df.noTEST == df.no2)
-identical(df.noTEST,df.no2)
-
-# Inspect how many stands I have per regime?
-df.no2 %>%
-  filter(year == 2016) %>% 
-  group_by(regime) %>% 
-  distinct(id) %>% 
-  tally() %>% 
-  print(n = 40)
- 
-# total number of stands:
-stand_n = length(unique(df.no$id))
-
-
-# total n of stands = 299
-
-# how many stands have all regimes???
-df.no2 %>%
-  filter(year == 2016) %>% 
-  group_by(id) %>% 
-  distinct(regime) %>% 
-  tally() %>% 
-  filter(n<15) # n<5
-  #print(n = 40)
-
-# about 150 stands have >20 regimes, but how consistent it is?
-# how to fill in stand gaps to recreate continoous landscaes?
-# 19 stands have less regimes then 5 
-
-# Let's say that I can fill in gaps by the closest regime:
-# how many stands do I have for BAU, SA, CCF_1?
-# BAU   = 278
-# CCF_1 = 264
-# SA    = 299
-
-# do all BAU stands have have al CCF regimes??
-# subset df.no$regime == "BAU"
-df.bau <- df.no %>% 
-  filter(regime == "BAU") %>% 
-  distinct(id)
-
-df.ccf <- df.no %>% 
-  filter(regime == "CCF_1") %>% 
-  distinct(id)
-
-
-# get the vector of ids
-bau_id = df.bau$id
-ccf_id = df.ccf$id
-
-
-# check number of CCF regimes per BAU
-df.no %>% 
-  filter(id %in% bau_id) %>% 
-  filter(regime == "CCF_4") %>% 
-  distinct(id) %>% 
-  tally()
-# seems that all CCF_1 are in BAU
-
-# why some stands are not suitable for BAU??
-#separate in two groups: BAU, only SA and compare age, V, tree height
-# subset only stands that are not in BAU
-all_id = unique(df.no$id)
-
-# keep only stands that have just SA regime:
-# keep  only the overlapping standid
-sa_id_bau = setdiff(all_id, bau_id)
-sa_id_ccf = setdiff(all_id, ccf_id)
-
-# https://stackoverflow.com/questions/31573087/difference-between-two-vectors-in-r
-
-# split dataframe in only SA, SA-BAU, SA-CCF 
-df.sa.bau<- df.no %>% 
-  filter(regime == "SA_DWextract" & year == 2016 & id %in% sa_id_bau)  %>% 
-  mutate(type = "onlySA_BAU")
-
-df.sa.ccf<- df.no %>% 
-  filter(regime == "SA_DWextract" & year == 2016 & id %in% sa_id_ccf)  %>% 
-  mutate(type = "onlySA_CCF")
-
-
-df.bau<- df.no %>% 
-  filter(regime == "BAU" & year == 2016 & id %in% ccf_id) %>% 
-  mutate(type = "active_BAU")
-
-df.ccf<- df.no %>% 
-  filter(regime == "CCF_1" & year == 2016 & id %in% bau_id) %>% 
-  mutate(type = "active_CCF")
-
-
-df2 <- rbind(df.sa.bau, df.sa.ccf, df.bau, df.ccf)
-
-# make a plot for Age
-df2 %>% 
-  ggplot(aes(y = Age,
-             x = type)) +
-  geom_boxplot()
-
-
-# How much do actively managed stands overlap between BAU and CCF_1?
-setdiff(bau_id, ccf_id)
-length(bau_id)
-length(ccf_id)
-
-
-# to create a continuous landsacpes, I will fill in values from missing stands 
-# from BAU and CCF_1
-# remove the stands that were assigned as SA in 2016
-
-# can aso 
-
-# Check how many stands under BAU I have given CC scenario?
-df.no_2 %>% 
-  filter(regime == "CCF_4") %>% 
-  distinct(id) %>% 
-  nrow()
-
-
-
-
 
 # Generate fake open_edge data --------------------------------------------
 
@@ -320,80 +225,9 @@ glm.colnames <- c("species",
                   "tempSum")
 
 
-# function to adjust table ---------------
-formatWindRisk <- function(df, ...) {
-  
-  library(dplyr)
-#   df<- df.cc45_2
-  # add new column
-  df$open_edge = "TRUE"
-  #df$avgTemp   = 12.19653  # update this value later
- # df$windSpeed = 10.84851  # update this value later
-  
-  # Recalssify values
-  # # Reclassify values:
-  df.all<-
-    df %>% 
-    mutate(PEAT.v = case_when(PEAT == 0 ~ "mineral soil",
-                              PEAT == 1 ~ "peat"))  %>%
-    mutate(SC.v = case_when(SC %in% 1:3 ~ "fertile",
-                            SC %in% 4:6 ~ "poor")) %>%                 # COMPLETE SOIL CALSS to get mineral coarse/fine??
-  
-    mutate(soil_depth_less30 = ifelse(SOIL_CLASS == 1, TRUE,FALSE)) %>%
-    
-    mutate(soilType = case_when(SOIL_CLASS == 0 ~ "organic",
-                                SOIL_CLASS %in% 1:4 ~ "mineral coarse",
-                                SOIL_CLASS %in% 5:7 ~ "mineral fine")) %>% 
-    mutate(species = case_when(MAIN_SP == 1 ~ "pine",
-                               MAIN_SP == 2 ~ "spruce",
-                               TRUE ~ "other")) %>% 
-    mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
-    mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
-    mutate_if(is.character, as.factor) #%>%    # convert all characters to factor
-     # head()
-  
-  # try if I can calculate the preidtcion based on subset data
-  # to make sure that data did not get randomly reorganized
-  df.all <-
-    df.all %>% 
-    dplyr::rename(time_thinning   = since_thin,             # new.name = old.name
-                  soilDepthLess30 = soil_depth_less30,
-                  siteFertility   = SC.v,
-                  tempSum         = avgTemp)
-  
-   # -----------------------------------------
-  #          Correct the factor levels 
-  #          for categoric variables
-  # ------------------------------------
-  df.all$species          <- factor(df.all$species, 
-                                    levels = c("pine", 
-                                               "spruce", 
-                                               "other"))
-  
-  df.all$time_thinning    <- factor(df.all$time_thinning, 
-                                    levels = c("0-5", 
-                                               "6-10", 
-                                               ">10"))
-  df.all$open_edge        <- factor(df.all$open_edge,
-                                    levels = c("FALSE", 
-                                               "TRUE"))
-  df.all$soilType         <- factor(df.all$soilType,
-                                    levels = c("mineral coarse", 
-                                               "mineral fine",
-                                               "organic"))
-  df.all$soilDepthLess30  <- factor(df.all$soilDepthLess30, 
-                                    levels = c("FALSE", 
-                                               "TRUE"))
-  df.all$siteFertility    <- factor(df.all$siteFertility,
-                                    levels = c("poor", 
-                                               "fertile"))
-  df.all$tempSum          <- df.all$tempSum/100   # according to Susane 
-  
-  return(df.all)
-}
 
 # Format the table ------------------------------
-df.ls.glm<- lapply(df.ls.thin, formatWindRisk)
+df.ls.glm<- lapply(df.ls.thin, formatWindRiskTable)
 
 
 # Calculate wind risk ------------------------------
@@ -664,6 +498,7 @@ df.out2 %>%
 
 # get shaded region  ----------------------------------------------
 # Get the line plot, for one regime over years
+windows()
 df.out2 %>% 
   #filter(mainType == "BAU" & modif == "extended" ) %>%  #
   filter(mainType == "BAU") %>% 
@@ -677,14 +512,14 @@ df.out2 %>%
                          names_from = climChange, 
                          values_from = my_y),
     aes(ymin = no, 
-        ymax = cc85), fill="grey80",alpha=0.4) +
+        ymax = cc85, fill=change_time), alpha = 0.15) +
   geom_line(aes(y = my_y,
-                #color = "black",     
+                color = change_time,     
                 linetype = climChange),
             lwd  = 1)  +
   scale_linetype_manual(values=c('solid', 'dotted', 'dashed')) +
   theme_bw()  +
-  facet_grid(.~change_time) + 
+  #facet_grid(.~change_time) + 
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"))
 
@@ -714,7 +549,8 @@ df.out2 %>%
 
 # put together and color by specific groups
 df.out2 %>% 
- # filter(mainType == "BAU" & (modif == "shorten"| modif == "normal")) %>%  #
+  filter(mainType == "BAU" ) %>%  # | mainType == "SA"
+ # filter(mainType == "SA") %>% 
   group_by(year, climChange, change_time) %>% 
   summarise(my_y = mean(windRisk, na.rm = T))  %>% 
  # ungroup() %>% 
@@ -722,24 +558,13 @@ df.out2 %>%
              y = my_y,
              linetype = climChange,
              color = change_time)) +  #
-  geom_line() + 
-  facet_grid(.~change_time) + 
+  geom_line()  +
+ # facet_grid(.~mainType) +
+  #scale_color_continous() +
+  theme_bw()
+  
   
            
-         
-#         ,
-             #color = "black",     
-            # linetype = climChange,
-#             group = change_time)) +
-#  geom_ribbon(
- #   data = ~ pivot_wider(., 
-#                         names_from = climChange, 
- #                        values_from = my_y),
-  #  aes(ymin = no, 
-   #     ymax = cc85), fill="grey80",alpha=0.4) +
-  geom_line(aes(),
-            lwd  = 1)  +
-  theme_bw() 
 
 
 
@@ -785,15 +610,57 @@ dd %>%
 
 dd %>% 
   ggplot(aes(x = year)) +
- geom_ribbon(
-  data = ~ pivot_wider(., names_from = grp,
-                      values_from = vals),
-  aes(ymin = c, ymax = a, fill = modif)
- ) +
+  geom_ribbon(
+   data = ~ pivot_wider(., names_from = grp,
+                       values_from = vals),
+   aes(ymin = c, ymax = a, fill = modif, alpha = 0.25)
+  ) +
   ylim(0,6.5) +
-   geom_line(aes(y = vals,color = modif, linetype = grp),  # color = interaction(modif, grp)
+   geom_line(aes(y = vals, 
+                 color = modif, 
+                 linetype = grp),  # color = interaction(modif, grp)
             lwd  = 1.5)  +
- 
-  theme_bw() +
-  facet_grid(modif~.)
+  scale_color_grey()+
+ # scale_fill(alpha = 0.25) +
+  theme_bw() #+
+  #facet_grid(modif~.)
 
+
+
+
+# Make a different colur of shade by group
+
+library(ggplot2)
+library(tidyr)
+
+# example for shaded line plot
+dd1 <- data.frame(year = c(1:5),
+                  grp = rep(c("a", "b", "c"), each = 5),
+                  vals = c(5, 5.2, 5.6, 5.8, 6,
+                           5, 4.9, 4.8, 4.7, 4.2,
+                           5, 4.8, 4.4, 4,   3),
+                  modif = rep('no', each = 15))
+
+dd2 <- dd1
+dd2$vals = dd1$vals*0.8
+dd2$modif = 'yes'
+
+# Put data together
+dd <- rbind(dd1, dd2)
+
+# Get a plot
+dd %>% 
+  ggplot(aes(x = year)) +
+  geom_ribbon(
+    data = ~ pivot_wider(., names_from = grp,
+                         values_from = vals),
+    aes(ymin = c, ymax = a, fill = modif)
+  ) +
+  ylim(0,6.5) +
+  geom_line(aes(y = vals, color = modif, linetype = grp), 
+            lwd  = 1.5)  +
+  scale_fill_manual(c("red", "blue")) +
+  
+  theme_bw()
+
+  
