@@ -455,18 +455,19 @@ df.out2 <-
   mutate(modif = case_when(
     grepl('_m5' , regime) ~ 'shorten',
     grepl('_m20', regime) ~ 'shorten',
-    grepl('_m20', regime) ~ 'shorten',
     grepl('_5'  , regime) ~ 'extended',
     grepl('_10' , regime) ~ 'extended',
     grepl('_15' , regime) ~ 'extended',
     grepl('_30' , regime) ~ 'extended',
     TRUE~ 'normal')) %>% 
   mutate(change_time = case_when(
-    grepl("15", regime) ~ "15",
-    grepl("5",  regime) ~ "5",
-    grepl("10", regime) ~ "10",
-    grepl("30", regime) ~ "30",
-    grepl("20", regime) ~ "20",
+    grepl("_15", regime) ~ "15",
+    grepl("_5",  regime) ~ "5",
+    grepl("_10", regime) ~ "10",
+    grepl("_30", regime) ~ "30",
+    grepl("_20", regime) ~ "20",
+    grepl("_m5", regime) ~ "-5",
+    grepl("_m20", regime) ~ "-20",
     TRUE~'0')) %>% 
  # mutate(change_time = replace_na(change_time, 0)) %>% 
   mutate(mainType = case_when(
@@ -487,12 +488,12 @@ unique(df.out2$mainType)
 unique(df.out2$thinning)
 # HOw does modification of management regime affect wind risk?
 
-# Change order of change time
+# Change order of change time---------------------------------------
 df.out2$change_time <-factor(df.out2$change_time, 
-                         levels = c("0",  "5",  "10", "15","20", "30"))
+                         levels = c("-20", "-15", "-10", "-5", "0",  "5",  "10", "15","20", "25", "30"))
 
 
-# check risk for regimes
+# check risk for regimes-------------------------------------------
 df.out2 %>% 
   filter(mainType == "BAU"  ) %>% 
   ggplot(aes(x = modif, #climChange,
@@ -526,7 +527,8 @@ df.out2 %>%
 # Make plots for change time -----------------------------------------------------------------
 p.extended<- 
   df.out2 %>% 
-  filter(modif == "extended" | modif == "normal") %>% 
+  filter(mainType == "BAU") %>%
+  filter(modif == "extended" | modif == "normal" ) %>% 
   ggplot(aes(x = change_time,
              y= windRisk
              #group = climChange,
@@ -538,11 +540,12 @@ p.extended<-
 
   #facet_grid(climChange ~ year) +
   #theme(legend.position = "none") + 
-  ggtitle("a) extended")
+  ggtitle("a) BAU extended")
   
 
 p.shorten<- 
   df.out2 %>% 
+  filter(mainType == "BAU") %>% 
   filter(modif == "shorten" | modif == "normal") %>% 
   ggplot(aes(x = change_time,
              y= windRisk
@@ -555,7 +558,7 @@ p.shorten<-
   
   #facet_grid(climChange ~ year) +
   #theme(legend.position = "none") +
-  ggtitle("b) shortened")
+  ggtitle("b) BAU shortened")
 
 library(ggpubr)
 ggarrange(p.extended, p.shorten, common.legend = TRUE, legend="bottom")
@@ -566,6 +569,7 @@ ggarrange(p.extended, p.shorten, common.legend = TRUE, legend="bottom")
 
 p.extended<- 
   df.out2 %>% 
+  filter(mainType == "BAU") %>% 
   filter(modif == "extended" | modif == "normal") %>% 
   ggplot(aes(x = climChange, 
              y= windRisk
@@ -599,6 +603,7 @@ p.shorten<-
 
 library(ggpubr)
 ggarrange(p.extended, p.shorten, common.legend = FALSE, legend="bottom")
+
 
 # What regime is the most sensitive to shortening/extension? -----------------
 
@@ -639,6 +644,10 @@ ggarrange(p.extended, p.shorten, common.legend = TRUE, legend="bottom")
 
 
 # need to compare specific regime with its modification:
+
+# Line plots  -------------------------------------------------------------
+
+
 df.out2 %>% 
   filter(modif == "shorten"  & mainType == "BAU") %>% 
   ggplot(aes(x = change_time,
@@ -653,9 +662,11 @@ df.out2 %>%
   ggtitle("b) shortened")
 
 
+# get shaded region  ----------------------------------------------
 # Get the line plot, for one regime over years
 df.out2 %>% 
-  filter(mainType == "BAU" & modif == "extended" ) %>%  #
+  #filter(mainType == "BAU" & modif == "extended" ) %>%  #
+  filter(mainType == "BAU") %>% 
   group_by(year, climChange, change_time) %>% 
   summarise(my_y = mean(windRisk, na.rm = T)) %>% 
   ungroup() %>% 
@@ -666,7 +677,32 @@ df.out2 %>%
                          names_from = climChange, 
                          values_from = my_y),
     aes(ymin = no, 
-        ymax = cc85), fill="red",alpha=0.4) +
+        ymax = cc85), fill="grey80",alpha=0.4) +
+  geom_line(aes(y = my_y,
+                #color = "black",     
+                linetype = climChange),
+            lwd  = 1)  +
+  scale_linetype_manual(values=c('solid', 'dotted', 'dashed')) +
+  theme_bw()  +
+  facet_grid(.~change_time) + 
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"))
+
+
+
+df.out2 %>% 
+  filter(mainType == "BAU" & modif == "shorten" ) %>%  #
+  group_by(year, climChange, change_time) %>% 
+  summarise(my_y = mean(windRisk, na.rm = T)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = year )) +
+  #geom_line(aes(y = my_y))
+  geom_ribbon(
+    data = ~ pivot_wider(., 
+                         names_from = climChange, 
+                         values_from = my_y),
+    aes(ymin = no, 
+        ymax = cc85), fill="grey80",alpha=0.4) +
   geom_line(aes(y = my_y,
                 #color = "black",     
                 linetype = climChange),
@@ -676,5 +712,88 @@ df.out2 %>%
 
 
 
+# put together and color by specific groups
+df.out2 %>% 
+ # filter(mainType == "BAU" & (modif == "shorten"| modif == "normal")) %>%  #
+  group_by(year, climChange, change_time) %>% 
+  summarise(my_y = mean(windRisk, na.rm = T))  %>% 
+ # ungroup() %>% 
+  ggplot(aes(x = year,
+             y = my_y,
+             linetype = climChange,
+             color = change_time)) +  #
+  geom_line() + 
+  facet_grid(.~change_time) + 
+  
+           
+         
+#         ,
+             #color = "black",     
+            # linetype = climChange,
+#             group = change_time)) +
+#  geom_ribbon(
+ #   data = ~ pivot_wider(., 
+#                         names_from = climChange, 
+ #                        values_from = my_y),
+  #  aes(ymin = no, 
+   #     ymax = cc85), fill="grey80",alpha=0.4) +
+  geom_line(aes(),
+            lwd  = 1)  +
+  theme_bw() 
 
+
+
+
+# Make a different colur of shade by group
+
+library(ggplot2)
+library(tidyr)
+
+# example for shaded line plot
+dd1 <- data.frame(year = c(1:5),
+                 grp = rep(c("a", "b", "c"), each = 5),
+                 vals = c(5, 5.2, 5.6, 5.8, 6,
+                          5, 4.9, 4.8, 4.7, 4.2,
+                          5, 4.8, 4.4, 4,   3),
+                 modif = rep('no', each = 15))
+
+dd2 <- dd1
+dd2$vals = dd1$vals*0.8
+dd2$modif = 'yes'
+
+# create a new factor
+
+
+dd <- rbind(dd1, dd2)
+dd$comb = paste(dd$modif, dd$grp, sep = "_")
+
+
+
+dd %>% 
+  ggplot(aes(x = year)) +
+  ylim(0,6.5) +
+  #geom_ribbon(
+  #  data = ~ pivot_wider(., names_from = grp, 
+   #                      values_from = vals),
+  #  aes(ymin = c, ymax = a, fill = modif)
+  #) +
+  geom_line(aes(y = vals,
+                color = interaction(modif, grp)),
+           lwd  = 1.5)  +
+  theme_bw()
+
+
+dd %>% 
+  ggplot(aes(x = year)) +
+ geom_ribbon(
+  data = ~ pivot_wider(., names_from = grp,
+                      values_from = vals),
+  aes(ymin = c, ymax = a, fill = modif)
+ ) +
+  ylim(0,6.5) +
+   geom_line(aes(y = vals,color = modif, linetype = grp),  # color = interaction(modif, grp)
+            lwd  = 1.5)  +
+ 
+  theme_bw() +
+  facet_grid(modif~.)
 
