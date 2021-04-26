@@ -1367,6 +1367,9 @@ formated_sum_tab <-
   
   
   hist(ex$glm1$fitted.values)
+  boxplot(ex$glm1$fitted.values)
+  mean(ex$glm1$fitted.values)
+  sd(ex$glm1$fitted.values)
   
   # get my and Suvanto;s data together in one table
   
