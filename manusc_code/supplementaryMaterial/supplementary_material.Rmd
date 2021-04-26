@@ -6,7 +6,7 @@ author: "Mária Potterf, Kyle Eyvindson, Clemens Blattert, Daniel Burgas, Mikko 
 
 date: "March 10, 2021"
 output:
-  pdf_document:
+  word_document:
    
 header-includes:
   - \renewcommand{\figurename}{Figure S}
