@@ -14,6 +14,45 @@ cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
           "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 
+# ------------------------------------------
+#  Add initial year based on SA values
+# ------------------------------------------
+
+addInitialYear <- function(df, ...) {
+  # Add first year to simulated data, getting the SA values
+  # for all regimes
+  # change it for 2015
+  library(tidyr)
+  
+  df.sa <- df %>% 
+    filter(regime == "SA_DWextract" & year == 2016) %>% 
+    mutate(year = 2015) %>% # change the year indication
+    dplyr::select(-c(regime)) # remove column regime
+  
+  # get indication of column order
+  col_names = names(df)
+  
+  # get vector of regimes  
+  regime_v <- df %>% 
+    distinct(regime) %>% 
+    pull(regime)
+  
+  # rename the column and reorder columns in sa_2015
+  df.sa.out <- df.sa %>% 
+    crossing(regime_v) %>% # merge dataframe with vector of regime names 
+    rename(regime = regime_v) %>% 
+    dplyr::select(order(col_names)) # reorder the colums to fit the data
+  
+  # add new SA data to original df
+  df.out <- rbind(df.sa.out, df)
+  
+  return(df.out)
+}
+
+
+
+
+
 # -------------------------------
 # Find neighbors by geometry
 # -------------------------------
@@ -144,9 +183,7 @@ formatWindRiskTable <- function(df, ...) {
   #   df<- df.cc45_2
   # add new column
   df$open_edge = "TRUE"
-  #df$avgTemp   = 12.19653  # update this value later
-  # df$windSpeed = 10.84851  # update this value later
-  
+
   # Recalssify values
   # # Reclassify values:
   df.all<-
@@ -156,8 +193,10 @@ formatWindRiskTable <- function(df, ...) {
     mutate(SC.v = case_when(SC %in% 1:3 ~ "fertile",
                             SC %in% 4:6 ~ "poor")) %>%                 # COMPLETE SOIL CALSS to get mineral coarse/fine??
     
-    mutate(soil_depth_less30 = ifelse(SOIL_CLASS == 1, TRUE,FALSE)) %>%
-    
+    mutate(soil_depth_less30 = ifelse(SOIL_CLASS == 1, TRUE,FALSE)) 
+  
+  # continue the table to split it in chunks
+  df.all <- df.all %>%
     mutate(soilType = case_when(SOIL_CLASS == 0 ~ "organic",
                                 SOIL_CLASS %in% 1:4 ~ "mineral coarse",
                                 SOIL_CLASS %in% 5:7 ~ "mineral fine")) %>% 
@@ -165,8 +204,8 @@ formatWindRiskTable <- function(df, ...) {
                                MAIN_SP == 2 ~ "spruce",
                                TRUE ~ "other")) %>% 
     mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
-    mutate(H_dom = H_dom * 10) %>%        # Susanne values are in dm instead of meters
-    mutate_if(is.character, as.factor) #%>%    # convert all characters to factor
+    mutate(H_dom = H_dom * 10) %>%           # Susanne values are in dm instead of meters
+    mutate_if(is.character, as.factor)  #%>%    # convert all characters to factor
   # head()
   
   # try if I can calculate the preidtcion based on subset data
