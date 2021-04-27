@@ -4,7 +4,7 @@ subtitle: "Supplementary Material"
 author: "Mária Potterf, Kyle Eyvindson, Clemens Blattert, Daniel Burgas, Mikko Mönkkönen"
 
 
-date: "March 10, 2021"
+date: "April 25, 2021"
 output:
   word_document:
    
@@ -75,6 +75,10 @@ df <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/finalFoPlotting.csv"
 
 source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
+# change windRisk to probabilities: multiply by 100%
+df$windRisk = df$windRisk*100
+
+
 ```
 
 ```{r hist-Suvanto-values, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 5, fig.height = 2.7, fig.cap ="Wind damage probabilities (%) for forest stands located in the watershed (number 14.358) from original Suvanto's raster and from simulated data in 2016."}
@@ -90,6 +94,7 @@ suvanto_risk <- raster("C:/MyTemp/mapWindRisk/tuuliSuvanto/extract_pred_N4.tif")
 suvanto_df <- as.data.frame(suvanto_risk, na.rm = T)
 suvanto_df$Source = "Suvanto"  # add new column
 colnames(suvanto_df) <- c("windRisk", "Source")
+suvanto_df$windRisk = suvanto_df$windRisk*100 
 
 
 # Subset simulated data for 2016
@@ -117,7 +122,7 @@ ggplot(df_comp, aes(x = Source,
   ylab("Wind damage probability (%)") + 
   labs(fill = "Data source") +
   xlab("") + 
-  ylim(0, 0.10)
+  ylim(0, 10)
 
 ```
 
