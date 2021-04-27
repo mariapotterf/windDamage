@@ -47,6 +47,9 @@ setwd("C:/MyTemp/myGitLab/windDamage/output/even_flow")
 df <- fread(paste(getwd(), "finalFoPlotting.csv", sep = "/"))
 
 
+# change windRisk to probabilities: multiply by 100%
+df$windRisk = df$windRisk*100
+
 
 
 # does CCF thinning affect tree height after? -----------------------------
@@ -137,7 +140,7 @@ p.mean.windRisk.line.npi2 <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  ylim(0,0.06) +
+  ylim(0, 6) +
   facet_wrap(.~Management)  + # scenSimpl2
   xlab("NPI (k€/ha)") + #
   ylab("Wind damage probability\n(mean, %)") +
@@ -159,7 +162,7 @@ p.mean.windRisk.line.time2 <-
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
-  ylim(0,0.06) +
+  ylim(0,6) +
   xlab("Time") + #
   ylab("Wind damage probability\n(mean, %)") +
   plot_line_details()
