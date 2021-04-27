@@ -66,7 +66,7 @@ names = c("Raasepori")
 
 getFiles <- function(name, ...) {
   
- # name = c("Raasepori")
+  name = c("Raasepori")
   
   source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
   print(name) 
