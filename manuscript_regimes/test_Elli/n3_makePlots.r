@@ -47,7 +47,8 @@ df.ls <- lapply(df.names, function(name, ...) data.table::fread(paste(inPath, in
                                                            data.table=FALSE, stringsAsFactors = FALSE))
 
 
-lapply(df.ls, function(df) unique(df$name))
+lapply(df.ls, function(df) unique(df$siteName))
+
 
 # modify the structure of df
 df.ls1 <- lapply(df.ls, function(df, ...) {
@@ -94,37 +95,72 @@ df.ls3 <- lapply(df.ls2, function(df, ...)  {
         grepl("wG|wT", regime) ~ "thin_YES",
         grepl("woT", regime) ~ "thin_NO",
         TRUE~'no'))
-  return(df)
+  return(df1)
 })
 
 
 # Merge data together
 df.out <- do.call(rbind, df.ls3)
- 
-# # Change order of change time---------------------------------------
-df.out$change_time <-factor(df.out$change_time, 
-                              levels = c("-20", "-15", "-10", "-5", "0",  "5",  "10", "15","20", "25", "30"))
- 
+
+
 # add Geo gradient:
 df.out <- df.out %>% 
   mutate(geo_grad = case_when(
-    grepl("Korsnas", name) ~ "center",
-    grepl("Raasepori", name) ~ "south",
-    grepl("Simo", name) ~ "north" ))
+    grepl("Korsnas", siteName) ~ "center",
+    grepl("Raasepori", siteName) ~ "south",
+    grepl("Simo", siteName) ~ "north" ))
 
+ 
 
+# Change order of change time---------------------------------------
+df.out$change_time <-factor(df.out$change_time, 
+                              levels = c("-20", "-15", "-10", "-5", "0",  "5",  "10", "15","20", "25", "30"))
+ 
+# Change order of change time---------------------------------------
+df.out$climChange <-factor(df.out$climChange, 
+                            levels = c("no", "cc45", "cc85"))
 
+# Change order of change time---------------------------------------
+df.out$geo_grad <-factor(df.out$geo_grad, 
+                           levels = c("south", "center", "north"))
 
 
 # Make plots --------------------------------------------------------------
 
 # differences in wind risk given CC and geo region
-df.out %>% 
+
+
+# Calculate mean values for no change scenario 
+# to add it as horizontal line to facets
+df.m <- 
+  df.out %>% 
+  filter(mainType == "BAU"  & change_time == '0' & climChange == "no") %>%
+  group_by(geo_grad) %>% 
+  dplyr::summarize(Mean = mean(windRisk, na.rm=TRUE))
+ 
+
+df.out %>%  
+  filter(mainType == "BAU" ) %>% 
 ggplot(aes(y = windRisk,
-           x = factor(climChange))) + 
+             x = factor(change_time),
+             fill = climChange)) + 
   geom_boxplot() +
   ylim(0,0.25) +
-  facet_grid(.~ geo_grad)
+  geom_hline(yintercept =df.m$Mean) +
+  facet_wrap(.~ geo_grad,  scales="free_y")
+
+# NOt fininished, not clear how to plot one line by facet???
+
+
+df.out %>% 
+  filter(mainType == "BAU") %>% 
+  ggplot(aes(y = windRisk,
+             x = factor(change_time),
+             fill = climChange)) + 
+  geom_boxplot() +
+  ylim(0,0.25) +
+  geom_hline(xintercept = 3) +
+  facet_wrap(.~ geo_grad,  scales="free_y")
 
 
 
