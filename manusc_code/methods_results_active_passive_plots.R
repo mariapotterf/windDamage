@@ -555,7 +555,36 @@ p.mean.H_diff.line.time <-
 
 
 
-
+# get table mean +- sd
+df %>% 
+  filter(Management == "Active" & scenSimpl2 != "RF") %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(mean = weighted.mean(mean_H_diff,  area, na.rm = T),
+            sd = sd(mean_H_diff,  na.rm = T))  %>%
+  print(n = 40)
+  
+# `summarise()` regrouping output by 'scenSimpl2' (override with `.groups` argument)
+# # A tibble: 6 x 4
+# # Groups:   scenSimpl2 [3]
+# scenSimpl2 Management  mean    sd
+# <chr>      <chr>      <dbl> <dbl>
+# 1 ALL        Active      4.10  3.37
+# 2 ALL        Set Aside   4.26  3.32
+# 3 CCF        Active      3.47  2.20
+# 4 CCF        Set Aside   3.80  2.71
+# 5 RF         Active      7.05  4.35
+# 6 RF         Set Aside   5.45  3.77
+# over time
+df %>% 
+  filter(Management == "Active" & scenSimpl2 != "RF") %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(mean = weighted.mean(mean_H_diff,  area, na.rm = T),
+            sd = sd(mean_H_diff,  na.rm = T))  %>%
+  print(n = 40)
 
 
 
