@@ -62,11 +62,11 @@ outFolder = 'output_CC'
 
 
 names = c("Korsnas", 'Simo', 'Raasepori')
-names = c("Raasepori")
+#names = c("Raasepori")
 
 getFiles <- function(name, ...) {
   
-  name = c("Raasepori")
+  #name = c("Raasepori")
   
   source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
   print(name) 
@@ -176,6 +176,8 @@ getFiles <- function(name, ...) {
       grepl('_30' , regime) ~ 'extended',
       TRUE~ 'normal')) # %>% 
   
+  rm(df.out)
+  
   df.out2 <- df.out2 %>% 
     mutate(change_time = case_when(
       grepl("_15", regime)  ~ "15",
@@ -206,7 +208,7 @@ getFiles <- function(name, ...) {
   outName = paste(name, ".cvs", sep = "")
   data.table::fwrite(df.out2, paste(getwd(), 'manuscript_regimes', outFolder, outName, sep = "/"))
   
-  rm(df.out, df.out2)
+  rm( df.out2)
 
 }
 
