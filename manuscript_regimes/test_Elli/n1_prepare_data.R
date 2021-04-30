@@ -64,17 +64,17 @@ outFolder = 'output_CC'
 names = c("Korsnas", 'Simo', 'Raasepori')
 #names = c("Raasepori")
 
-getFiles <- function(name, ...) {
+getFiles <- function(myName, ...) {
   
   #name = c("Raasepori")
   
   source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
-  print(name) 
+  print(myName) 
   
-  fileNameNO   = paste( "without_MV_", name, '_rsu.csv', sep = "")
-  fileNameCC45 = paste( "CC45_MV_", name, '_rsu.csv', sep = "")
-  fileNameCC85 = paste( "CC85_MV_", name, '_rsu.csv', sep = "")
-  fileNameRST  = paste( "df_raster_", name, '.csv', sep = "")
+  fileNameNO   = paste( "without_MV_", myName, '_rsu.csv', sep = "")
+  fileNameCC45   = paste( "CC45_MV_",    myName, '_rsu.csv', sep = "")
+  fileNameCC85   = paste( "CC85_MV_",    myName, '_rsu.csv', sep = "")
+  fileNameRST    = paste( "df_raster_",  myName, '.csv', sep = "")
   
   # Read files
   df.no <- data.table::fread(paste(inPath, inFolder, fileNameNO,  sep = "/"),  # 
@@ -128,7 +128,10 @@ getFiles <- function(name, ...) {
   
   # Indicate climate change category; add vector to df
   clim.cat = c("no", "cc45", "cc85")
-  df.ls.thin = mapply(cbind, df.ls.thin, "climChange"=clim.cat, SIMPLIFY=F)
+  df.ls.thin = mapply(cbind, 
+                      df.ls.thin, 
+                      "climChange"= clim.cat, 
+                      SIMPLIFY=F)
   
   # Get vector of columns names to keep for statistics
   glm.colnames <- c("species",
@@ -162,54 +165,15 @@ getFiles <- function(name, ...) {
   # merge data into one ----------------------
   # Merge optimal data in one files, filter for incorrect stands
   df.out <- do.call(rbind, df.risk.ls)
-
-  # Classify the type of regime, type of adjustement (extension or shortening)
-  # and change in time (how many years)
-  df.out2 <- 
-    df.out %>% 
-    mutate(modif = case_when(
-      grepl('_m5' , regime) ~ 'shorten',
-      grepl('_m20', regime) ~ 'shorten',
-      grepl('_5'  , regime) ~ 'extended',
-      grepl('_10' , regime) ~ 'extended',
-      grepl('_15' , regime) ~ 'extended',
-      grepl('_30' , regime) ~ 'extended',
-      TRUE~ 'normal')) # %>% 
   
-  rm(df.out)
-  
-  df.out2 <- df.out2 %>% 
-    mutate(change_time = case_when(
-      grepl("_15", regime)  ~ "15",
-      grepl("_5",  regime)  ~ "5",
-      grepl("_10", regime)  ~ "10",
-      grepl("_30", regime)  ~ "30",
-      grepl("_20", regime)  ~ "20",
-      grepl("_m5", regime)  ~ "-5",
-      grepl("_m20", regime) ~ "-20",
-      TRUE~'0'))
-  
-  df.out2 <- df.out2 %>% 
-    # mutate(change_time = replace_na(change_time, 0)) %>% 
-    mutate(mainType = case_when(
-      grepl("SA", regime) ~ "SA",
-      grepl("BAU", regime) ~ "BAU",
-      grepl("CCF", regime) ~ "CCF")) %>% 
-    mutate(thinning = case_when(
-      grepl("wG|wT", regime) ~ "thin_YES",
-      grepl("woT", regime) ~ "thin_NO",
-      TRUE~'no'))
-  
-  # Change order of change time---------------------------------------
-  df.out2$change_time <-factor(df.out2$change_time, 
-                               levels = c("-20", "-15", "-10", "-5", "0",  "5",  "10", "15","20", "25", "30"))
+  # add indication of name as new column
+  df.out$siteName <- myName
   
   # Export simplified table ----------------------------------------------
-  outName = paste(name, ".cvs", sep = "")
-  data.table::fwrite(df.out2, paste(getwd(), 'manuscript_regimes', outFolder, outName, sep = "/"))
+  outName = paste(myName, ".csv", sep = "")
+  data.table::fwrite(df.out, paste(getwd(), 'manuscript_regimes', outFolder, outName, sep = "/"))
   
-  rm( df.out2)
-
+ 
 }
 
 
