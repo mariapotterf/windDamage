@@ -3,6 +3,130 @@
 # ----------------------------------
 
 
+# Read data and make plots
+# data form N-S gradient and climate change
+
+# Make working example for no climate changes; then calculate values for CC scenario 
+rm(list = ls())
+
+
+setwd("C:/MyTemp/myGitLab/windDamage")
+
+# Read libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(sf)
+library(rgdal)
+library(ggspatial)
+library(rgeos)
+library(raster)
+library(dplyr)
+library(spData)
+library(sf)
+library(RColorBrewer)
+
+
+# Correct order of variables, factors & levels
+# need to have same names of columns?? YES
+# when data are sourced (source()), they are all available in my script
+source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
+
+
+
+# get data
+# ----------------------
+inPath = "C:/MyTemp/myGitLab/windDamage/manuscript_regimes"
+inFolder = "output_CC"
+#outFolder = 'output_CC'
+
+df.names = list.files(paste(inPath, inFolder, sep = "/"), pattern = ".csv$")
+
+# Read dataframes
+df.ls <- lapply(df.names, function(name, ...) data.table::fread(paste(inPath, inFolder, name,  sep = "/"),  # 
+                                                           data.table=FALSE, stringsAsFactors = FALSE))
+
+
+lapply(df.ls, function(df) unique(df$name))
+
+# modify the structure of df
+df.ls1 <- lapply(df.ls, function(df, ...) {
+    df1 <- df %>%
+    mutate(modif = case_when(
+      grepl('_m5' , regime) ~ 'shorten',
+      grepl('_m20', regime) ~ 'shorten',
+      grepl('_5'  , regime) ~ 'extended',
+      grepl('_10' , regime) ~ 'extended',
+      grepl('_15' , regime) ~ 'extended',
+      grepl('_30' , regime) ~ 'extended',
+      TRUE~ 'normal')) 
+    return(df1)
+}
+   )
+
+# Classify the type of regime, type of adjustement (extension or shortening)
+# and change in time (how many years)
+df.ls2 <- lapply(df.ls1, function(df, ...)  {
+  df1 <- df %>%
+    mutate(change_time = case_when(
+      grepl("_15", regime)  ~ "15",
+      grepl("_5",  regime)  ~ "5",
+      grepl("_10", regime)  ~ "10",
+      grepl("_30", regime)  ~ "30",
+      grepl("_20", regime)  ~ "20",
+      grepl("_m5", regime)  ~ "-5",
+      grepl("_m20", regime) ~ "-20",
+      TRUE~'0'))
+  
+  return(df1)
+
+} )
+  
+# add dominant regime
+
+df.ls3 <- lapply(df.ls2, function(df, ...)  {
+  df1 <- df %>%
+      mutate(mainType = case_when(
+        grepl("SA", regime) ~ "SA",
+        grepl("BAU", regime) ~ "BAU",
+        grepl("CCF", regime) ~ "CCF")) %>%
+      mutate(thinning = case_when(
+        grepl("wG|wT", regime) ~ "thin_YES",
+        grepl("woT", regime) ~ "thin_NO",
+        TRUE~'no'))
+  return(df)
+})
+
+
+# Merge data together
+df.out <- do.call(rbind, df.ls3)
+ 
+# # Change order of change time---------------------------------------
+df.out$change_time <-factor(df.out$change_time, 
+                              levels = c("-20", "-15", "-10", "-5", "0",  "5",  "10", "15","20", "25", "30"))
+ 
+# add Geo gradient:
+df.out <- df.out %>% 
+  mutate(geo_grad = case_when(
+    grepl("Korsnas", name) ~ "center",
+    grepl("Raasepori", name) ~ "south",
+    grepl("Simo", name) ~ "north" ))
+
+
+
+
+
+# Make plots --------------------------------------------------------------
+
+# differences in wind risk given CC and geo region
+df.out %>% 
+ggplot(aes(y = windRisk,
+           x = factor(climChange))) + 
+  geom_boxplot() +
+  ylim(0,0.25) +
+  facet_grid(.~ geo_grad)
+
+
 
 # check risk for regimes-------------------------------------------
 df.out2 %>% 
