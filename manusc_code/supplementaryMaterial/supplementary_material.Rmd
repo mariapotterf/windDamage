@@ -271,7 +271,7 @@ p.mean.H_dom.npi <-
   ylim(0,300) +
   ggtitle("") +
   xlab("NPI (k€/ha)") + #
-  ylab("Tree height\n(w.mean, cm)") +
+  ylab("Tree height\n(w.mean, dm)") +
   plot_line_details()
 
 
@@ -293,7 +293,7 @@ p.mean.H_dom.time <-
   ylim(0,300) +
   ggtitle("") +
   xlab("Time ") + #
-  ylab("Tree height\n(w. mean, cm)") +
+  ylab("Tree height\n(w. mean, dm)") +
   plot_line_details()
 
 
@@ -436,7 +436,7 @@ p.1<-df_sub %>%
                outlier.shape = NA) + 
    scale_fill_manual(values = cbp1) +
   stat_summary(fun.data=mean_sdl, geom="point", color="red") +
-  ylab("Tree height (cm)") + 
+  ylab("Tree height (dm)") + 
   xlab("NPI (k€/ha)") +
     theme(legend.position = "none")
 
@@ -504,7 +504,7 @@ p.end.1<-df_end %>%
                outlier.shape = NA) + 
    scale_fill_manual(values = cbp1) +
   stat_summary(fun.data=mean_sdl, geom="point", color="red") +
-  ylab("Tree height (cm)") + 
+  ylab("Tree height (dm)") + 
   xlab("NPI (k€/ha)") +
     theme(legend.position = "none")
 
