@@ -52,6 +52,100 @@ df$windRisk = df$windRisk*100
 
 
 
+
+#  Understand the sheltering effect ----------------------------------------
+df.nbrs.risk <- data.table::fread(paste(getwd(), "df_nbrs_diff_risk.csv", sep = "/"))
+
+df.nbrs2 <-
+  df.nbrs.risk %>% 
+  mutate(abs_diff_rsk = abs(windRisk- windRisk_nbrs))  %>%
+  group_by(id, landscape) %>% 
+  summarise(abs_diff_rsk = mean(abs_diff_rsk, na.rm = T))
+  
+# Join calculated values of risk differences to simulated data
+df <-
+  df %>% 
+  left_join(df.nbrs2, by = c("id", "landscape"))
+
+# increase absolute difference wiind risk by 100%
+df$abs_diff_rsk =  df$abs_diff_rsk*100
+
+
+
+
+
+# PLot difference in wind risk between neighbors --------------------------
+
+p.mean.risk.nbrs.line.npi <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(my_y = mean(abs_diff_rsk, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  #ylim(0,350) +
+  xlab("NPI (k€/ha)") + #
+  ylab("Wind damage risk difference\nbetween neighbors (%)") +
+  plot_line_details()
+
+
+
+p.mean.risk.nbrs.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(my_y = mean(abs_diff_rsk, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+ # ylim(0,350) +
+  xlab("Time") + #
+  ylab("Wind damage risk difference\nbetween neighbors (%)") +
+  plot_line_details()
+
+
+
+ggarrange(p.mean.risk.nbrs.line.npi, p.mean.risk.nbrs.time, 
+          ncol = 2, nrow = 1,
+          #widths = c(1, 1),
+          common.legend = TRUE,
+          align = c("hv"),
+          #font.label = list(size = 10, color = "black", face = "plain", family = NULL),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          vjust = 3,
+          font.label = list(size = 10, 
+                            face = "bold", 
+                            color ="black"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # does CCF thinning affect tree height after? -----------------------------
 
 # subset one stand with thinning under CCF
