@@ -423,7 +423,7 @@ p.mean.H_dom.npi <-
   ylim(0,300) +
   ggtitle("") +
   xlab("NPI (k€/ha)") + #
-  ylab("Tree height\n(w.mean, cm)") +
+  ylab("Tree height\n(w.mean, dm)") +
   plot_line_details_act()
 
 
@@ -446,7 +446,7 @@ p.mean.H_dom.time <-
   ylim(0,300) +
   ggtitle("") +
   xlab("Time ") + #
-  ylab("Tree height\n(w. mean, cm)") +
+  ylab("Tree height\n(w. mean, dm)") +
   plot_line_details_act()
 
 
