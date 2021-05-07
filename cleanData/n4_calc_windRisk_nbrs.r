@@ -437,14 +437,14 @@ ggarrange(p.risk.npi,  p.risk.time,
 
 dd <- data.frame(id = rep(c(1,2,3), 3),
                  group1 = rep(c("a", "b", "d"), each = 3),
-                 group2 = c("Y", "Y","N",
+                 group2 = c("Y", "N","N",
                             "Y", "Y", "N",
                             "N", "N", "N"))
 
 # Filter data by group2 to if has exactly 2 occurences of "Y"
 dd %>% 
   group_by(group1, group2) %>% 
-  filter(n() == 1)
+  filter(n() == 2)
 
 # ==================================================================
 # Do actively managed stands increase risks in set asides??
@@ -528,30 +528,116 @@ ggarrange(p.risk.npi2,  p.risk.time2,
                             color ="black"))
 
 
+
+
+
+
+# ----------------------------------------------------------
+# dummy example: 
+# filter by number of groups
+
+dd <- data.frame(id = rep(c(1,2,3), 3),
+                 group1 = rep(c("a", "b", "d"), each = 3),
+                 group2 = c("Y", "N","N",
+                            "Y", "Y", "N",
+                            "N", "N", "N"))
+
+# Filter data by group2 to if has exactly 2 occurences of "Y"
+dd %>% 
+  group_by(group1, group2) %>% 
+  filter(n()== 2 & group2 == "Y")
+
+# ==============================================================
+#   Filter actively managed stands that have 3 nbrs
+# ==============================================================
+
+# Compare the wind risk between stands with SA and stands without SA
+# filetr stands with >4 SA as neighbors
+# filter stands that do not have any SA neighbors
+# do they differ in a wind risk??
+
+# simplify df to make and easier example
+sample.id <- c(6667291,6667292,  6667330, 6667332, 19104442,19104636 )  
+
+dd2 <- 
+  df_out %>% 
+  #select(id, landscape, windRisk, Management, Management_nbrs, nbrs_id, windRisk_nbrs) %>% 
+  filter(Management == "Active")# %>%
+  filter(id %in% sample.id) 
+
+
+# filter actively managed stands that have at least >4 nbr
+dd_sa <-
+#  dd2
+  df_out  %>% 
+  filter(Management == "Active") %>% 
+  group_by(id, landscape, Management_nbrs) %>% 
+  filter(n() >4) %>%
+  filter(Management_nbrs == "Set Aside") %>% 
+  mutate(ACT_nbr = "Near SA")
+
+
+dd_act <-
+  # dd2
+  dd_out  %>% 
+  filter(Management == "Active") %>% 
+  group_by(id, landscape, Management_nbrs) %>% 
+  #filter(n() >4) %>%
+  filter(Management_nbrs == "Active") %>% 
+  mutate(ACT_nbr = "No SA")
+
+
+ 
+#Merge two data together, need to convert them to dataframe first (from tibble, etc)
+dd_out <- rbind(data.frame(dd_sa), 
+                   data.frame(dd_act))
+
+
+
+
+
+
 # =============================================================
 # By NPI
-#windows()
-p.mean.risk.c.line.npi <-
-  df_out2 %>% 
+windows()
+#p.mean.risk.c.line.npi <-
+  dd_out %>% 
+  filter(year == 2111) %>% 
+  ggplot(aes(x = ACT_nbr, 
+             y = windRisk*100, 
+             fill = scenSimpl2)) + 
+  geom_boxplot() +
+    ylim(0,15)
+  
+  
+# how many stands are in CCF far away from SA? (no_SA) 
+  
+dd_out %>%
+  filter(year == 2016) %>% 
+  group_by(ACT_nbr, scenSimpl2) %>% 
+  tally()
+
+# line plot
+  dd_out %>% 
 #  filter(H_dom > 160) %>% 
   group_by(scenSimpl2, 
            NPI, 
-           Management) %>% 
+           ACT_nbr) %>% 
   summarize(my_y = mean(windRisk, na.rm =T )) %>%
   ggplot(aes(x = NPI,
              y = my_y*100,
-             group = scenSimpl2,
+             linetype = ACT_nbr,
              col = scenSimpl2)) +
-  geom_line() +
+  geom_line() #+
   # geom_boxplot()+
-  ylim(0,7) + 
+ # ylim(0,7) + 
   ggtitle("Risk in SA (>16m)")
 
 
 
 #windows()
 p.mean.risk.nbrs.line.npi <-
-  df_out2 %>% 
+  dd_out %>% 
 #  filter(H_dom > 160) %>% 
   group_by(scenSimpl2, 
            NPI, 
