@@ -573,7 +573,7 @@ plot_line_details_act <- function() {
 #  Predictors and multifunctionnality Plots -------------------------------
 
 # MF and Spruce proportion
-#p.MF.spruce <- 
+p.MF.spruce <- 
   df %>% 
   #filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
@@ -600,12 +600,14 @@ plot_line_details_act <- function() {
 # MF and height
 p.MF.height <- 
   df2 %>% 
-  filter(Management == "Active") %>% 
+  #filter(Management == "Active") %>% 
   group_by(scenSimpl2,
          #  Management,
-           NPI,
+         #  NPI,
            MF) %>% 
+  #summarize(s_area = sum(area)) %>%
   summarize(my_x = mean(H_dom, rm.na = T))  %>%
+  #summarize(my_x = weighted.mean(H_dom,  s_area, na.rm = T)) %>% 
   ggplot(aes(y = MF, #
              x =  my_x, #MF,  
              shape = scenSimpl2,     
@@ -613,21 +615,19 @@ p.MF.height <-
              linetype = scenSimpl2,  
              group = scenSimpl2 )) +  
   ylim(0,3) +
- # xlim(0,4) +
   geom_point() #+
- # facet_grid(.~Management)
-
+ 
 
 # MF and thinning frequency
-#p.MF.thin <-
+p.MF.thin <-
   df %>% 
   group_by(scenSimpl2, 
-          # NPI, 
-           Management,
-           difference,
-           MF) %>% 
+           MF,          # NPI, 
+          # Management,
+           difference) %>% 
   summarize(s_area = sum(area)) %>% 
-  summarize(my_y = weighted.mean(difference,  s_area, na.rm = T)) #  %>% 
+  summarize(my_y = weighted.mean(difference,  s_area, na.rm = T)) %>%
+ #   summarize(my_y = mean(difference,na.rm = T)) %>%
   # tally() %>%
   # summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
   ggplot(aes(y = MF, 
@@ -637,16 +637,15 @@ p.MF.height <-
              linetype = scenSimpl2,
              group = scenSimpl2,
              fill = scenSimpl2)) +
-  ylim(0,30) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Years since thinning\n(weigh. mean)") 
-
-
+    geom_point() +
+  ylim(0,3) +
+  xlab("Years since thinning\n(weigh. mean))") + #
+  ylab("MF") 
 
 
 # Merge MF plots together
 windows(height = 2.7, width = 7)
-ggarrange(p.MF.npi, p.MF.risk, p.MF_V, nrow = 1, ncol = 3,   common.legend = TRUE)
+ggarrange(p.MF.spruce, p.MF.height, p.MF.thin, nrow = 1, ncol = 3,   common.legend = TRUE)
 
 
 
