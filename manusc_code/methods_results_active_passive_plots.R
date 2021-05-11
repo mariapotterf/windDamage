@@ -54,6 +54,7 @@ df$windRisk = df$windRisk*100
 
 
 #  Understand the sheltering effect ----------------------------------------
+# takes ~ two mins to run!!
 df.nbrs.risk <- data.table::fread(paste(getwd(), "df_nbrs_diff_risk.csv", sep = "/"))
 
 df.nbrs2 <-
@@ -150,66 +151,69 @@ dd_class <- data.frame(NPI = sort(unique(df$NPI)),
 df2 <- df %>%
   left_join(dd_class, by = c("NPI"))
 
+# Include Multifunctionnality: Get points plot: MF by wind risk by scenario -------------------------------------
 
-# Get points plot: MF by wind risk by scenario
+# NPI vs multifunctionnality (from Eyvindson 2021)
+p.MF.npi <- df2 %>% 
+  dplyr::select(scenSimpl2, NPI, MF) %>%  # filter the columsn as has many repetitive rows but only  some values for NPI and MF
+  distinct() %>% 
+  ggplot(aes(y = MF,
+             x =  NPI,  
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2 )) +  
+  #geom_area(position = "stack") + #"stacked"
+  geom_point()  +
+  ylim(0,3) # +
+
+# MF and wind risk
 p.MF.risk <- df2 %>% 
   group_by(scenSimpl2, 
-           npi_cat,
            NPI,
            MF) %>% 
-  summarize(mean.risk = mean(windRisk))  %>%
-  ggplot(aes(y = mean.risk,
-             x =  MF,  
+  summarize(mean.risk = mean(windRisk, rm.na = T))  %>%
+  ggplot(aes(y = MF, #
+             x =  mean.risk, #MF,  
              shape = scenSimpl2,     
              color = scenSimpl2,     
              linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,4) +
-xlim(0,3) +
+             group = scenSimpl2 )) +  
+  ylim(0,3) +
+  xlim(0,4) +
   geom_point()# + 
   
-
-# Mean risk over NPI
-p.MF.risk <- df2 %>% 
-  group_by(scenSimpl2, 
-           npi_cat,
-           NPI,
-           MF) %>% 
-  summarize(mean.risk = mean(windRisk))  %>%
-  ggplot(aes(y = mean.risk,
-             x =  MF,  
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,4) +
-  xlim(0,3) +
-  geom_point()# + 
-
-
 
 
 # MF and top stratum volume
 #windows()
 p.MF_V <- df2 %>% 
   group_by(scenSimpl2, 
-           npi_cat,
-           NPI,
-           MF) %>% 
+          # npi_cat,
+           NPI, MF) %>% 
   summarize(mean.V = mean(V_strat_max, na.rm = T))  %>%
-  ggplot(aes(y = mean.V,
-             x =  MF,  
+  ggplot(aes(y = MF, 
+             x =  mean.V,  
              shape = scenSimpl2,     
              color = scenSimpl2,     
              linetype = scenSimpl2,  
              group = scenSimpl2,     
              fill = scenSimpl2 )) +  
   geom_point() +
-  ylim(0,250) +
-  xlim(0,3)
+  ylim(0,3) +
+  xlim(0,250)
 
+
+# Merge MF plots together
+windows(height = 2.7, width = 7)
+ggarrange(p.MF.npi, p.MF.risk, p.MF_V, nrow = 1, ncol = 3,   common.legend = TRUE)
+
+
+
+
+
+
+
+# Get overall plots with scenarios ----------------------------- 
 
 # Wind risk by scenario
 df2 %>% 
@@ -254,23 +258,6 @@ df2 %>%
   ylim(0,230) # +
 #xlim(0,3)
   
-
-# NPI vs multifunctionnality (from Eyvindson 2021)
-df2 %>% 
-  ggplot(aes(y = MF,
-             x =  NPI,  
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2 )) +  
-  #geom_area(position = "stack") + #"stacked"
-  geom_line(lwd = 1)  +
-  ylim(0,3) # +
-
-
-
-
-ggarrange(p.MF.risk, p.MF_V,    common.legend = TRUE)
-
 
 
 # MF values if one by regime
@@ -526,10 +513,8 @@ ggarrange(p.mean.windRisk.line.npi2, p.mean.windRisk.line.time2,
           p.mean.V_stratum.line.npi, p.mean.V_stratum.line.time, 
           p.mean.V_prop.line.npi,    p.mean.V_prop.line.time, 
           ncol = 2, nrow = 3,
-          #widths = c(1, 1),
           common.legend = TRUE,
           align = c("hv"),
-          #font.label = list(size = 10, color = "black", face = "plain", family = NULL),
           legend="bottom",
           labels= "AUTO",
           hjust = -5,
@@ -583,6 +568,92 @@ plot_line_details_act <- function() {
 # open-neighbour
 
 
+
+
+#  Predictors and multifunctionnality Plots -------------------------------
+
+# MF and Spruce proportion
+#p.MF.spruce <- 
+  df %>% 
+  #filter(Management == "Active") %>% 
+  group_by(scenSimpl2, 
+           #NPI, 
+          # Management, 
+           MF) %>% 
+  filter(species == "spruce") %>% 
+  tally() %>%
+  mutate(spruce_prop = n/tot.stand.n*100)  %>%  # get the proportion of spruce from all stands over 20 years 
+  ggplot(aes(y = MF, #spruce_prop, 
+             x = spruce_prop, #NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  xlab("Spruce proportion\n(%)") + #
+  ylab("MF") +
+   ylim(0,3) +
+  # xlim(0,4) +
+  geom_point() #+
+
+
+# MF and height
+p.MF.height <- 
+  df2 %>% 
+  filter(Management == "Active") %>% 
+  group_by(scenSimpl2,
+         #  Management,
+           NPI,
+           MF) %>% 
+  summarize(my_x = mean(H_dom, rm.na = T))  %>%
+  ggplot(aes(y = MF, #
+             x =  my_x, #MF,  
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2 )) +  
+  ylim(0,3) +
+ # xlim(0,4) +
+  geom_point() #+
+ # facet_grid(.~Management)
+
+
+# MF and thinning frequency
+#p.MF.thin <-
+  df %>% 
+  group_by(scenSimpl2, 
+          # NPI, 
+           Management,
+           difference,
+           MF) %>% 
+  summarize(s_area = sum(area)) %>% 
+  summarize(my_y = weighted.mean(difference,  s_area, na.rm = T)) #  %>% 
+  # tally() %>%
+  # summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
+  ggplot(aes(y = MF, 
+             x = my_y, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  ylim(0,30) +
+  xlab("NPI (k€/ha)") + #
+  ylab("Years since thinning\n(weigh. mean)") 
+
+
+
+
+# Merge MF plots together
+windows(height = 2.7, width = 7)
+ggarrange(p.MF.npi, p.MF.risk, p.MF_V, nrow = 1, ncol = 3,   common.legend = TRUE)
+
+
+
+
+
+
+
 ## Tree species -------------------------
 
 # Spruce is the most vulnerable: frequency of spruce
@@ -608,7 +679,6 @@ tot.stand.n = 1470*20
 
 
 # Make plots for npi and time
-
 p.spruce.ratio.npi <-
   df %>% 
   filter(Management == "Active") %>% 
