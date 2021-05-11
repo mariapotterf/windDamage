@@ -134,10 +134,167 @@ ggarrange(p.mean.risk.nbrs.line.npi, p.mean.risk.nbrs.time,
 
 
 
+# What is the effect of multifunctionnality on wind riks??
+head(df)
+
+
+# Classify NPI values into categories -------------------------------------
+
+
+
+# get a classified NPI values: create from a DF
+dd_class <- data.frame(NPI = sort(unique(df$NPI)),
+                       npi_cat = c(100, rep(1:20, each = 3)))
+
+# Merge classified df NPI values into the all dataframe by NPI
+df2 <- df %>%
+  left_join(dd_class, by = c("NPI"))
+
+
+# Get points plot: MF by wind risk by scenario
+p.MF.risk <- df2 %>% 
+  group_by(scenSimpl2, 
+           npi_cat,
+           NPI,
+           MF) %>% 
+  summarize(mean.risk = mean(windRisk))  %>%
+  ggplot(aes(y = mean.risk,
+             x =  MF,  
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,4) +
+xlim(0,3) +
+  geom_point()# + 
+  
+
+# Mean risk over NPI
+p.MF.risk <- df2 %>% 
+  group_by(scenSimpl2, 
+           npi_cat,
+           NPI,
+           MF) %>% 
+  summarize(mean.risk = mean(windRisk))  %>%
+  ggplot(aes(y = mean.risk,
+             x =  MF,  
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,4) +
+  xlim(0,3) +
+  geom_point()# + 
 
 
 
 
+# MF and top stratum volume
+#windows()
+p.MF_V <- df2 %>% 
+  group_by(scenSimpl2, 
+           npi_cat,
+           NPI,
+           MF) %>% 
+  summarize(mean.V = mean(V_strat_max, na.rm = T))  %>%
+  ggplot(aes(y = mean.V,
+             x =  MF,  
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  geom_point() +
+  ylim(0,250) +
+  xlim(0,3)
+
+
+# Wind risk by scenario
+df2 %>% 
+  group_by(scenSimpl2, 
+           Management,
+           NPI) %>%   # ,MF
+  summarize(my_y = mean(windRisk, na.rm = T))  %>%
+  ggplot(aes(y = my_y,
+             x =  NPI,  
+             shape = Management,     
+             color = Management,     
+             linetype = Management,  
+             
+             #group = scenSimpl2,     
+             fill = Management )) +  
+  #geom_area(position = "stack") + #"stacked"
+  geom_line(lwd = 1) +
+  facet_grid(.~ scenSimpl2) +
+  ylim(0,5) # +
+  #xlim(0,3)
+
+
+
+# Exposed timber volume - remove SA? --------------------------------------
+
+# Wind risk by scenario
+df2 %>% 
+  group_by(scenSimpl2, 
+           Management,
+           NPI) %>%   # ,MF
+  summarize(my_y = mean(V_strat_max, na.rm = T))  %>%
+  ggplot(aes(y = my_y,
+             x =  NPI,  
+             shape = Management,     
+             color = Management,     
+             linetype = Management,  
+             #group = scenSimpl2,     
+             fill = Management )) +  
+  #geom_area(position = "stack") + #"stacked"
+  geom_line(lwd = 1) +
+  facet_grid(.~ scenSimpl2) +
+  ylim(0,230) # +
+#xlim(0,3)
+  
+
+# NPI vs multifunctionnality (from Eyvindson 2021)
+df2 %>% 
+  ggplot(aes(y = MF,
+             x =  NPI,  
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2 )) +  
+  #geom_area(position = "stack") + #"stacked"
+  geom_line(lwd = 1)  +
+  ylim(0,3) # +
+
+
+
+
+ggarrange(p.MF.risk, p.MF_V,    common.legend = TRUE)
+
+
+
+# MF values if one by regime
+# need to calculate wind risk means over MF values
+df2 %>% 
+  group_by(scenSimpl2, 
+           npi_cat,
+           NPI,
+           MF) %>% 
+  summarize(sum.risk = mean(windRisk))  %>%
+  ggplot(aes(y = sum.risk,
+             x =  NPI,  
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  geom_line() + 
+ # facet_grid(.~npi_cat)
+# ylim(0, 6) +
+#  facet_wrap(.~Management)  + # scenSimpl2
+# xlab("NPI (k€/ha)") + #
+# ylab("Wind damage probability\n(mean, %)") +
+plot_line_details2()
 
 
 
