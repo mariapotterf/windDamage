@@ -111,15 +111,20 @@ cbp3 <- c( "#56B4E9", # lighblue, RF
           "#999999", # grey , CCF
           "#E69F00") #, # gold, ALL
 
-# From Marek svitok:
+# DEfine my cols: from Marek Svitok
 cols = c('#0072B2', # dark blue RF,
          "#999999", # grey , CCF
          #'#E69F00', # buffer 500, gold
          "red"
          #'#F0E442' # buffer 2000; yellow
          #'#000000' # control, black
-       
 )
+
+
+# Create labels
+npi_label  = "Net present\nincome (k€/ha)"
+risk_label = "Wind damage probability\n(mean, %)"
+vol_label  = "Top stratum volume\n(mean, m3/ha)" 
 
 # Make function to plot point plot
 my_pt_plot <- function() {
@@ -134,8 +139,9 @@ my_pt_plot <- function() {
                          values = cols), 
       scale_size_continuous(range = c(0.1, 5), 
                             breaks = c(0,100),
-                            name = "Net present\nincome (k€/ha)",
+                            name = npi_label, #"Net present\nincome (k€/ha)",
                             labels = c("0", "7.5")),
+      ggtitle(""),
       guides(color = guide_legend(override.aes = list(size=4, 
                                                       alpha = 1))), # increase the size of legend items
       theme(panel.border = element_rect(fill=NA,
@@ -150,7 +156,7 @@ my_pt_plot <- function() {
 }
 
 
-# NPI vs multifunctionnality (from Eyvindson 2021)
+# NPI vs multifunctionnality (from Eyvindson 2021) ---------------------
 p.MF.npi <- 
   df2 %>% 
   dplyr::select(scenSimpl2, 
@@ -160,14 +166,11 @@ p.MF.npi <-
   distinct() %>% 
   ggplot(aes(y = MF,
              x =  NPI )) +  
-  xlab("Net present\nincome (k€/ha)") +
+  xlab(npi_label) +
   my_pt_plot() 
 
 
 # MF and wind risk
-
-
-
 p.MF.risk <- 
   df2 %>% 
   group_by(scenSimpl2, 
@@ -177,8 +180,8 @@ p.MF.risk <-
   summarize(mean.risk = mean(windRisk, rm.na = T))  %>%
   ggplot(aes(y = MF, #
              x =  mean.risk           )) + 
-  xlim(1.5,4) +
-  xlab("Wind damage probability\n(mean, %)") +
+  xlim(1,4) +
+  xlab(risk_label) +
   my_pt_plot() 
 
 
@@ -195,20 +198,21 @@ p.MF_V <-
   ggplot(aes(y = MF, 
              x =  mean.V)) +  
   xlim(80,250) +
-  xlab("Top stratum volume\n(mean, m3/ha)") +
+  #xlab("Top stratum volume\n(mean, m3/ha)") +
+  xlab(vol_label) +
   my_pt_plot() 
 
 
-# Merge MF plots together
-windows(height = 2.7, width = 7)
+# Merge MF plots together --------------------------
+windows(height = 3, width = 7)
 ggarrange(p.MF.npi, p.MF.risk, p.MF_V, 
-          nrow = 1, ncol = 3,   
+          nrow = 1, ncol = 3,  
           common.legend = TRUE,
           legend="bottom",
           labels="auto",
           align = c("hv"),
-          hjust = -1,
-          vjust = 1,
+          hjust = -5,
+          vjust = 2,
           font.label = list(size = 10, 
                             face = "bold", 
                             color ="black"))
@@ -216,82 +220,80 @@ ggarrange(p.MF.npi, p.MF.risk, p.MF_V,
 
 
 
-
-
-
-
-
-
-
 # Get overall plots with scenarios ----------------------------- 
 
+
+my_ln_plot <- function() {
+    list(
+      geom_line(aes(color    = Management,     
+                    linetype = Management),
+                lwd = 0.9),
+      ggtitle(""),
+      facet_grid(.~ scenSimpl2),
+      scale_linetype_manual(values = c("solid",
+                                       'dashed')),
+      scale_color_manual(values = c('#0072B2', 
+                                    "red")),
+      labs(color = "Management",
+            linetype = "Management"),
+      xlab(npi_label),
+      theme(panel.border = element_rect(fill=NA,
+                                        color="black", 
+                                        size=0.5, 
+                                        linetype="solid"),
+          axis.title  = element_text(size = 10, face="plain", family = "sans"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
+          axis.text.y = element_text(face="plain", size = 9, family = "sans"),
+          legend.position = "right",
+          strip.background =element_rect(fill="white", 
+                                         color = NA))
+  )
+}
+
 # Wind risk by scenario
-df2 %>% 
+p.risk <- df2 %>% 
   group_by(scenSimpl2, 
            Management,
-           NPI) %>%   # ,MF
+           NPI, SA_share) %>%   # ,MF
   summarize(my_y = mean(windRisk, na.rm = T))  %>%
   ggplot(aes(y = my_y,
-             x =  NPI,  
-             shape = Management,     
-             color = Management,     
-             linetype = Management,  
-             
-             #group = scenSimpl2,     
-             fill = Management )) +  
-  #geom_area(position = "stack") + #"stacked"
-  geom_line(lwd = 1) +
-  facet_grid(.~ scenSimpl2) +
-  ylim(0,5) # +
-  #xlim(0,3)
-
+             x =  NPI)) + 
+  ylab("") + #risk_label
+  ylim(0,5)  +
+  my_ln_plot()
 
 
 # Exposed timber volume - remove SA? --------------------------------------
 
 # Wind risk by scenario
-df2 %>% 
+p.vol <- df2 %>% 
   group_by(scenSimpl2, 
            Management,
            NPI) %>%   # ,MF
   summarize(my_y = mean(V_strat_max, na.rm = T))  %>%
   ggplot(aes(y = my_y,
-             x =  NPI,  
-             shape = Management,     
-             color = Management,     
-             linetype = Management,  
-             #group = scenSimpl2,     
-             fill = Management )) +  
-  #geom_area(position = "stack") + #"stacked"
-  geom_line(lwd = 1) +
-  facet_grid(.~ scenSimpl2) +
-  ylim(0,230) # +
+             x =  NPI)) +  
+  my_ln_plot()+
+  ylab("") + #vol_label
+  ylim(0,240) # +
 #xlim(0,3)
   
+windows(height = 6, width = 6.5)
+ggarrange(p.risk, p.vol, 
+          nrow = 2, ncol = 1,  
+          common.legend = TRUE,
+          legend="bottom",
+          labels=list(paste("a) ", gsub("\n", " ", risk_label)),
+                      paste("b) ", gsub("\n", " ", vol_label))), #"auto",
+          align = c("hv"),
+          hjust = -0.2,
+         # vjust = 2,
+          font.label = list(size = 10, 
+                            face = "bold", 
+                            color ="black"))
 
 
-# MF values if one by regime
-# need to calculate wind risk means over MF values
-df2 %>% 
-  group_by(scenSimpl2, 
-           npi_cat,
-           NPI,
-           MF) %>% 
-  summarize(sum.risk = mean(windRisk))  %>%
-  ggplot(aes(y = sum.risk,
-             x =  NPI,  
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  geom_line() + 
- # facet_grid(.~npi_cat)
-# ylim(0, 6) +
-#  facet_wrap(.~Management)  + # scenSimpl2
-# xlab("NPI (k€/ha)") + #
-# ylab("Wind damage probability\n(mean, %)") +
-plot_line_details2()
+
 
 
 
