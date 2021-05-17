@@ -116,11 +116,12 @@ cols = c('#0072B2', # dark blue RF,
 
 
 # Create labels
-npi_label  = "Net present\nincome (k€/ha)"
+npi_label  = "Net present income (k€/ha)"
 risk_label = "Wind damage probability\n(mean, %)"
-vol_label  = "Top stratum volume\n(mean, m3/ha)" 
+vol_label  = "Top stratum volume\n(mean, m3/ha)"
+spruce_label = "Spruce proportion\n(%)"
 
-# Make function to plot point plot
+# Make function to plot point plot ----------------------------------
 my_pt_plot <- function() {
   list(
     geom_point(aes(size = SA_share,
@@ -142,6 +143,7 @@ my_pt_plot <- function() {
                                         color="black", 
                                         size=0.5, 
                                         linetype="solid"),
+            panel.grid.major = element_line(colour = "grey90"),
             axis.title  = element_text(size = 10, face="plain", family = "sans"),
             axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
             axis.text.y = element_text(face="plain", size = 9, family = "sans"))
@@ -214,6 +216,7 @@ ggarrange(p.MF.npi, p.MF.risk, p.MF_V,
 
 
 
+
 # Get overall plots with scenarios ----------------------------- 
 my_ln_plot <- function() {
     list(
@@ -233,21 +236,23 @@ my_ln_plot <- function() {
                                         color="black", 
                                         size=0.5, 
                                         linetype="solid"),
-          axis.title  = element_text(size = 10, face="plain", family = "sans"),
-          axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
-          axis.text.y = element_text(face="plain", size = 9, family = "sans"),
-          legend.position = "right",
-          strip.background =element_rect(fill="white", 
-                                         color = NA))
+            panel.grid.major = element_line(colour = "grey90"),
+            axis.title   = element_text(size = 10, face="plain", family = "sans"),
+            axis.title.y = element_blank(),
+            axis.text.x  = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
+            axis.text.y  = element_text(face="plain", size = 9, family = "sans"),
+            legend.position = "right",
+            strip.background =element_rect(fill="white", 
+                                           color = NA))
   )
 }
 
-# Wind risk by scenario
+# Wind risk by scenario ----------------------------------------
 p.risk <- df2 %>% 
   group_by(scenSimpl2, 
            Management,
            NPI, SA_share) %>%   # ,MF
-  summarize(my_y = mean(windRisk, na.rm = T))  %>%
+  summarize(my_y = weighted.mean(windRisk, area, na.rm = T))  %>%
   ggplot(aes(y = my_y,
              x =  NPI)) + 
   ylab("") + #risk_label
@@ -262,7 +267,8 @@ p.vol <- df2 %>%
   group_by(scenSimpl2, 
            Management,
            NPI) %>%   # ,MF
-  summarize(my_y = mean(V_strat_max, na.rm = T))  %>%
+ # summarize(my_y = mean(V_strat_max, na.rm = T))  %>%
+  summarize(my_y = weighted.mean(V_strat_max, area, na.rm = T)) %>% 
   ggplot(aes(y = my_y,
              x =  NPI)) +  
   my_ln_plot()+
@@ -270,13 +276,18 @@ p.vol <- df2 %>%
   ylim(0,240) # +
 #xlim(0,3)
   
+
+
+# Plot wind risk and timber volume ----------------------------------------
+
+
 windows(height = 6, width = 6.5)
 ggarrange(p.risk, p.vol, 
           nrow = 2, ncol = 1,  
           common.legend = TRUE,
           legend="bottom",
-          labels=list(paste("a) ", gsub("\n", " ", risk_label)),
-                      paste("b) ", gsub("\n", " ", vol_label))), #"auto",
+          labels=list(paste("a) ", "Wind damage probability (%)"),
+                      paste("b) ", "Top stratum volume (m3/ha)")), #"auto",
           align = c("hv"),
           hjust = -0.2,
          # vjust = 2,
@@ -290,11 +301,6 @@ ggarrange(p.risk, p.vol,
 # mean for SA and actively managed
 # facets by scenarios
 # ----------------------------------------------------------
-
-
-
-
-
 
 
 # Tree species
@@ -324,13 +330,13 @@ df %>%
 
 # different number of stands by combination
 # ranges from 29400 to 29280 - caulculate the % from the 29400 stands
+# or multiply the spruce counts by area????
 tot.stand.n = 1470*20
 
 
 # Make plots for npi and time
-#p.spruce.ratio.npi <-
-  df %>% 
- # filter(Management == "Active") %>% 
+p.spruce <-
+  df2 %>% 
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
@@ -338,190 +344,89 @@ tot.stand.n = 1470*20
   tally() %>%
   mutate(spruce_prop = n/tot.stand.n*100)  %>%  # get the proportion of spruce from all stands over 20 years 
   ggplot(aes(y = spruce_prop, 
-             x = NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Spruce proportion\n(%)") +
+             x = NPI)) +
+  xlab(npi_label) + #
+  ylab("") +
   ylim(0,50) +
-  plot_line_details_act()
+  my_ln_plot()
 
-# to calulate how many landscapes I have over time:
-p.spruce.ratio.time <-
-  df %>% 
-  filter(Management == "Active") %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management) %>% #, species
-  filter(species == "spruce") %>% 
-  tally() %>%
-  mutate(spruce_prop = n/tot.stand.n*100)  %>%  # get the proportion of spruce from all stands over 20 years 
-  ggplot(aes(y = spruce_prop, 
-             x = year, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  ylim(0,50) +
-  xlab("Time") + #
-  ylab("Spruce proportion\n(%)") +
-  plot_line_details_act()
-  
+
  
 
 ## H Dom ---------------------
-p.mean.H_dom.npi <-
-  df %>% 
-  filter(Management == "Active") %>% 
+p.H_dom <-
+  df2 %>% 
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
-  #summarize(s_area = sum(area)) %>% 
-  summarize(my_y = weighted.mean(H_dom,  area, na.rm = T))  %>% 
- # summarize(my_y = mean(H_dom))  %>%
-  ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  ylim(0,300) +
-  ggtitle("") +
-  xlab("NPI (k€/ha)") + #
-  ylab("Tree height\n(w.mean, dm)") +
-  plot_line_details_act()
-
-
-
-p.mean.H_dom.time <-
-  df %>% 
-  filter(Management == "Active") %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management) %>% 
-  #summarize(my_y = mean(H_dom ))  %>%
-  summarize(my_y = weighted.mean(H_dom,  area, na.rm = T))  %>% 
-  ggplot(aes(y = my_y, 
-             x = year, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  ylim(0,300) +
-  ggtitle("") +
-  xlab("Time ") + #
-  ylab("Tree height\n(w. mean, dm)") +
-  plot_line_details_act()
-
+  summarize(my_y = mean(H_dom,  na.rm = T)) %>%   
+  ggplot(aes(y = my_y/10, 
+             x = NPI)) +
+  ylim(0,30) +
+  xlab(npi_label) + #
+  ylab("") +
+  my_ln_plot()
 
 
 ## Time since thinning ------------------------
-# get the difference by landscape???
-# replace NA by 0?
-# get mean landscape differences by NPI, by time
-# how to calculate the time since thinning? for NPi, for time??
-# calculate weighted mean??
-# get the sum of area and then calculate? yes, seems working and has the same results are using n
-
-
-p.mean.thin.npi <-
-  df %>% 
+p.thin <-
+  df2 %>% 
   filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
            NPI, 
-           Management,
-           difference) %>% 
-  summarize(s_area = sum(area)) %>% 
-  summarize(my_y = weighted.mean(difference,  s_area, na.rm = T))  %>% 
- # tally() %>%
- # summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
+           Management) %>%  # ,
+    summarize(my_y = mean(difference, na.rm = T))  %>% 
   ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
+             x = NPI)) +
   ylim(0,30) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Years since thinning\n(weigh. mean)") +
-  plot_line_details_act()
+  xlab(npi_label) + #
+  ylab("") +
+ # ylab("Years since thinning\n(mean)") +
+    my_ln_plot()
 
-
-# Mean thinning over time
-p.mean.thin.time <-
-  df %>% 
-  filter(Management == "Active") %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management,
-           difference) %>% 
-  summarize(s_area = sum(area)) %>% 
-  summarize(my_y = weighted.mean(difference,  s_area, na.rm = T))  %>% 
-  ggplot(aes(y = my_y, 
-             x = year, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  ylim(0,30) +
-  xlab("Time ") + #
-  ylab("Years since thinning\n(weigh. mean)") +
-  plot_line_details_act()
 
 
 
 # Plot neighboring stand difference ---------------------------------------
-
-
-p.mean.H_diff.line.npi <-
-  df %>% 
- # filter(Management == "Active") %>% 
+p.nbrs.diff <-
+  df2 %>% 
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
-  #summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
-  summarize(my_y = weighted.mean(mean_H_diff,  area, na.rm = T))  %>% 
+  summarize(my_y = mean(mean_H_diff, na.rm = T))  %>%
   ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
+             x = NPI)) +  
   ylim(0,10) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Height difference\nneighbors (mean, m)") +
-  plot_line_details()
+  ylab("") +
+  #ylab("Height difference\nneighbors (mean, m)") +
+  my_ln_plot()
+
+  # !!! Get rid of all 'weighted mean values, not needed. keep only means
+  
+  
+
+# Plot all predictors together --------------------------------------------
+windows(height = 4.3, width = 6.5)
+ggarrange(p.spruce, p.H_dom, p.thin, p.nbrs.diff,
+          nrow = 2, ncol = 2,  
+          common.legend = TRUE,
+          legend="bottom",
+          labels=list(paste("a) ", "Spruce proportion (%)"),
+                      paste("b) ", "Tree height (m)"),
+                      paste("c) ", "Years since thinning"),
+                      paste("d) ", "Height difference between neighbors (m)")),
+          align = c("hv"),
+          hjust = -0.2,
+          # vjust = 2,
+          font.label = list(size = 10, 
+                            face = "plain", 
+                            color ="black"))
 
 
 
-p.mean.H_diff.line.time <-
-  df %>% 
- # filter(Management == "Active") %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management) %>% 
-  #summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% 
-  summarize(my_y = weighted.mean(mean_H_diff,  area, na.rm = T))  %>% 
-  ggplot(aes(y = my_y, 
-             x = year, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,10) +
-  xlab("Time") + #
-  ylab("Height difference\nneighbors(mean, m)") +
-  plot_line_details()
+  
+
+# Make summary tables -----------------------------------------------------
 
 
 
@@ -638,233 +543,3 @@ formated_sum_tab <-
 
 
 
-
-
-
-
-
-  
-# Make a plot of volume development by NPI and Years -----------------------------------
-
-#p.mean.V.pulp.line.time <-
-  df %>% 
-  group_by(scenSimpl2, 
-           year,
-           NPI, 
-           Management) %>% 
-  filter(Management != "Set Aside") %>% 
-  summarize(my_y = mean(V_strat_max_log)) %>%
-  ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = interaction(scenSimpl2, Management),     
-             color = interaction(scenSimpl2, Management),   
-             linetype = interaction(scenSimpl2, Management),  
-             group = interaction(scenSimpl2, Management),     
-             fill = interaction(scenSimpl2, Management) )) +  
-  geom_line(    size = 0.9) +
-  facet_wrap(.~year)  + # scenSimpl2
-  ylim(0,250) +
-  ggtitle("") #+
-  xlab("Time") + #
-  ylab("Standing pulp volume\n(mean, m^3)") +
-  scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-  scale_color_manual(values = cbp1) +
-  scale_fill_manual(values = cbp1) +
-  labs(shape = "Management",
-       color = "Management",
-       linetype = "Management",
-       fill = "Management") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-        legend.position = "right",
-        strip.background =element_rect(fill="white", color = NA))
-  
-  
-  
-# CHeck wind risk over time  
-  df %>% 
-    group_by(scenSimpl2, 
-             year,
-             NPI, 
-             Management) %>% 
-    filter(Management != "Set Aside") %>% 
-    summarize(my_y = mean(windRisk)) %>%
-    ggplot(aes(y = my_y, 
-               x = NPI, 
-               shape = interaction(scenSimpl2, Management),     
-               color = interaction(scenSimpl2, Management),   
-               linetype = interaction(scenSimpl2, Management),  
-               group = interaction(scenSimpl2, Management),     
-               fill = interaction(scenSimpl2, Management) )) +  
-    geom_line(    size = 0.9) +
-    facet_wrap(.~year)  + # scenSimpl2
-    #ylim(0,250) +
-    ggtitle("") #+
-  xlab("Time") + #
-    ylab("Standing pulp volume\n(mean, m^3)") +
-    scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-    scale_color_manual(values = cbp1) +
-    scale_fill_manual(values = cbp1) +
-    labs(shape = "Management",
-         color = "Management",
-         linetype = "Management",
-         fill = "Management") +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-          legend.position = "right",
-          strip.background =element_rect(fill="white", color = NA))
-  
-  
- 
-
-  
-  
-  
-
-# does standing timber volume predict wind risk??? ---------------------------------------
-  
-  # sample the data
-  # Sample  random rows:
-  #df1 <- filter(df,  scenSimpl2 != "ALL")
-  
-  set.seed(1)
-  # create the vector index of the rows to select from original large dataset
-  sample_row <- sample(1:nrow(df), 50000, replace=F)  # 100000 is number of rows to subset
-  # subset the selected rows from the original large.df
-  df.sample <- df[sample_row,]
-  
-  
-  
-  # Make correlation plot: how does timber volume predict wind risk??
-  #ggplot(df.sample, aes(x = V,
-  #                     y = windRisk,
-  #                    group = scenNumb,
-  #                   color = scenNumb)) + 
-  #geom_point() +
-  #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 3)) + 
-  #facet_grid(scenSimpl2~Management)
-  
-  
-  
-  # Risk based on pulp volume
-  df.sample %>% 
-    filter(Management == "Active") %>% 
-    ggplot(aes(x =  V_strat_max_pulp, #V,
-               y = windRisk,
-               # group = scenSimpl2,
-               #color = scenSimpl2,
-               fill = scenSimpl2
-    )) #+ 
-  #geom_jitter(size = 0.3, alpha = 0.5) #+
-  #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 2)) %>% #+ 
-  #facet_grid(scenSimpl2 ~ scenNumb)
-  
-  
-
-  # Make models by groups:
-# does  the volume correlate with risk?# ------------------------
-  # https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r
-  
-  fitted_models <- 
-    df.sample %>% 
-    group_by(NPI) %>% 
-    do(model = lm(windRisk ~ year, data = .))
-  
-  
-  # Check models: 
-  fitted_models$model
-  
-  
-  # Retrieve the coefficients
-  fitted_models %>% broom::augment(model)
-  
-  
-  # Get summary statistics
-  fitted_models %>% broom::glance(model)
-  
-  
-  # plot regression lines by group
-  df.sample %>% 
-    #filter(Management == "Active") %>% 
-    ggplot(aes(x =  V, #V,
-               y = windRisk, #,
-               group = Management,
-               color = Management  )) + 
-    # geom_jitter(size = 0.1, alpha = 0.9) +
-    geom_smooth(method=glm, formula = y ~ x^2, se=FALSE)  + 
-    facet_grid(. ~ scenSimpl2 )
-  
-  
-  # plot regression lines by group
-  # for pulp
-  p.lm.pulp <- 
-    df.sample %>% 
-    #filter(Management == "Active") %>% 
-    ggplot(aes(x =  V_strat_max_pulp, #V,
-               y = windRisk, #,
-               group = scenSimpl2,
-               color = scenSimpl2  )) + 
-    ylim(0,0.09) +
-    # geom_jitter(size = 0.1, alpha = 0.9) +
-    geom_smooth(method=glm, formula = y ~ poly(x,2), se=FALSE)  + 
-    scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-    scale_color_manual(values = cbp1) +
-    facet_grid(. ~ Management )
-  
-  
-  
-  
-  p.lm.log <- 
-    df.sample %>% 
-    #filter(Management == "Active") %>% 
-    ggplot(aes(x =  V_strat_max_log, #V,
-               y = windRisk, #,
-               group = scenSimpl2,
-               color = scenSimpl2  )) + 
-    ylim(0,0.09) +
-    # geom_jitter(size = 0.1, alpha = 0.9) +
-    geom_smooth(method=glm, formula = y ~ poly(x,2), se=FALSE)  + 
-    scale_linetype_manual(values = c( "dotted", "solid",  'dashed')) +
-    scale_color_manual(values = cbp1) +
-    facet_grid(. ~ Management )
-  
-  
-  
-
-  
-  windows(width = 7, height = 2.5)
-  ggarrange(p.lm.pulp, p.lm.log, 
-            #ncol = 2, nrow = 2,
-            #widths = c(1, 1),
-            common.legend = TRUE,
-            align = c("hv"),
-            legend="bottom",
-            labels= "AUTO",
-            hjust = -5,
-            vjust = 3,
-            font.label = list(size = 10, 
-                              face = "bold", color ="black"))
-  
-  
-  # Risk based on  log volume
-  df %>%  # .sample
-    filter(Management == "Active"  & scenSimpl2 != "ALL") %>% 
-    ggplot(aes(x = V_strat_max_log,  #V,
-               y = windRisk,
-               group = scenSimpl2,
-               color = scenSimpl2)) + 
-    #geom_jitter(size = 0.3, alpha = 0.5) +
-    #geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 2)) #+ 
-    geom_smooth() #+  # se=FALSE
-  #facet_wrap(scenSimpl2 ~ .)
-  
-  
-  df %>%  # .sample
-    filter(Management == "Active"  & scenSimpl2 != "ALL") %>% 
-    ggplot(aes(x = V_strat_max_pulp,  #V,
-               y = windRisk,
-               group = scenSimpl2,
-               color = scenSimpl2)) + 
-    #geom_jitter(size = 0.3, alpha = 0.5) +
-    geom_smooth(method=lm, se=FALSE, formula = y ~ poly(x, 3)) #+ 
-  # geom_smooth() #+  # se=FALSE
-  #facet_wrap(scenSimpl2 ~ .)
-  
