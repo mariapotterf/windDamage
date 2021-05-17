@@ -91,27 +91,84 @@ df2 <- df %>%
 
 # Reorder the factors: have ALL on top
 df2 <- df2 %>% 
-  factor(scenSimpl2, levels = c("RF", "CCF", "ALL"))
+  mutate(scenSimpl2 = factor(scenSimpl2, levels = c("RF", "CCF", "ALL")))
 
 
 # Include Multifunctionnality: Get points plot: MF by wind risk by scenario -------------------------------------
 
+# Colr blind palette
+# Define own palette, color blind
+cbp1 <- c("#999999", # grey
+          "#E69F00", # gold
+          "#56B4E9", #lightblue
+          "#009E73", # green
+          "#F0E442", #bright yeallow
+          "#0072B2", # darkblue
+          "#D55E00", # warm orange
+          "#CC79A7") # old rose
+
+cbp3 <- c( "#56B4E9", # lighblue, RF
+          "#999999", # grey , CCF
+          "#E69F00") #, # gold, ALL
+
+# From Marek svitok:
+cols = c('#0072B2', # dark blue RF,
+         "#999999", # grey , CCF
+         #'#E69F00', # buffer 500, gold
+         "red"
+         #'#F0E442' # buffer 2000; yellow
+         #'#000000' # control, black
+       
+)
+
+# Make function to plot point plot
+my_pt_plot <- function() {
+  list(
+    geom_point(aes(size = SA_share,
+                   color = scenSimpl2),
+               alpha = 0.65,  
+               shape = 16),
+      ylim(0,3),
+      ylab("Multifunctionnality"),
+      scale_color_manual(name = "Scenario",
+                         values = cols), 
+      scale_size_continuous(range = c(0.1, 5), 
+                            breaks = c(0,100),
+                            name = "Net present\nincome (k€/ha)",
+                            labels = c("0", "7.5")),
+      guides(color = guide_legend(override.aes = list(size=4, 
+                                                      alpha = 1))), # increase the size of legend items
+      theme(panel.border = element_rect(fill=NA,
+                                        color="black", 
+                                        size=0.5, 
+                                        linetype="solid"),
+            axis.title  = element_text(size = 10, face="plain", family = "sans"),
+            axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
+            axis.text.y = element_text(face="plain", size = 9, family = "sans"))
+    
+  )
+}
+
+
 # NPI vs multifunctionnality (from Eyvindson 2021)
-p.MF.npi <- df2 %>% 
-  dplyr::select(scenSimpl2, NPI, MF) %>%  # filter the columsn as has many repetitive rows but only  some values for NPI and MF
+p.MF.npi <- 
+  df2 %>% 
+  dplyr::select(scenSimpl2, 
+                NPI, 
+                MF, 
+                SA_share) %>%  # filter the columsn as has many repetitive rows but only  some values for NPI and MF
   distinct() %>% 
   ggplot(aes(y = MF,
-             x =  NPI,  
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2 )) +  
-  #geom_area(position = "stack") + #"stacked"
-  geom_point()  +
-  ylim(0,3) # +
+             x =  NPI )) +  
+  xlab("Net present\nincome (k€/ha)") +
+  my_pt_plot() 
+
 
 # MF and wind risk
-#p.MF.risk <- 
-windows()
+
+
+
+p.MF.risk <- 
   df2 %>% 
   group_by(scenSimpl2, 
            NPI,
@@ -119,41 +176,42 @@ windows()
            MF) %>% 
   summarize(mean.risk = mean(windRisk, rm.na = T))  %>%
   ggplot(aes(y = MF, #
-             x =  mean.risk, #MF,  
-            # shape = scenSimpl2,
-             size = SA_share,
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2)) +  
-  ylim(0,3) +
+             x =  mean.risk           )) + 
   xlim(1.5,4) +
-  geom_point(alpha = 0.5) #+
-  #  facet_grid(.~scenSimpl2)
-  
+  xlab("Wind damage probability\n(mean, %)") +
+  my_pt_plot() 
+
 
 
 # MF and top stratum volume
 #windows()
-p.MF_V <- df2 %>% 
+p.MF_V <- 
+  df2 %>% 
   group_by(scenSimpl2, 
-          # npi_cat,
-           NPI, MF) %>% 
+           SA_share,
+           NPI, 
+           MF) %>% 
   summarize(mean.V = mean(V_strat_max, na.rm = T))  %>%
   ggplot(aes(y = MF, 
-             x =  mean.V,  
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  geom_point() +
-  ylim(0,3) +
-  xlim(0,250)
+             x =  mean.V)) +  
+  xlim(80,250) +
+  xlab("Top stratum volume\n(mean, m3/ha)") +
+  my_pt_plot() 
 
 
 # Merge MF plots together
 windows(height = 2.7, width = 7)
-ggarrange(p.MF.npi, p.MF.risk, p.MF_V, nrow = 1, ncol = 3,   common.legend = TRUE)
+ggarrange(p.MF.npi, p.MF.risk, p.MF_V, 
+          nrow = 1, ncol = 3,   
+          common.legend = TRUE,
+          legend="bottom",
+          labels="auto",
+          align = c("hv"),
+          hjust = -1,
+          vjust = 1,
+          font.label = list(size = 10, 
+                            face = "bold", 
+                            color ="black"))
 
 
 
