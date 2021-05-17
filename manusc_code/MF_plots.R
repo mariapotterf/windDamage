@@ -34,7 +34,7 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
                                              size=0.1, 
                                              linetype="solid"))
 
-source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
+#source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
 
 # Set wd ------------------------------------------------------------------
@@ -78,8 +78,6 @@ df$abs_diff_rsk =  df$abs_diff_rsk*100
 
 # Classify NPI values into categories -------------------------------------
 
-
-
 # get a classified NPI values: create from a DF
 dd_class <- data.frame(NPI = sort(unique(df$NPI)),
                        SA_share = c(100, rep(seq(from = 95, to = 0, by = -5), each = 3)))
@@ -107,11 +105,7 @@ cbp1 <- c("#999999", # grey
           "#D55E00", # warm orange
           "#CC79A7") # old rose
 
-cbp3 <- c( "#56B4E9", # lighblue, RF
-          "#999999", # grey , CCF
-          "#E69F00") #, # gold, ALL
-
-# DEfine my cols: from Marek Svitok
+# Define my cols: from Protected areas
 cols = c('#0072B2', # dark blue RF,
          "#999999", # grey , CCF
          #'#E69F00', # buffer 500, gold
@@ -221,8 +215,6 @@ ggarrange(p.MF.npi, p.MF.risk, p.MF_V,
 
 
 # Get overall plots with scenarios ----------------------------- 
-
-
 my_ln_plot <- function() {
     list(
       geom_line(aes(color    = Management,     
@@ -294,438 +286,21 @@ ggarrange(p.risk, p.vol,
 
 
 
+# Make facet plot for Tree height, spruce proportion, thinning frequency, open_edge
+# mean for SA and actively managed
+# facets by scenarios
+# ----------------------------------------------------------
 
 
 
 
 
-# PLot difference in wind risk between neighbors --------------------------
 
-p.mean.risk.nbrs.line.npi <-
-  df %>% 
-  group_by(scenSimpl2, 
-           NPI, 
-           Management) %>% 
-  summarize(my_y = mean(abs_diff_rsk, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
-  ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  #ylim(0,350) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Wind damage risk difference\nbetween neighbors (%)") +
-  plot_line_details()
-
-
-
-p.mean.risk.nbrs.time <-
-  df %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management) %>% 
-  summarize(my_y = mean(abs_diff_rsk, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
-  ggplot(aes(y = my_y, 
-             x = year, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  # ylim(0,350) +
-  xlab("Time") + #
-  ylab("Wind damage risk difference\nbetween neighbors (%)") +
-  plot_line_details()
-
-
-
-ggarrange(p.mean.risk.nbrs.line.npi, p.mean.risk.nbrs.time, 
-          ncol = 2, nrow = 1,
-          #widths = c(1, 1),
-          common.legend = TRUE,
-          align = c("hv"),
-          #font.label = list(size = 10, color = "black", face = "plain", family = NULL),
-          legend="bottom",
-          labels= "AUTO",
-          hjust = -5,
-          vjust = 3,
-          font.label = list(size = 10, 
-                            face = "bold", 
-                            color ="black"))
-
-
-
-
-
-
-
-
-
-
-
-# does CCF thinning affect tree height after? -----------------------------
-
-# subset one stand with thinning under CCF
-# see if tree  height lowers after thinning
-unique(df$branching_new)
-
-# Calculate back when thinning has happened
-df$thin_year = df$year - df$difference
-
-# Check the development:
-df %>% 
-  filter(branching_new == "Selection cut_1") %>% 
-  filter(id == 19104636) %>% 
-  dplyr::select(year, THIN, H_dom, difference, thin_year) #%>% 
-
-# Make plots
-# thinning time is indicated by red  line
-p.H<- 
-  df %>% 
-  filter(branching_new == "Selection cut_1") %>% 
-  filter(id == 19104636) %>% 
-  dplyr::select(year, THIN, H_dom, thin_year) %>% 
-  ggplot(aes(x = year,
-             y = H_dom)) + 
-  geom_line() + 
-  geom_vline(aes(xintercept = thin_year), colour = "red", linetype = "dashed") +
-  ylim(150,280)
-
-p.n<- df %>% 
-  filter(branching_new == "Selection cut_1") %>% 
-  filter(id == 19104636) %>% 
-  dplyr::select(year, THIN, H_dom, N,  thin_year) %>% 
-  ggplot(aes(x = year,
-             y = N)) + 
-  geom_line() +
-  geom_vline(aes(xintercept = thin_year), colour = "red", linetype = "dashed") 
-
-p.V_strat<- df %>% 
-  filter(branching_new == "Selection cut_1") %>% 
-  filter(id == 19104636) %>% 
-  dplyr::select(year, THIN, H_dom, V_strat_max,thin_year ) %>% 
-  ggplot(aes(x = year,
-             y = V_strat_max)) + 
-  geom_vline(aes(xintercept = thin_year), colour = "red", linetype = "dashed") +
-  geom_line()# + 
-  #ylim(150,280)
-
-p.BA<- df %>% 
-  filter(branching_new == "Selection cut_1") %>% 
-  filter(id == 19104636) %>% 
-  dplyr::select(year, THIN, H_dom, BA,thin_year) %>% 
-  ggplot(aes(x = year,
-             y = BA)) + 
-  geom_vline(aes(xintercept = thin_year), colour = "red", linetype = "dashed") +
-  geom_line()# + 
-
-  
-ggarrange(p.H, p.n, p.V_strat, p.BA, nrow = 2, ncol = 2)
-
-
-# Define the plotting ------------------------------------------------------
-
-# Define own palette, color blind
-cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
-          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-
-
-# Make plots with means  -----------------------------------------------------------
-
-# try a plot where they will all be in a same plot: different color lines
-# maybe exclude SA?
-
-
-## Wind risk plot -----
-
-p.mean.windRisk.line.npi2 <-
-  df %>% 
-  group_by(scenSimpl2, 
-           NPI, 
-           Management) %>% 
-  summarize(sum.risk = mean(windRisk))  %>%
-  ggplot(aes(y = sum.risk, 
-             x = NPI, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0, 6) +
-  facet_wrap(.~Management)  + # scenSimpl2
-  xlab("NPI (k€/ha)") + #
-  ylab("Wind damage probability\n(mean, %)") +
-  plot_line_details()
-
-
-
-# Wind risk over time
-p.mean.windRisk.line.time2 <-
-  df %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management) %>% 
-  summarize(my.y = mean(windRisk)) %>%
-  ggplot(aes(y = my.y, 
-             x = year, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,6) +
-  xlab("Time") + #
-  ylab("Wind damage probability\n(mean, %)") +
-  plot_line_details()
-
-
-
-
-
-
-#### Investigate timber volume proportions  --------------
-# How does the % of the volume change between SA and regimes, and among scenarios??
-
-# Make plots with proportions, total volum, total top volume,
-# can dgo to supplementary material
-
-
-
-
-library(ggtext)
-
-#### V at top layer  -----------------
-
-p.mean.V_stratum.line.npi <-
-  df %>% 
-  group_by(scenSimpl2, 
-           NPI, 
-           Management) %>% 
-  summarize(my_y = mean(V_strat_max, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
-  ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,350) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Top stratum volume\n(mean m^3/ha)") +
-  #ylab(expression(paste("Top stratum volume ", "\n(mean ", m^3, "/ha)")))  +
-  #ylab(expression('Top stratum volume\n'^2'moment'^2'moment')) +
-  #ylab(expression(paste("Top stratum volume\n(mean, m^3/ha)"))) +  
-  #ylab(expression(paste("y axis ", ^2))) +
-  plot_line_details()
-
-
-
-p.mean.V_stratum.line.time <-
-  df %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management) %>% 
-  summarize(my_y = mean(V_strat_max, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
-  ggplot(aes(y = my_y, 
-             x = year, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,350) +
-  xlab("Time") + #
-  ylab("Top stratum volume\n(mean, m^3/ha)") +
-  plot_line_details()
-
-  
-  
-#### Plot proportions ---------------------
-p.mean.V_prop.line.npi <-
-  df %>% 
-   group_by(scenSimpl2, 
-           NPI, 
-           Management) %>% 
-  summarize(my_y = mean(V_prop, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
-  ggplot(aes(y = my_y, 
-             x = NPI, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,100) +
-  xlab("NPI (k€/ha)") + #
-  ylab("Ratio top:total\nvolume (mean, %)") +
-  plot_line_details()
-
-
-p.mean.V_prop.line.time <-
-  df %>% 
-  group_by(scenSimpl2, 
-           year, 
-           Management) %>% 
-  summarize(my_y = mean(V_prop, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
-  ggplot(aes(y = my_y, 
-             x = year, 
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2,     
-             fill = scenSimpl2 )) +  
-  ylim(0,100) +
-  xlab("Time") + #
-  ylab("Ratio top:total\nvolume(mean, %)") +
-  plot_line_details()
-
-
-
-#### Plot the Volume proportion top vs total over NPI and time  -------------------------------------------
-windows(width = 7, height = 7.5)
-ggarrange(p.mean.windRisk.line.npi2, p.mean.windRisk.line.time2, 
-          p.mean.V_stratum.line.npi, p.mean.V_stratum.line.time, 
-          p.mean.V_prop.line.npi,    p.mean.V_prop.line.time, 
-          ncol = 2, nrow = 3,
-          common.legend = TRUE,
-          align = c("hv"),
-          legend="bottom",
-          labels= "AUTO",
-          hjust = -5,
-          vjust = 3,
-          font.label = list(size = 10, 
-                            face = "bold", 
-                            color ="black"))
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Plot explanatory variables # ---------------------------------------------
-
-
-
-plot_line_details_act <- function() {
-  list(
-    geom_line(    size = 0.9),
-   # facet_wrap(.~Management), 
-    ggtitle(""),
-    scale_linetype_manual(values = c( "dotted", 
-                                      "solid",  
-                                      'dashed')),
-    scale_color_manual(values = cbp1),
-    scale_fill_manual(values = cbp1),
-    labs(shape = "Scenario",
-         color = "Scenario",
-         linetype = "Scenario",
-         fill = "Scenario"),
-    theme(axis.title  = element_text(size = 10, face="plain", family = "sans"),
-          axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
-          axis.text.y = element_text(face="plain", size = 9, family = "sans"),
-          legend.position = "right",
-          strip.background =element_rect(fill="white", 
-                                         color = NA))
-  )
-}
 
 # Tree species
 # Tree height
 # Time since thinning
 # open-neighbour
-
-
-
-
-#  Predictors and multifunctionnality Plots -------------------------------
-
-# MF and Spruce proportion
-p.MF.spruce <- 
-  df %>% 
-  #filter(Management == "Active") %>% 
-  group_by(scenSimpl2, 
-           #NPI, 
-          # Management, 
-           MF) %>% 
-  filter(species == "spruce") %>% 
-  tally() %>%
-  mutate(spruce_prop = n/tot.stand.n*100)  %>%  # get the proportion of spruce from all stands over 20 years 
-  ggplot(aes(y = MF, #spruce_prop, 
-             x = spruce_prop, #NPI, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-  xlab("Spruce proportion\n(%)") + #
-  ylab("MF") +
-   ylim(0,3) +
-  # xlim(0,4) +
-  geom_point() #+
-
-
-# MF and height
-p.MF.height <- 
-  df2 %>% 
-  #filter(Management == "Active") %>% 
-  group_by(scenSimpl2,
-         #  Management,
-         #  NPI,
-           MF) %>% 
-  #summarize(s_area = sum(area)) %>%
-  summarize(my_x = mean(H_dom, rm.na = T))  %>%
-  #summarize(my_x = weighted.mean(H_dom,  s_area, na.rm = T)) %>% 
-  ggplot(aes(y = MF, #
-             x =  my_x, #MF,  
-             shape = scenSimpl2,     
-             color = scenSimpl2,     
-             linetype = scenSimpl2,  
-             group = scenSimpl2 )) +  
-  ylim(0,3) +
-  geom_point() #+
- 
-
-# MF and thinning frequency
-p.MF.thin <-
-  df %>% 
-  group_by(scenSimpl2, 
-           MF,          # NPI, 
-          # Management,
-           difference) %>% 
-  summarize(s_area = sum(area)) %>% 
-  summarize(my_y = weighted.mean(difference,  s_area, na.rm = T)) %>%
- #   summarize(my_y = mean(difference,na.rm = T)) %>%
-  # tally() %>%
-  # summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
-  ggplot(aes(y = MF, 
-             x = my_y, 
-             shape = scenSimpl2,
-             color = scenSimpl2,
-             linetype = scenSimpl2,
-             group = scenSimpl2,
-             fill = scenSimpl2)) +
-    geom_point() +
-  ylim(0,3) +
-  xlab("Years since thinning\n(weigh. mean))") + #
-  ylab("MF") 
-
-
-# Merge MF plots together
-windows(height = 2.7, width = 7)
-ggarrange(p.MF.spruce, p.MF.height, p.MF.thin, nrow = 1, ncol = 3,   common.legend = TRUE)
-
-
-
-
-
 
 
 ## Tree species -------------------------
@@ -753,9 +328,9 @@ tot.stand.n = 1470*20
 
 
 # Make plots for npi and time
-p.spruce.ratio.npi <-
+#p.spruce.ratio.npi <-
   df %>% 
-  filter(Management == "Active") %>% 
+ # filter(Management == "Active") %>% 
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
