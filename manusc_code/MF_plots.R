@@ -52,30 +52,6 @@ df$windRisk = df$windRisk*100
 
 
 
-
-#  Understand the sheltering effect ----------------------------------------
-# takes ~ two mins to run!!
-df.nbrs.risk <- data.table::fread(paste(getwd(), "df_nbrs_diff_risk.csv", sep = "/"))
-
-df.nbrs2 <-
-  df.nbrs.risk %>% 
-  mutate(abs_diff_rsk = abs(windRisk- windRisk_nbrs))  %>%
-  group_by(id, landscape) %>% 
-  summarise(abs_diff_rsk = mean(abs_diff_rsk, na.rm = T))
-  
-# Join calculated values of risk differences to simulated data
-df <-
-  df %>% 
-  left_join(df.nbrs2, by = c("id", "landscape"))
-
-# increase absolute difference wiind risk by 100%
-df$abs_diff_rsk =  df$abs_diff_rsk*100
-
-
-
-
-
-
 # Classify NPI values into categories -------------------------------------
 
 # get a classified NPI values: create from a DF
@@ -121,6 +97,8 @@ risk_label = "Wind damage probability\n(mean, %)"
 vol_label  = "Top stratum volume\n(mean, m3/ha)"
 spruce_label = "Spruce proportion\n(%)"
 
+
+
 # Make function to plot point plot ----------------------------------
 my_pt_plot <- function() {
   list(
@@ -134,18 +112,23 @@ my_pt_plot <- function() {
                          values = cols), 
       scale_size_continuous(range = c(0.1, 5), 
                             breaks = c(0,100),
-                            name = npi_label, #"Net present\nincome (k€/ha)",
-                            labels = c("0", "7.5")),
+                            name = "Share of Set Asides (%)", #npi_label, #"Net present\nincome (k€/ha)",
+                            labels = c("5", "100")),
       ggtitle(""),
-      guides(color = guide_legend(override.aes = list(size=4, 
+      guides(size = guide_legend(title.position = "top", 
+                                  title.vjust = 0),
+             color = guide_legend(title.position = "top",
+                                  title.vjust = 0,
+                                  override.aes = list(size=4, 
                                                       alpha = 1))), # increase the size of legend items
       theme(panel.border = element_rect(fill=NA,
                                         color="black", 
                                         size=0.5, 
                                         linetype="solid"),
             panel.grid.major = element_line(colour = "grey90"),
+            axis.title.x = element_blank(),
             axis.title  = element_text(size = 10, face="plain", family = "sans"),
-            axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
+            #axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
             axis.text.y = element_text(face="plain", size = 9, family = "sans"))
     
   )
@@ -160,10 +143,13 @@ p.MF.npi <-
                 MF, 
                 SA_share) %>%  # filter the columsn as has many repetitive rows but only  some values for NPI and MF
   distinct() %>% 
+ # mutate(scenSimpl2 = factor(scenSimpl2, levels = c("RF", "ALL", "CCF"))) %>% 
   ggplot(aes(y = MF,
              x =  NPI )) +  
   xlab(npi_label) +
+  theme(legend.position = "none") +
   my_pt_plot() 
+
 
 
 # MF and wind risk
@@ -205,12 +191,14 @@ ggarrange(p.MF.npi, p.MF.risk, p.MF_V,
           nrow = 1, ncol = 3,  
           common.legend = TRUE,
           legend="bottom",
-          labels="auto",
+          labels=list("a) Net present income (k€/ha)",
+                      "b) Wind damage probability (%)",
+                      "c) Top stratum volume (m3/ha)"),
           align = c("hv"),
-          hjust = -5,
-          vjust = 2,
+          hjust = -0.2, #-5,
+          #vjust = 2,
           font.label = list(size = 10, 
-                            face = "bold", 
+                            face = "plain", 
                             color ="black"))
 
 
@@ -406,7 +394,7 @@ p.nbrs.diff <-
   
 
 # Plot all predictors together --------------------------------------------
-windows(height = 4.3, width = 6.5)
+windows(height = 4.3, width = 7)
 ggarrange(p.spruce, p.H_dom, p.thin, p.nbrs.diff,
           nrow = 2, ncol = 2,  
           common.legend = TRUE,
