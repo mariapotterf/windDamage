@@ -110,13 +110,15 @@ my_pt_plot <- function() {
       ylab("Multifunctionnality"),
       scale_color_manual(name = "Scenario",
                          values = cols), 
-      scale_size_continuous(range = c(0.1, 5), 
+      scale_size(range = c(0.1, 5), #_continuous
                             breaks = c(0,100),
-                            name = "Share of Set Asides (%)", #npi_label, #"Net present\nincome (k€/ha)",
-                            labels = c("5", "100")),
+                            name = "Net present income (k€/ha)", #npi_label, #"Net present\nincome (k€/ha)",
+                            labels = c("9", "0"),
+                 trans = 'reverse'),
       ggtitle(""),
-      guides(size = guide_legend(title.position = "top", 
-                                  title.vjust = 0),
+      guides(size = guide_legend(reverse = TRUE, # reverse point size
+                                 title.position = "top", 
+                                 title.vjust = 0),
              color = guide_legend(title.position = "top",
                                   title.vjust = 0,
                                   override.aes = list(size=4, 
@@ -147,6 +149,7 @@ p.MF.npi <-
   ggplot(aes(y = MF,
              x =  NPI )) +  
   xlab(npi_label) +
+  xlim(0,10) +
   theme(legend.position = "none") +
   my_pt_plot() 
 
@@ -221,6 +224,7 @@ my_ln_plot <- function() {
       labs(color = "Management",
             linetype = "Management"),
       xlab(npi_label),
+     # xlim(0,10),
       theme(panel.border = element_rect(fill=NA,
                                         color="black", 
                                         size=0.5, 
