@@ -126,9 +126,9 @@ my_pt_plot <- function() {
                                         size=0.5, 
                                         linetype="solid"),
             panel.grid.major = element_line(colour = "grey90"),
-            axis.title.x = element_blank(),
+           # axis.title.x = element_blank(),
             axis.title  = element_text(size = 10, face="plain", family = "sans"),
-            #axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
+            axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
             axis.text.y = element_text(face="plain", size = 9, family = "sans"))
     
   )
@@ -186,17 +186,17 @@ p.MF_V <-
 
 
 # Merge MF plots together --------------------------
-windows(height = 3, width = 7)
+windows(height = 3.2, width = 7)
 ggarrange(p.MF.npi, p.MF.risk, p.MF_V, 
           nrow = 1, ncol = 3,  
           common.legend = TRUE,
           legend="bottom",
-          labels=list("a) Net present income (k€/ha)",
-                      "b) Wind damage probability (%)",
-                      "c) Top stratum volume (m3/ha)"),
+          labels=list("a) ", #Net present income (k€/ha)
+                      "b) ", # Wind damage probability (%)
+                      "c) "), # Top stratum volume (m3/ha)"
           align = c("hv"),
-          hjust = -0.2, #-5,
-          #vjust = 2,
+          hjust = -2.5, #-5,
+          vjust = 2,
           font.label = list(size = 10, 
                             face = "plain", 
                             color ="black"))
@@ -210,13 +210,14 @@ my_ln_plot <- function() {
     list(
       geom_line(aes(color    = Management,     
                     linetype = Management),
-                lwd = 0.9),
+                lwd = 1),
       ggtitle(""),
       facet_grid(.~ scenSimpl2),
       scale_linetype_manual(values = c("solid",
                                        'dashed')),
-      scale_color_manual(values = c('#0072B2', 
-                                    "red")),
+      scale_color_manual(values = c("red",
+                                    "black" #'#0072B2', 
+                                    )),      # "red"
       labs(color = "Management",
             linetype = "Management"),
       xlab(npi_label),
@@ -224,7 +225,7 @@ my_ln_plot <- function() {
                                         color="black", 
                                         size=0.5, 
                                         linetype="solid"),
-            panel.grid.major = element_line(colour = "grey90"),
+            panel.grid.major = element_line(colour = "grey95"),
             axis.title   = element_text(size = 10, face="plain", family = "sans"),
             axis.title.y = element_blank(),
             axis.text.x  = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
@@ -280,7 +281,7 @@ ggarrange(p.risk, p.vol,
           hjust = -0.2,
          # vjust = 2,
           font.label = list(size = 10, 
-                            face = "bold", 
+                            face = "plain", 
                             color ="black"))
 
 
