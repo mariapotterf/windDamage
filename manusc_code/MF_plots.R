@@ -21,6 +21,7 @@ library(gridExtra)
 library(tidyr)
 library(ggpubr)
 library(broom)
+library(raster)
 #library(RColorBrewer)
 
 
@@ -49,6 +50,64 @@ df <- fread(paste(getwd(), "finalFoPlotting.csv", sep = "/"))
 
 # change windRisk to probabilities: multiply by 100%
 df$windRisk = df$windRisk*100
+
+
+
+# Get raster data from Suvanto --------------------------------------------
+
+# Read extracted  raster Suvanto data to get histogram
+# subset my data for 2016
+# merge data in one dataframe to create a plot
+
+
+
+suvanto_risk <- raster("C:/MyTemp/mapWindRisk/tuuliSuvanto/extract_pred_N4.tif")
+
+suvanto_df <- as.data.frame(suvanto_risk, na.rm = T)
+suvanto_df$Source = "Predicted"  # add new column
+colnames(suvanto_df) <- c("windRisk", "Source")
+suvanto_df$windRisk = suvanto_df$windRisk*100 
+
+
+# Subset simulated data for 2016
+df_risk <- df %>% 
+  filter(year == 2016) %>% 
+  dplyr::select(windRisk) %>% 
+  mutate(Source = "Simulated")
+
+
+#Merge data together
+df_comp <- rbind(suvanto_df,
+                 df_risk  )
+
+# make a plot
+windows(width = 3, height = 2.5)
+ggplot(df_comp, aes(x = Source,
+                    y = windRisk,
+                    fill = Source,
+                    group = Source)) + 
+  geom_boxplot(alpha = .5, 
+               outlier.shape = 16,
+               outlier.alpha = 0.3,
+               outlier.size = 0.7) +
+  scale_fill_manual(values = c("grey", "white")) +
+  stat_summary(geom = "point", color = "red") + # mean +- se 
+  ylab("Wind damage probability (%)") + 
+  xlab("Data Source") + 
+  ylim(0, 10) + 
+  theme(legend.position = "none",
+        panel.border = element_rect(fill=NA,
+                                    color="black", 
+                                    size=0.5, 
+                                    linetype="solid"),
+        panel.grid.major = element_line(colour = "grey90"),
+        axis.title  = element_text(size = 10, face="plain", family = "sans"),
+        axis.text.x = element_text(angle = 0, vjust = 0.5, face="plain", size = 9, family = "sans"),
+        axis.text.y = element_text(face="plain", size = 9, family = "sans"))
+
+
+
+
 
 
 
