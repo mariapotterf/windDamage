@@ -366,13 +366,28 @@ ggarrange(p.risk, p.vol,
 # Spruce is the most vulnerable: frequency of spruce
 
 # Calculate the mean # of spruces!!
-# over time and npi
+# over npi
 
 # Calculate the mean # of spruces!! Why mean???
 # How many stand I have for each simple scen vs NPI?
 # what I want to show? how does the share of teh spruce changes over 
 # harvest and time gradient??
+# what is the initiat share of spruces??
+df2 %>% 
+  filter(year == 2016 & species == "spruce") %>%  #%>%  & species == "spruce"
+  nrow()
 
+
+# At the beginning (2016), cca 30% of all stands are spruces
+# all rows:    92497
+# only spruce: 30760
+# what is the share of spruce set aside and actively managed?
+# how to calculate mean spruce by NPI? how many stand I have ny NPI?
+# does the share of prcuce changes over time?
+df2 %>% 
+  filter(year == 2111 ) %>%  #%>%  & species == "spruce"
+  nrow()
+# Yes, the number of spruces increases to 39959~ from 30% to 40% over time
 
 df %>% 
   group_by(scenSimpl2, 
@@ -383,7 +398,8 @@ df %>%
 # different number of stands by combination
 # ranges from 29400 to 29280 - caulculate the % from the 29400 stands
 # or multiply the spruce counts by area????
-tot.stand.n = 1470*20
+tot.stand.n = 29400
+# spruce have more % as mean share over NPI than in 2016 (table 1)
 
 
 # Make plots for npi and time
@@ -392,6 +408,7 @@ p.spruce <-
   group_by(scenSimpl2, 
            NPI, 
            Management) %>% 
+   # filter(year == 2111) %>% 
   filter(species == "spruce") %>% 
   tally() %>%
   mutate(spruce_prop = n/tot.stand.n*100)  %>%  # get the proportion of spruce from all stands over 20 years 
@@ -399,7 +416,7 @@ p.spruce <-
              x = NPI)) +
   xlab(npi_label) + #
   ylab("") +
-  ylim(0,50) +
+  ylim(0,40) +
   my_ln_plot()
 
 
