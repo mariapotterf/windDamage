@@ -151,7 +151,7 @@ cols = c('#0072B2', # dark blue RF,
 
 
 # Create labels
-npi_label  = "Net present income (k€/ha)"
+npi_label  = "Harvest intensity (NPI k€/ha)"
 risk_label = "Wind damage probability\n(mean, %)"
 vol_label  = "Top stratum volume\n(mean, m3/ha)"
 spruce_label = "Spruce proportion\n(%)"
@@ -171,7 +171,7 @@ my_pt_plot <- function() {
                          values = cols), 
       scale_size(range = c(0.1, 5), #_continuous
                             breaks = c(0,100),
-                            name = "Net present income (k€/ha)", #npi_label, #"Net present\nincome (k€/ha)",
+                            name = "Harvest intensity (NPI k€/ha)", #npi_label, #"Net present\nincome (k€/ha)",
                             labels = c("9", "0"),
                  trans = 'reverse'),
       ggtitle(""),
