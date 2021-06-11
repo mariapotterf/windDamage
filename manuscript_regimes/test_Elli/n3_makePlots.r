@@ -94,7 +94,7 @@ df.ls3 <- lapply(df.ls2, function(df, ...)  {
       mutate(thinning = case_when(
         grepl("wG|wT", regime) ~ "thin_YES",
         grepl("woT", regime) ~ "thin_NO",
-        TRUE~'no'))
+        TRUE~'thin_NO'))
   return(df1)
 })
 
@@ -125,7 +125,79 @@ df.out$geo_grad <-factor(df.out$geo_grad,
                            levels = c("south", "center", "north"))
 
 
+
+
+
+
+
+
+# Test hypotheses:  --------------------------------------------------------
+
+# select only Korsnas - do not put there N-S gradient
+# select only regimes to test my hypotheses: RF, adaptation, w/wo thinning
+# keep climate change
+# for old trees: use indicator N_where_D_gt_40
+# check for clarity just the last 30 years
+
+
+dd <- df.out %>% 
+  filter(siteName == "Korsnas" & year > 2080 & mainType != "SA") #%>% 
+  
+
+# H1: 
+# We suggest that shorter rotation length will reduce wind damage risk
+# and conflict with biodiversity (old trees). 
+# This effect will decrease with more sever climate change.
+
+# Dummy example ------------------------------------------------------------------
+
+dd <- data.frame(id   = rep(1,9),
+                 val  = c(10, 11, 12, 10, 15, 20,10, 30, 50),
+                 cc   = rep(c("no", "c1", 'c2'), each = 3),
+                 year = rep(c(1:3), 3)) 
+
+
+# calculate change towards reference group by year
+dd %>% 
+  group_by(year) %>%
+  mutate(val.ref = val[cc == "no"])
+  
+# fill in values based on a reference group
+
+
+
+windows()
+df.out %>%  
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
+  filter(siteName == "Korsnas" & mainType == "BAU") %>% 
+  group_by(change_time, climChange, thinning) %>% 
+  summarize(w.mean = mean(windRisk, na.rm = T)) %>% 
+  ggplot(aes(y = w.mean,
+             x = change_time,
+             group = climChange,
+             color = climChange)) + 
+  geom_point() + 
+  geom_line() + 
+  facet_grid(.~thinning)
+
+
+
+df.out %>%  
+  filter(siteName == "Korsnas" & mainType == "BAU") %>% 
+  group_by(change_time, climChange, thinning, regime) %>% 
+  summarize(my.y = mean(N_where_D_gt_40, na.rm = T)) %>% 
+  ggplot(aes(y = my.y,
+             x = change_time,
+             group = interaction(climChange, thinning),
+             color = interaction(climChange, thinning))) + 
+  geom_point() + 
+  geom_line() 
+
+
+
+
 # Make plots --------------------------------------------------------------
+
 
 # differences in wind risk given CC and geo region
 
