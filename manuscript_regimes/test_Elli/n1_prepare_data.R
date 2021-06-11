@@ -356,7 +356,7 @@ df.out2 <-
   mutate(thinning = case_when(
     grepl("wG|wT", regime) ~ "thin_YES",
     grepl("woT", regime) ~ "thin_NO",
-    TRUE~'no'))
+    TRUE~'thin_NO'))
     
     
 # head(df.out2)
