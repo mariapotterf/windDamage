@@ -165,13 +165,18 @@ dd %>%
 # fill in values based on a reference group
 
 
-
+# !!! complete from here by calculated the changes towards reference values (mean BAU by year)
 windows()
 df.out %>%  
   filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
   filter(siteName == "Korsnas" & mainType == "BAU") %>% 
-  group_by(change_time, climChange, thinning) %>% 
-  summarize(w.mean = mean(windRisk, na.rm = T)) %>% 
+  group_by(year, change_time, climChange, thinning, regime) %>% 
+  summarize(w.mean = mean(windRisk, na.rm = T)) %>%
+  group_by(year) %>%
+  mutate(val.ref = w.mean[regime == "BAU" & climChange == "no" & change_time == "0"]) %>% 
+  filter(regime == "BAU_m5" | regime == "BAU")   %>% 
+  print(n = 80)
+
   ggplot(aes(y = w.mean,
              x = change_time,
              group = climChange,
@@ -213,7 +218,7 @@ df.m <-
 
 df.out %>%  
   filter(mainType == "BAU" ) %>% 
-ggplot(aes(y = windRisk,
+  ggplot(aes(y = windRisk,
              x = factor(change_time),
              fill = climChange)) + 
   geom_boxplot() +
