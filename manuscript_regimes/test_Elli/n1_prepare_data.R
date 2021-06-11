@@ -71,7 +71,7 @@ getFiles <- function(myName, ...) {
   source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
   print(myName) 
   
-  fileNameNO   = paste( "without_MV_", myName, '_rsu.csv', sep = "")
+  fileNameNO     = paste( "without_MV_", myName, '_rsu.csv', sep = "")
   fileNameCC45   = paste( "CC45_MV_",    myName, '_rsu.csv', sep = "")
   fileNameCC85   = paste( "CC85_MV_",    myName, '_rsu.csv', sep = "")
   fileNameRST    = paste( "df_raster_",  myName, '.csv', sep = "")
