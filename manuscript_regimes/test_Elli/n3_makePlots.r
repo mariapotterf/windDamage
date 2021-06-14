@@ -34,6 +34,21 @@ source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
 
 
+
+# Set themes ----
+theme_set(theme_classic())
+theme_update(panel.grid.major = element_line(colour = "grey95",
+                                             size = 0.1,
+                                             linetype = 2),
+             strip.background = element_rect(color="grey95", 
+                                             fill="grey95",
+                                             size=0.1, 
+                                             linetype="solid"))
+
+
+
+
+
 # get data
 # ----------------------
 inPath = "C:/MyTemp/myGitLab/windDamage/manuscript_regimes"
@@ -139,52 +154,41 @@ df.out$geo_grad <-factor(df.out$geo_grad,
 # for old trees: use indicator N_where_D_gt_40
 # check for clarity just the last 30 years
 
-
-dd <- df.out %>% 
-  filter(siteName == "Korsnas" & year > 2080 & mainType != "SA") #%>% 
-  
-
 # H1: 
 # We suggest that shorter rotation length will reduce wind damage risk
 # and conflict with biodiversity (old trees). 
 # This effect will decrease with more sever climate change.
 
-# Dummy example ------------------------------------------------------------------
-
-dd <- data.frame(id   = rep(1,9),
-                 val  = c(10, 11, 12, 10, 15, 20,10, 30, 50),
-                 cc   = rep(c("no", "c1", 'c2'), each = 3),
-                 year = rep(c(1:3), 3)) 
 
 
-# calculate change towards reference group by year
-dd %>% 
-  group_by(year) %>%
-  mutate(val.ref = val[cc == "no"])
-  
-# fill in values based on a reference group
+# Keep the reference value separated, as later I need to add the means to mean value of change
+# my reference is BAU, no clim change and change_time = 0
+df.bau.ref <- 
+  df.out %>%
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
+  filter(siteName == "Korsnas" & regime == "BAU" & climChange == "no" & change_time == "0") %>% 
+  group_by(year, change_time, climChange, thinning, regime) %>% 
+  summarize(w_risk_ref = mean(windRisk, na.rm = T))  %>% 
+  ungroup() %>% 
+  dplyr::select(year, w_risk_ref)
+ 
 
-
-# !!! complete from here by calculated the changes towards reference values (mean BAU by year)
+# complete from here by calculated the changes towards reference values (mean BAU by year)
 windows()
 df.out %>%  
   filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
-  filter(siteName == "Korsnas" & mainType == "BAU") %>% 
-  group_by(year, change_time, climChange, thinning, regime) %>% 
-  summarize(w.mean = mean(windRisk, na.rm = T)) %>%
-  group_by(year) %>%
-  mutate(val.ref = w.mean[regime == "BAU" & climChange == "no" & change_time == "0"]) %>% 
-  filter(regime == "BAU_m5" | regime == "BAU")   %>% 
-  print(n = 80)
-
-  ggplot(aes(y = w.mean,
-             x = change_time,
-             group = climChange,
-             color = climChange)) + 
-  geom_point() + 
+  filter(siteName == "Korsnas" & mainType == "BAU" & regime != "BAU") %>% 
+  group_by(year, modif, climChange, thinning) %>% 
+  summarize(w.mean = mean(windRisk, na.rm = T))  %>%
+  left_join(df.bau.ref) %>% 
+  mutate(perc_ch = w_risk_ref/w.mean*100 - 100)    %>%               # calculate percentage change
+  ggplot(aes(y = perc_ch,
+             x = year,
+             group = modif,
+             color = modif)) + 
+  #geom_point() + 
   geom_line() + 
-  facet_grid(.~thinning)
-
+  facet_grid(climChange~thinning)
 
 
 df.out %>%  
@@ -242,7 +246,7 @@ df.out %>%
 
 
 # check risk for regimes-------------------------------------------
-df.out2 %>% 
+df.out %>% 
   filter(mainType == "BAU"  ) %>% 
   ggplot(aes(x = modif, #climChange,
              y= windRisk,
@@ -257,7 +261,7 @@ df.out2 %>%
 
 
 windows()
-df.out2 %>% 
+df.out %>% 
   filter(mainType == "CCF") %>% 
   ggplot(aes(x = climChange,
              y= windRisk,
@@ -274,7 +278,7 @@ df.out2 %>%
 # check the risk by time delay
 # Make plots for change time -----------------------------------------------------------------
 p.extended<- 
-  df.out2 %>% 
+  df.out %>% 
   filter(mainType == "BAU") %>%
   filter(modif == "extended" | modif == "normal" ) %>% 
   ggplot(aes(x = change_time,
@@ -292,7 +296,7 @@ p.extended<-
 
 
 p.shorten<- 
-  df.out2 %>% 
+  df.out %>% 
   filter(mainType == "BAU") %>% 
   filter(modif == "shorten" | modif == "normal") %>% 
   ggplot(aes(x = change_time,
@@ -316,7 +320,7 @@ ggarrange(p.extended, p.shorten, common.legend = TRUE, legend="bottom")
 # Plots for Climate change ------------------------------------------------
 
 p.extended<- 
-  df.out2 %>% 
+  df.out %>% 
   filter(mainType == "BAU") %>% 
   filter(modif == "extended" | modif == "normal") %>% 
   ggplot(aes(x = climChange, 
@@ -334,7 +338,7 @@ p.extended<-
 
 
 p.shorten<- 
-  df.out2 %>% 
+  df.out %>% 
   filter(modif == "shorten" | modif == "normal") %>% 
   ggplot(aes(x = climChange,
              y= windRisk
@@ -356,7 +360,7 @@ ggarrange(p.extended, p.shorten, common.legend = FALSE, legend="bottom")
 # What regime is the most sensitive to shortening/extension? -----------------
 
 p.extended<- 
-  df.out2 %>% 
+  df.out %>% 
   filter(modif == "extended" | modif == "normal") %>% 
   ggplot(aes(x = change_time,
              y= windRisk
@@ -373,7 +377,7 @@ p.extended<-
 
 
 p.shorten<- 
-  df.out2 %>% 
+  df.out %>% 
   filter(modif == "shorten"  & mainType == "BAU") %>% 
   ggplot(aes(x = change_time,
              y= windRisk
@@ -386,7 +390,7 @@ p.shorten<-
   facet_grid(.~ regime) +
   ggtitle("b) shortened")
 
-library(ggpubr)
+
 ggarrange(p.extended, p.shorten, common.legend = TRUE, legend="bottom")
 
 
@@ -396,7 +400,7 @@ ggarrange(p.extended, p.shorten, common.legend = TRUE, legend="bottom")
 # Line plots  -------------------------------------------------------------
 
 
-df.out2 %>% 
+df.out %>% 
   filter(modif == "shorten"  & mainType == "BAU") %>% 
   ggplot(aes(x = change_time,
              y= windRisk
@@ -413,7 +417,7 @@ df.out2 %>%
 # get shaded region  ----------------------------------------------
 # Get the line plot, for one regime over years
 windows()
-df.out2 %>% 
+df.out %>% 
   #filter(mainType == "BAU" & modif == "extended" ) %>%  #
   filter(mainType == "BAU") %>% 
   group_by(year, climChange, change_time, modif) %>% 
@@ -448,7 +452,7 @@ df.out2 %>%
 
 
 # get means by SA, CCF and BAU (CCF does not have modifications in time)
-df.out2 %>% 
+df.out %>% 
   #filter(mainType == "BAU" & modif == "extended" ) %>%  #
   # filter(mainType == "CCF") %>% 
   group_by(year, climChange, mainType) %>% 
@@ -624,3 +628,26 @@ dd %>%
   scale_fill_manual(c("red", "blue")) +
   
   theme_bw()
+
+
+
+
+
+
+
+
+# Dummy example ------------------------------------------------------------------
+# pass values by group as a new column
+dd <- data.frame(id   = rep(1,9),
+                 val  = c(10, 11, 12, 10, 15, 20,10, 30, 50),
+                 cc   = rep(c("no", "c1", 'c2'), each = 3),
+                 year = rep(c(1:3), 3)) 
+
+
+# calculate change towards reference group by year
+dd %>% 
+  group_by(year) %>%
+  mutate(val.ref = val[cc == "no"])
+
+# fill in values based on a reference group
+
