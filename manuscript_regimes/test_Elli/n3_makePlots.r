@@ -174,18 +174,45 @@ df.bau.ref <-
  
 
 # complete from here by calculated the changes towards reference values (mean BAU by year)
+# make ribbon plot of changes
 windows()
 df.out %>%  
   filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
-  filter(siteName == "Korsnas" & mainType == "BAU" & regime != "BAU") %>% 
-  group_by(year, modif, climChange, thinning) %>% 
+  filter(siteName == "Korsnas" & mainType == "BAU" & regime != "BAU" & thinning == "thin_YES") %>% 
+  group_by(year, modif, climChange, thinning, change_time) %>% 
   summarize(w.mean = mean(windRisk, na.rm = T))  %>%
-  left_join(df.bau.ref) %>% 
-  mutate(perc_ch = w_risk_ref/w.mean*100 - 100)    %>%               # calculate percentage change
-  ggplot(aes(y = perc_ch,
-             x = year,
-             group = modif,
-             color = modif)) + 
+  left_join(df.bau.ref, by = "year") %>% 
+  mutate(perc_ch = w_risk_ref/w.mean*100 - 100)   %>%               # calculate percentage change
+  print(n = 50)
+  
+  ungroup() %>% 
+  ggplot(aes(x = year)) +
+  #geom_ribbon(
+   # data = ~ pivot_wider(.,
+    #                     names_from = climChange,
+    #                     values_from = perc_ch),
+    #aes(ymin = no, 
+    #    ymax = cc85, 
+     #   fill=change_time), alpha = 0.2  )# +
+  geom_line(aes(y = perc_ch,
+                color = change_time,     
+                linetype = climChange),
+            lwd  = 1)  +
+  facet_grid(.~ change_time)
+  
+  
+  scale_linetype_manual(values=c('dotted', 'solid', 'dashed'))# +
+ # theme_bw()  +
+  ggtitle("Effect of extension or shortening of BAU on wind damage risk") +
+  ylab("Wind risk change (%)") +
+  facet_grid(.~modif) #+ 
+  #theme(legend.position = 'bottom',
+   #     axis.text.x = element_text(angle = 90, 
+    #                               vjust = 0.5, 
+     #                              face="plain", 
+      #                             size = 9, 
+       #                            family = "sans"))
+  
   #geom_point() + 
   geom_line() + 
   facet_grid(climChange~thinning)
@@ -613,6 +640,7 @@ dd2$modif = 'yes'
 
 # Put data together
 dd <- rbind(dd1, dd2)
+
 
 # Get a plot
 dd %>% 
