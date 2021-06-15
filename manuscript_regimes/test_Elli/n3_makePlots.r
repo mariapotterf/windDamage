@@ -160,6 +160,31 @@ df.out$geo_grad <-factor(df.out$geo_grad,
 # This effect will decrease with more sever climate change.
 
 
+# is BAU really without thinning???
+df.out %>% 
+  filter(regime == "BAU_10") %>% 
+  distinct(THIN) %>% 
+  nrow()
+
+# BAU has thinnings;
+# check if all regimes have thinings??
+regime.v <- unique(df.out$regime)
+
+lapply(regime.v, function(x, ...) {df.out %>%
+             filter(regime == x) %>% 
+         distinct(THIN) }
+       )
+
+
+
+# select id: 29609064
+
+
+
+
+
+
+
 
 # Keep the reference value separated, as later I need to add the means to mean value of change
 # my reference is BAU, no clim change and change_time = 0
