@@ -125,6 +125,8 @@ df.out <- df.out %>%
     grepl("Raasepori", siteName) ~ "south",
     grepl("Simo", siteName) ~ "north" ))
 
+
+# filte all NA values introduced due to merging 
  
 
 # Change order of change time---------------------------------------
@@ -178,10 +180,17 @@ lapply(regime.v, function(x, ...) {df.out %>%
 
 
 # select id: 29609064
+df.out %>% 
+ # filter(id =="29609064" & (regime == "BAU"|regime == "BAUwT"| regime == "SA_DWextract")) %>%
+  filter(id =="29609064" & (regime == "BAUwT")) %>%
+  filter((regime == "BAUwT")) %>%
+  dplyr::select(id, year, THIN, BA, H_dom, V, regime, climChange) %>% 
+  distinct(year)
+  #distinct(THIN) 
 
 
-
-
+# check how many yeasr I have for each rregime
+table(df.out$regime, df.out$year)
 
 
 
