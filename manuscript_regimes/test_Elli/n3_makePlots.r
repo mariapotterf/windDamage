@@ -102,20 +102,37 @@ df.ls2 <- lapply(df.ls1, function(df, ...)  {
 
 df.ls3 <- lapply(df.ls2, function(df, ...)  {
   df1 <- df %>%
+      mutate(regime = replace(regime, regime == "BAU", "BAU_")) %>% # replace BAU to facilitate further classification
       mutate(mainType = case_when(
-        grepl("SA", regime) ~ "SA",
-        grepl("BAU", regime) ~ "BAU",
-        grepl("CCF", regime) ~ "CCF")) %>%
+        grepl("BAUwGTR"    , regime) ~ "BAUwGTR",
+        grepl("BAUwT_GTR"  , regime) ~ "BAUwT_GTR",
+        grepl("BAU_"       , regime) ~ "BAU",
+        grepl("BAUwT"      , regime) ~ "BAUwT",
+        grepl("BAUwoT"     , regime) ~ "BAUwoT",
+        grepl("SA"         , regime) ~ "SA",
+        grepl("CCF"        , regime) ~ "CCF")) %>%
       mutate(thinning = case_when(
         grepl("wG|wT", regime) ~ "thin_YES",
         grepl("woT", regime) ~ "thin_NO",
-        TRUE~'thin_NO'))
+        TRUE~'thin_YES'))
   return(df1)
 })
 
 
 # Merge data together
 df.out <- do.call(rbind, df.ls3)
+
+# !!! need to check: how many variation of regimes I have? Should be ~5 variations?
+# check by mainType category
+
+df.out %>% 
+  group_by(mainType) %>% 
+  distinct(regime) %>%
+  #arrange(year) %>% 
+  print(n = 200)
+
+
+
 
 
 # add Geo gradient:
@@ -161,12 +178,14 @@ df.out$geo_grad <-factor(df.out$geo_grad,
 # and conflict with biodiversity (old trees). 
 # This effect will decrease with more sever climate change.
 
+# all have thinings if not specified otherwise 
 
-# is BAU really without thinning???
+
+# is BAU really without thinning??? - BAU contains thinning
 df.out %>% 
-  filter(regime == "BAU_10") %>% 
-  distinct(THIN) %>% 
-  nrow()
+  filter(regime == "BAUwT_GTR") %>% 
+  distinct(THIN) #%>% 
+  #nrow()
 
 # BAU has thinnings;
 # check if all regimes have thinings??
@@ -189,6 +208,13 @@ df.out %>%
   #distinct(THIN) 
 
 
+# get stands id for BAUwT
+df.out %>% 
+  filter(id == "31326051" & (regime == "BAU"|regime == "BAUwT" )) %>%  
+  dplyr::select(id, year, THIN, BA, H_dom, V, regime, climChange) %>% 
+  arrange(year, regime)
+
+
 # check how many yeasr I have for each rregime
 table(df.out$regime, df.out$year)
 
@@ -206,6 +232,30 @@ df.bau.ref <-
   ungroup() %>% 
   dplyr::select(year, w_risk_ref)
  
+
+# make historgram of N_where_D_gt_40
+df.out %>% 
+  ggplot(aes(x = N_where_D_gt_40,
+             fill = interaction(siteName))) +
+  geom_histogram(alpha = 0.6, binwidth = 10) + 
+  facet_grid(regime~climChange)
+
+#!!!!!!
+
+# Make a point plot of the means wind risk, adaptation, climate change
+df.out %>% 
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
+  filter(siteName == "Korsnas" & mainType == "BAU") %>% 
+  group_by(year, climChange, thinning, change_time) %>% 
+  summarize(w.mean = mean(windRisk, na.rm = T),
+            oldT.mean  = mean(N_where_D_gt_40, na.rm = T))#  %>%
+  
+
+# where are the old tree values messing???
+df.out %>% 
+  group_by(siteName, climChange) %>% 
+  summarize(oldT.mean  = mean(N_where_D_gt_40, na.rm = T))
+
 
 # complete from here by calculated the changes towards reference values (mean BAU by year)
 # make ribbon plot of changes
@@ -478,12 +528,15 @@ df.out %>%
 # get shaded region  ----------------------------------------------
 # Get the line plot, for one regime over years
 windows()
-df.out %>% 
-  #filter(mainType == "BAU" & modif == "extended" ) %>%  #
-  filter(mainType == "BAU") %>% 
+df.out2 %>% 
+  filter(mainType == "BAU" & modif == "extended" ) %>%  #
+  #filter(mainType == "BAU") %>% 
   group_by(year, climChange, change_time, modif) %>% 
   summarise(my_y = mean(windRisk, na.rm = T)) %>% 
-  ungroup() %>% 
+  arrange(year, change_time) %>% 
+  print(n = 80) #%>% 
+   
+  ungroup() #%>% 
   ggplot(aes(x = year )) +
   #geom_line(aes(y = my_y))
   geom_ribbon(
