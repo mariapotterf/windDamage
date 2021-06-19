@@ -122,6 +122,13 @@ df.ls3 <- lapply(df.ls2, function(df, ...)  {
 # Merge data together
 df.out <- do.call(rbind, df.ls3)
 
+
+# test if I have affect of climate change??
+df.out %>% 
+  group_by(name) %>% 
+  summarise(my_y = mean(windRisk, na.rm = F))
+
+# problem in CC85 nad in Raasepuri! check how oriinal data are generated
 # !!! need to check: how many variation of regimes I have? Should be ~5 variations?
 # check by mainType category
 
@@ -131,9 +138,31 @@ df.out %>%
   #arrange(year) %>% 
   print(n = 200)
 
+# classification was correct
+
+# CHeck if all regimes have 3 climate change scenarios  -----------------------------------
+df.out %>% 
+  group_by(regime, siteName) %>% 
+  distinct(climChange) %>%
+  #arrange(year) %>% 
+  print(n = 200)
 
 
+# Do I have a variation between CC scenarios and sites?
+# calculate means of H_dom 
+df.out %>% 
+  group_by(regime, climChange, year) %>% 
+  filter(H_dom < quantile(H_dom, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
+  filter(mainType == "BAU")  %>%  # filter out data above certain percentile
+  summarize(H_mean = mean(H_dom, rm.na = TRUE)) %>% 
+  ggplot(aes(x = year,
+             y = H_mean,
+             color = climChange,
+             group = climChange)) + 
+  geom_line() #+
+  facet_grid(climChange~ siteName)
 
+# There is an error in data: somehow the cc45 is always missing - need to go to input data why
 
 # add Geo gradient:
 df.out <- df.out %>% 
