@@ -239,15 +239,20 @@ df.raster <-   data.table::fread(paste(inPath, inFolder, "raster/df_raster_Korsn
 #length(unique(df.raster$standid))  # 302 
 
 # filter the stands:
-# keep  only the overlapping standid
-shared.stands = intersect(unique(df.no$id), unique(df.raster$standid))
+# keep  only the overlapping standid; consider all input data
+shared.stands = Reduce(intersect, 
+                       list(unique(df.no$id),
+                            unique(df.raster$standid),
+                            unique(df.cc45$id),
+                            unique(df.cc85$id)))
 
 # Subset df.raster data to only simulated stands
 df.raster <- df.raster %>% 
   filter(standid %in% shared.stands)
 
 
-# add missing SOIL_CLASS data to no clim change data
+# add missing SOIL_CLASS data to no clim change data;
+# no clim change data is missing SOIL_CLASS data
 df.soil.class <- df.cc45 %>% 
   dplyr::select(id, SOIL_CLASS) %>% 
   distinct()
