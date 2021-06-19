@@ -24,27 +24,28 @@ addInitialYear <- function(df, ...) {
   # change it for 2015
   library(tidyr)
   
+  #  df <- df.ls[[1]] 
+  
   df.sa <- df %>% 
     filter(regime == "SA_DWextract" & year == 2016) %>% 
-    mutate(year = 2015) %>% # change the year indication
-    dplyr::select(-c(regime)) # remove column regime
+    mutate(year = 2015) %>%    # change the year indication
+    dplyr::select(-c(regime))  # remove column regime
   
-  # get indication of column order
+  # get indication of column order in original data
   col_names = names(df)
   
   # get vector of regimes  
-  regime_v <- df %>% 
+  regime_v <- 
+    df %>% 
     distinct(regime) %>% 
     pull(regime)
   
-  # rename the column and reorder columns in sa_2015
-  df.sa.out <- df.sa %>% 
+  # rename the column and add data by col names
+  df.out <-
+    df.sa %>% 
     crossing(regime_v) %>% # merge dataframe with vector of regime names 
-    rename(regime = regime_v) %>% 
-    dplyr::select(order(col_names)) # reorder the colums to fit the data
-  
-  # add new SA data to original df
-  df.out <- rbind(df.sa.out, df)
+    rename(regime = regime_v) %>%
+    dplyr::bind_rows(df)  # merge data to new column, colums sort out by names
   
   return(df.out)
 }
