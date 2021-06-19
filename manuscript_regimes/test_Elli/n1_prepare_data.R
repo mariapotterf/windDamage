@@ -282,7 +282,58 @@ df.ls <- lapply(df.ls, function(df) df %>%  right_join(df.raster,
 
 
 # Get initial year: 2015 based on SA values in 2016 ------------------------
+
+
+
+
+
+
+
+# Update a function
+addInitialYear <- function(df, ...) {
+  # Add first year to simulated data, getting the SA values
+  # for all regimes
+  # change it for 2015
+  library(tidyr)
+  
+#  df <- df.ls[[1]] 
+  
+  df.sa <- df %>% 
+    filter(regime == "SA_DWextract" & year == 2016) %>% 
+    mutate(year = 2015) %>%    # change the year indication
+    dplyr::select(-c(regime))  # remove column regime
+  
+  # get indication of column order in original data
+  col_names = names(df)
+  
+  # get vector of regimes  
+  regime_v <- 
+    df %>% 
+    distinct(regime) %>% 
+    pull(regime)
+  
+  # rename the column and reorder columns in sa_2015
+  #df.sa.out <- 
+  df.out <-
+    df.sa %>% 
+    crossing(regime_v) %>% # merge dataframe with vector of regime names 
+    rename(regime = regime_v) %>%
+    dplyr::bind_rows(df)  # merge data to new column, colums sort out by names
+ 
+  return(df.out)
+}
+
+
+#aa<- addInitialYear(df.ls[[1]])
+
+
 df.ls.ini <- lapply(df.ls, addInitialYear)
+
+
+#df.ls.ini[[1]] %>% 
+  #group_by(name) %>% 
+ # dplyr::select(name, H_dom) %>% 
+  #summary()
 
 
 # Classify thinning values ---------------------------------------------
@@ -290,7 +341,8 @@ df.ls.thin = lapply(df.ls.ini, classifyTHIN)
 
 # Indicate climate change category; add vector to df
 clim.cat = c("no", "cc45", "cc85")
-df.ls.thin = mapply(cbind, df.ls.thin, "climChange"=clim.cat, SIMPLIFY=F)
+df.ls.thin = mapply(cbind, df.ls.thin, "climChange"= clim.cat, SIMPLIFY=F)
+
 
 
 # calculate wind risk for individual regimes for 3 CC  -----------------------------------------------
@@ -312,6 +364,7 @@ glm.colnames <- c("species",
 df.ls.glm<- lapply(df.ls.thin, formatWindRiskTable)
 
 
+
 # Calculate wind risk ------------------------------
 
 # apply the glm formula to calulate wind risk 
@@ -322,6 +375,11 @@ df.risk.ls <- lapply(df.ls.glm, function(df) {df$windRisk <- predict.glm(windRis
 
 # inspect values
 #lapply(df.risk.ls, function(df) range(df$windRisk, na.rm = T))
+# Make a testing function: do I see differences in tree heights??
+lapply(df.risk.ls, function(df) df %>% 
+         # group_by(regime) %>% 
+         dplyr::select(H_dom, windRisk) %>% 
+         summary())
 
 
 
@@ -330,54 +388,32 @@ df.risk.ls <- lapply(df.ls.glm, function(df) {df$windRisk <- predict.glm(windRis
 df.out <- do.call(rbind, df.risk.ls)
 
 
-# classify for type of modification ------------------
-
-# Classify the type of regime, type of adjustement (extension or shortening)
-# and change in time (how many years)
-df.out2 <- 
-  df.out %>% 
-  mutate(modif = case_when(
-    grepl('_m5' , regime) ~ 'shorten',
-    grepl('_m20', regime) ~ 'shorten',
-    grepl('_5'  , regime) ~ 'extended',
-    grepl('_10' , regime) ~ 'extended',
-    grepl('_15' , regime) ~ 'extended',
-    grepl('_30' , regime) ~ 'extended',
-    TRUE~ 'normal')) %>% 
-  mutate(change_time = case_when(
-    grepl("_15", regime)  ~ "15",
-    grepl("_5",  regime)  ~ "5",
-    grepl("_10", regime)  ~ "10",
-    grepl("_30", regime)  ~ "30",
-    grepl("_20", regime)  ~ "20",
-    grepl("_m5", regime)  ~ "-5",
-    grepl("_m20", regime) ~ "-20",
-    TRUE~'0')) %>% 
- # mutate(change_time = replace_na(change_time, 0)) %>% 
-  mutate(mainType = case_when(
-    grepl("SA", regime) ~ "SA",
-    grepl("BAU", regime) ~ "BAU",
-    grepl("CCF", regime) ~ "CCF")) %>% 
-  mutate(thinning = case_when(
-    grepl("wG|wT", regime) ~ "thin_YES",
-    grepl("woT", regime) ~ "thin_NO",
-    TRUE~'thin_NO'))
-    
-    
-# head(df.out2)
-# 
-# unique(df.out2$modif)
-# unique(df.out2$change_time)
-# unique(df.out2$mainType)
-# unique(df.out2$thinning)
-# HOw does modification of management regime affect wind risk?
-
-# Change order of change time---------------------------------------
-df.out2$change_time <-factor(df.out2$change_time, 
-                         levels = c("-20", "-15", "-10", "-5", "0",  "5",  "10", "15","20", "25", "30"))
-
 # Export simplified table ----------------------------------------------
-data.table::fwrite(df.out2, paste(getwd(), 'manuscript_regimes', outFolder, outTab, sep = "/"))
+#data.table::fwrite(df.out2, paste(getwd(), 'manuscript_regimes', outFolder, outTab, sep = "/"))
+
+
+
+
+# Testing -------------------------------------------------------------------
+
+# do differences in climate change exist here already??
+# yes, input data are correct. need to filter for excessive values
+#df.test <- do.call(rbind, df.ls)
+
+df.ls[[3]] %>% 
+  #group_by(name) %>% 
+  dplyr::select(name, H_dom) %>% 
+  summary()
+
+
+
+# which stands have unrealistic H_dom values?
+df.test %>% 
+  #filter(H_dom > 45430)
+  filter(H_dom > 100) %>% 
+  distinct(id, name, regime)
+
+
 
 
   
