@@ -66,7 +66,7 @@ names = c("Korsnas", 'Simo', 'Raasepori')
 
 getFiles <- function(myName, ...) {
   
- # myName = c("Raasepori")
+  #myName =  c("Korsnas")  #c("Raasepori")
   
   source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
   print(myName) 
@@ -129,9 +129,9 @@ getFiles <- function(myName, ...) {
   df.ls.ini <- lapply(df.ls, addInitialYear)
   
   # Test data: in CC visible in Raasepori???
- # lapply(df.ls.ini, function(df) df %>% group_by(name) %>%  
+  # lapply(df.ls.ini, function(df) df %>% group_by(name) %>%  
   #         summarise(my_m = mean(H_dom, na.rm = TRUE)))
-
+  
   # Classify thinning values ---------------------------------------------
   df.ls.thin = lapply(df.ls.ini, classifyTHIN)
   
@@ -177,6 +177,14 @@ getFiles <- function(myName, ...) {
   
   # add indication of name as new column
   df.out$siteName <- myName
+  
+  
+  # Filter the rown that have na values??? why?
+  #df.out %>% 
+   # filter(!is.na(H_dom)) %>% 
+    #ungroup() %>% 
+    #distinct(id) %>% 
+    #nrow()
   
   # Export simplified table ----------------------------------------------
   outName = paste(myName, ".csv", sep = "")
