@@ -66,7 +66,7 @@ names = c("Korsnas", 'Simo', 'Raasepori')
 
 getFiles <- function(myName, ...) {
   
-  #name = c("Raasepori")
+ # myName = c("Raasepori")
   
   source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
   print(myName) 
@@ -81,14 +81,19 @@ getFiles <- function(myName, ...) {
                              data.table=FALSE, stringsAsFactors = FALSE)
   df.cc45 <- data.table::fread(paste(inPath, inFolder, fileNameCC45, sep = "/"),
                                data.table=FALSE, stringsAsFactors = FALSE)
-  df.cc85 <- data.table::fread(paste(inPath, inFolder, fileNameCC45, sep = "/"),
+  df.cc85 <- data.table::fread(paste(inPath, inFolder, fileNameCC85, sep = "/"),
                                data.table=FALSE, stringsAsFactors = FALSE)
   # Get values for wind speed and temps sum
   df.raster <-   data.table::fread(paste(inPath, inFolder, "raster", fileNameRST, sep = "/"),
                                    data.table=FALSE, stringsAsFactors = FALSE)
   # filter the stands:
   # keep  only the overlapping standid
-  shared.stands = intersect(unique(df.no$id), unique(df.raster$standid))
+  shared.stands = Reduce(intersect, 
+                         list(unique(df.no$id),
+                              unique(df.raster$standid),
+                              unique(df.cc45$id),
+                              unique(df.cc85$id)))
+  
   
   # Subset df.raster data to only simulated stands
   df.raster <- df.raster %>% 
@@ -122,6 +127,10 @@ getFiles <- function(myName, ...) {
   
   # Get initial year: 2015 based on SA values in 2016 ------------------------
   df.ls.ini <- lapply(df.ls, addInitialYear)
+  
+  # Test data: in CC visible in Raasepori???
+ # lapply(df.ls.ini, function(df) df %>% group_by(name) %>%  
+  #         summarise(my_m = mean(H_dom, na.rm = TRUE)))
 
   # Classify thinning values ---------------------------------------------
   df.ls.thin = lapply(df.ls.ini, classifyTHIN)
