@@ -123,10 +123,12 @@ df.ls3 <- lapply(df.ls2, function(df, ...)  {
 df.out <- do.call(rbind, df.ls3)
 
 
-# test if I have affect of climate change??
+# test if I have affect of climate change?? 
+# seems taht now is ok, althought there are still NA values in raasepori
 df.out %>% 
   group_by(name) %>% 
-  summarise(my_y = mean(windRisk, na.rm = F))
+  summarise(my_y = mean(windRisk, na.rm = T),
+            m_H = mean(H_dom, na.rm = F))
 
 # problem in CC85 nad in Raasepuri! check how oriinal data are generated
 # !!! need to check: how many variation of regimes I have? Should be ~5 variations?
@@ -138,31 +140,6 @@ df.out %>%
   #arrange(year) %>% 
   print(n = 200)
 
-# classification was correct
-
-# CHeck if all regimes have 3 climate change scenarios  -----------------------------------
-df.out %>% 
-  group_by(regime, siteName) %>% 
-  distinct(climChange) %>%
-  #arrange(year) %>% 
-  print(n = 200)
-
-
-# Do I have a variation between CC scenarios and sites?
-# calculate means of H_dom 
-df.out %>% 
-  group_by(regime, climChange, year) %>% 
-  filter(H_dom < quantile(H_dom, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
-  filter(mainType == "BAU")  %>%  # filter out data above certain percentile
-  summarize(H_mean = mean(H_dom, rm.na = TRUE)) %>% 
-  ggplot(aes(x = year,
-             y = H_mean,
-             color = climChange,
-             group = climChange)) + 
-  geom_line() #+
-  facet_grid(climChange~ siteName)
-
-# There is an error in data: somehow the cc45 is always missing - need to go to input data why
 
 # add Geo gradient:
 df.out <- df.out %>% 
@@ -209,12 +186,138 @@ df.out$geo_grad <-factor(df.out$geo_grad,
 
 # all have thinings if not specified otherwise 
 
+# Do I have a variation between CC scenarios and sites?
+# calculate means of H_dom 
+my_shade_pt <- function() {
+  list(
+    geom_ribbon(
+      data = ~ pivot_wider(., 
+                           names_from = climChange, 
+                           values_from = my_y),
+      aes(ymin = no, 
+          ymax = cc85, 
+          fill = change_time), alpha = 0.2),
+      geom_line(aes(y = my_y,
+                    color = change_time,     
+                    linetype = climChange),
+                lwd  = 1),
+      scale_linetype_manual(values=c('dotted', 'solid', 'dashed')),
+      theme_bw(),
+      facet_grid(mainType ~ modif),
+      theme(legend.position = 'bottom',
+            axis.text.x = element_text(angle = 90, 
+                                       vjust = 0.5, 
+                                       face="plain", 
+                                       size = 9, 
+                                       family = "sans"))
+      )
+}
 
-# is BAU really without thinning??? - BAU contains thinning
+
+# Make a plot: how does Climate change and regime modification affect wind damage risk?
+windows()
 df.out %>% 
-  filter(regime == "BAUwT_GTR") %>% 
-  distinct(THIN) #%>% 
-  #nrow()
+  filter(geo_grad == "north") %>% 
+  #filter(mainType == "BAU") %>%  
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
+  group_by(year, climChange, change_time, modif, mainType ) %>% 
+  summarise(my_y = mean(windRisk, na.rm = T)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = year )) +
+  my_shade_pt() 
+
+
+# Make simple point with poit range:
+# consider change = adaptation, climate change and gradient
+df.out %>% 
+  filter(mainType != "CCF" | mainType != "SA") %>% 
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  group_by(geo_grad, climChange, change_time,  modif ) %>% # modif,
+  summarise(my_y = mean(windRisk, na.rm = T)) %>%
+  ggplot(aes(x = change_time,
+             y = my_y,
+             #shape = climChange,
+             color = climChange)) +
+    geom_point() + 
+  facet_grid(.~geo_grad)
+
+
+# Chech the changes in mean Age over the landscape given adaptation regime?
+df.out %>% 
+  filter(mainType != "CCF" | mainType != "SA") %>% 
+  filter(Age < quantile(Age, 0.95, na.rm = T))  %>%  
+  group_by(geo_grad, climChange, change_time,  modif ) %>% # modif,
+  summarise(my_y = mean(Age, na.rm = T)) %>%
+  ggplot(aes(x = change_time,
+             y = my_y,
+             #shape = climChange,
+             color = climChange)) +
+  geom_point() + 
+  ylab("Age") +
+  facet_grid(.~geo_grad)
+
+
+# Compare age between 2016-2111?
+windows()
+df.out %>% 
+  filter(year == 2016) %>% 
+  filter(mainType != "CCF" | mainType != "SA") %>% 
+  #filter(Age < quantile(Age, 0.95, na.rm = T))  %>%  
+  group_by(geo_grad, climChange, change_time,  modif ) %>% # modif,
+  summarise(my_y = mean(Age, na.rm = T)) %>%
+  ggplot(aes(x = change_time,
+             y = my_y,
+             #shape = climChange,
+             color = climChange)) +
+  geom_point() + 
+  ylab("Age 2016") +
+  facet_grid(.~geo_grad) +
+  ylim(0,120)
+
+
+windows()
+df.out %>% 
+  filter(year == 2111) %>% 
+  filter(mainType != "CCF" | mainType != "SA") %>% 
+  #filter(Age < quantile(Age, 0.95, na.rm = T))  %>%  
+  group_by(geo_grad, climChange, change_time,  modif ) %>% # modif,
+  summarise(my_y = mean(Age, na.rm = T)) %>%
+  ggplot(aes(x = change_time,
+             y = my_y,
+             #shape = climChange,
+             color = climChange)) +
+  geom_point() + 
+  ylab("Age 2111") +
+  ylim(0,120) +
+  facet_grid(.~geo_grad)
+
+
+
+
+
+
+
+# check out for conservation values: N_where_D_gt_40
+df.out %>% 
+  filter(mainType != "CCF" | mainType != "SA") %>% 
+  filter(N_where_D_gt_40 < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  group_by(geo_grad, climChange, change_time,  modif ) %>% # modif,
+  summarise(my_y = mean(windRisk, na.rm = T)) %>%
+  ggplot(aes(x = change_time,
+             y = my_y,
+             #shape = climChange,
+             color = climChange)) +
+  geom_point() + 
+  facet_grid(.~geo_grad)
+
+
+
+
+
+
+
+
+
 
 # BAU has thinnings;
 # check if all regimes have thinings??
@@ -280,7 +383,7 @@ df.out %>%
             oldT.mean  = mean(N_where_D_gt_40, na.rm = T))#  %>%
   
 
-# where are the old tree values messing???
+# where are the old tree values missing???
 df.out %>% 
   group_by(siteName, climChange) %>% 
   summarize(oldT.mean  = mean(N_where_D_gt_40, na.rm = T))
@@ -329,19 +432,6 @@ df.out %>%
   #geom_point() + 
   geom_line() + 
   facet_grid(climChange~thinning)
-
-
-df.out %>%  
-  filter(siteName == "Korsnas" & mainType == "BAU") %>% 
-  group_by(change_time, climChange, thinning, regime) %>% 
-  summarize(my.y = mean(N_where_D_gt_40, na.rm = T)) %>% 
-  ggplot(aes(y = my.y,
-             x = change_time,
-             group = interaction(climChange, thinning),
-             color = interaction(climChange, thinning))) + 
-  geom_point() + 
-  geom_line() 
-
 
 
 
@@ -557,15 +647,15 @@ df.out %>%
 # get shaded region  ----------------------------------------------
 # Get the line plot, for one regime over years
 windows()
-df.out2 %>% 
+df.out %>% 
   filter(mainType == "BAU" & modif == "extended" ) %>%  #
   #filter(mainType == "BAU") %>% 
   group_by(year, climChange, change_time, modif) %>% 
   summarise(my_y = mean(windRisk, na.rm = T)) %>% 
-  arrange(year, change_time) %>% 
-  print(n = 80) #%>% 
+  #arrange(year, change_time) %>% 
+  #print(n = 80) #%>% 
    
-  ungroup() #%>% 
+  ungroup() %>% 
   ggplot(aes(x = year )) +
   #geom_line(aes(y = my_y))
   geom_ribbon(
