@@ -165,6 +165,44 @@ df.out$geo_grad <-factor(df.out$geo_grad,
                            levels = c("south", "center", "north"))
 
 
+# HOw to fill in stands structure to have a continuous landscape every time?
+# use my main category
+# can I reuse values for missing fatds from BAU no change (time_change = 0)
+# for specific climate change scenarios?
+df.out %>% 
+  filter(year == 2016 & regime == "BAU_") %>% # "SA_DWextract") %>% #"BAU_") %>% # SA_DWextract
+  #group_by(siteName,  climChange) %>% 
+  distinct(id) #%>% 
+# 790 unique stands for SA
+# 618 unique sites with BAU_ in 2106 ~ 80% stands under management
+# why? are they not productive or what?
+# let's check the values for stands under SA and under BAU in 2016!
+windows()
+df.out %>% 
+  filter(year == 2016 & (regime == "BAU_"| regime == "SA_DWextract")) %>% #"BAU_") %>% # SA_DWextract
+  ggplot(aes(x = regime,
+             y = H_dom,
+             fill = regime)) +
+  geom_boxplot() +
+  facet_grid(.~geo_grad)
+
+
+windows()
+df.out %>% 
+  filter(year == 2016 & (regime == "BAU_"| regime == "SA_DWextract")) %>% #"BAU_") %>% # SA_DWextract
+  ggplot(aes(x = regime,
+             y = BA,
+             fill = regime)) +
+  geom_boxplot() +
+  facet_grid(.~geo_grad)
+
+
+
+
+# 1836 # BAU_
+# 2370 # SA
+# how many stands in total?
+length(unique(df.out$id)) # only 790 stands
 
 
 
