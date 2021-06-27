@@ -148,8 +148,6 @@ df.out <- df.out %>%
     grepl("Raasepori", siteName) ~ "south",
     grepl("Simo", siteName) ~ "north" ))
 
-
-# filte all NA values introduced due to merging 
  
 
 # Change order of change time---------------------------------------
@@ -196,6 +194,25 @@ df.out %>%
   geom_boxplot() +
   facet_grid(.~geo_grad)
 
+# check for final year??
+windows()
+df.out %>% 
+  filter(year == 2111 & (regime == "BAU_"| regime == "SA_DWextract")) %>% #"BAU_") %>% # SA_DWextract
+  ggplot(aes(x = regime,
+             y = H_dom,
+             fill = regime)) +
+  geom_boxplot() +
+  facet_grid(.~geo_grad)
+
+
+windows()
+df.out %>% 
+  filter(year == 2111 & (regime == "BAU_"| regime == "SA_DWextract")) %>% #"BAU_") %>% # SA_DWextract
+  ggplot(aes(x = regime,
+             y = BA,
+             fill = regime)) +
+  geom_boxplot() +
+  facet_grid(.~geo_grad)
 
 
 
@@ -347,6 +364,36 @@ df.out %>%
              color = climChange)) +
   geom_point() + 
   facet_grid(.~geo_grad)
+
+
+
+
+# Make XY scatter plot: wind risk vs. biodiversity?
+df.out %>% 
+  filter(year == 2016 |year == 2111 ) %>% 
+  filter(mainType != "CCF" | mainType != "SA") %>% 
+  group_by(geo_grad, climChange,   modif, year ) %>% # modif, change_time,
+  summarise(m_risk = mean(windRisk, na.rm = T),
+            m_Age  = mean(Age, na.rm = T),
+            m_HSI  = mean(COMBINED_HSI, na.rm = T))  %>%
+  ggplot(aes(x = m_HSI,
+             y = m_risk )) +
+  geom_point(aes(color = climChange)) +
+  facet_grid(year ~geo_grad)
+  
+
+
+# Calculate teh % on change: compare specific BAU scenario
+# get % of change given adaptation, climate change and adaptation+ climaChange
+# only for Korsnas
+unique(df.out$mainType)
+
+
+
+
+
+
+
 
 
 
