@@ -389,6 +389,47 @@ df.out %>%
 unique(df.out$mainType)
 
 
+# Get a unique reference: this varyu by group of harvest (Kyle's colors)
+# Keep the reference value separated, as later I need to add the means to mean value of change
+# my reference is BAU, no clim change and change_time = 0
+df.bau.ref <- 
+  df.out %>%
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
+  filter(siteName == "Korsnas" & mainType == "BAU" & climChange == "no" & change_time == "0") %>% 
+  group_by(year, change_time, climChange, regime) %>% 
+  summarize(w_risk_ref = mean(windRisk, na.rm = T))  %>% 
+  ungroup() %>% 
+  dplyr::select(year, w_risk_ref)
+
+
+# get table for other values to calculate the change
+#df.bau.ch <- 
+  df.out %>%  
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
+  filter(siteName == "Korsnas" & mainType == "BAU" & climChange != "no" & change_time != "0") %>% 
+  group_by(year, modif, climChange, change_time) %>% 
+  summarize(w.mean = mean(windRisk, na.rm = T))   %>%
+  left_join(df.bau.ref, by = "year") %>% 
+  mutate(perc_ch = w.mean / w_risk_ref*100 -100 )   %>%    # calculate percentage change
+  ungroup()  %>% 
+  #print(n = 50)
+    ggplot(aes(x = year)) +  # ,
+    #y = perc_ch
+    #geom_ribbon(
+    #  data = ~ pivot_wider(., 
+    #                       names_from = climChange, 
+    #                       values_from = perc_ch),
+    #  aes(ymin = cc85, 
+    #      ymax = cc45, 
+    #      fill = change_time), 
+    #  alpha = 0.2) +
+    geom_line(aes(y = perc_ch,
+                  color = change_time,
+                  linetype = climChange),
+              lwd  = 1)  +
+    facet_grid(.~change_time)
+   
+
 
 
 
