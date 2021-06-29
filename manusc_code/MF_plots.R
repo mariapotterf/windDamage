@@ -37,6 +37,13 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
 
 #source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
+# Install the fonts as Arial' was not available for the EPS format
+# https://stackoverflow.com/questions/57484998/installing-fonts-so-that-r-postscript-device-can-recognise-them
+#library(extrafont)
+
+#font_import()
+
+
 
 # Set wd ------------------------------------------------------------------
 
@@ -51,7 +58,7 @@ df <- fread(paste(getwd(), "finalFoPlotting.csv", sep = "/"))
 # change windRisk to probabilities: multiply by 100%
 df$windRisk = df$windRisk*100
 
-
+pathManuscript = "C:/Users/mpotterf/OneDrive - Jyväskylän Yliopisto/MyPapers/2020_multifunctionnality_windRisk/figures"
 
 # Get raster data from Suvanto --------------------------------------------
 
@@ -81,8 +88,10 @@ df_comp <- rbind(suvanto_df,
                  df_risk  )
 
 # make a plot
-windows(width = 3, height = 2.5)
-ggplot(df_comp, aes(x = Source,
+
+#windows(width = 3, height = 2.5)
+p1<-
+  ggplot(df_comp, aes(x = Source,
                     y = windRisk,
                     fill = Source,
                     group = Source)) + 
@@ -101,14 +110,25 @@ ggplot(df_comp, aes(x = Source,
                                     size=0.5, 
                                     linetype="solid"),
         panel.grid.major = element_line(colour = "grey90"),
-        axis.title  = element_text(size = 10, face="plain", family = "sans"),
-        axis.text.x = element_text(angle = 0, vjust = 0.5, face="plain", size = 9, family = "sans"),
-        axis.text.y = element_text(face="plain", size = 9, family = "sans"))
+        axis.title  = element_text(size = 10, face="plain", family = "Arial"),
+        axis.text.x = element_text(angle = 0, vjust = 0.5, face="plain", size = 9, family = "Arial"),
+        axis.text.y = element_text(face="plain", size = 9, family = "Arial")) #%>% 
+
+
+ggsave(file = "Fig3.pdf", 
+       path = pathManuscript,
+       plot = p1,
+       device = "pdf",
+       dpi = 300,
+       width = 3,
+       height = 2.5,
+       units = "in")
 
 
 
 
-
+# 2021/06/29
+# EPS export does not work, export everything into pdf
 
 
 # Classify NPI values into categories -------------------------------------
@@ -188,9 +208,9 @@ my_pt_plot <- function() {
                                         linetype="solid"),
             panel.grid.major = element_line(colour = "grey90"),
            # axis.title.x = element_blank(),
-            axis.title  = element_text(size = 10, face="plain", family = "sans"),
-            axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
-            axis.text.y = element_text(face="plain", size = 9, family = "sans"))
+            axis.title  = element_text(size = 10, face="plain"), # , family = "Arial"
+            axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9), # , family = "Arial"
+            axis.text.y = element_text(face="plain", size = 9))  # , family = "Arial"
     
   )
 }
@@ -248,7 +268,10 @@ p.MF_V <-
 
 
 # Merge MF plots together --------------------------
-windows(height = 3.2, width = 7)
+#windows(height = 3.2, width = 7)
+
+
+# Export pdf wit two pages, but then in Adobe i set 'remove empty pages'
 ggarrange(p.MF.npi, p.MF.risk, p.MF_V, 
           nrow = 1, ncol = 3,  
           common.legend = TRUE,
@@ -261,7 +284,10 @@ ggarrange(p.MF.npi, p.MF.risk, p.MF_V,
           vjust = 2,
           font.label = list(size = 10, 
                             face = "plain", 
-                            color ="black"))
+                            color ="black"))  %>%
+  ggexport(filename = paste(pathManuscript, "Fig4.pdf", sep = "/"),
+           height = 3.2, 
+           width = 7)
 
 
 
@@ -289,10 +315,10 @@ my_ln_plot <- function() {
                                         size=0.5, 
                                         linetype="solid"),
             panel.grid.major = element_line(colour = "grey95"),
-            axis.title   = element_text(size = 10, face="plain", family = "sans"),
+            axis.title   = element_text(size = 10, face="plain"), #
             axis.title.y = element_blank(),
-            axis.text.x  = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
-            axis.text.y  = element_text(face="plain", size = 9, family = "sans"),
+            axis.text.x  = element_text(angle = 90, vjust = 0.5, face="plain", size = 9), # , family = "Arial"
+            axis.text.y  = element_text(face="plain", size = 9), # , family = "Arial"
             legend.position = "right",
             strip.background =element_rect(fill="white", 
                                            color = NA))
@@ -331,9 +357,11 @@ p.vol <- df2 %>%
 
 
 # Plot wind risk and timber volume ----------------------------------------
+#pdf(paste(pathManuscript, "Fig_5.pdf", sep = "/"), 
+ #   width = 6.5, height = 6)
 
 
-windows(height = 6, width = 6.5)
+#windows(height = 6, width = 6.5)
 ggarrange(p.risk, p.vol, 
           nrow = 2, ncol = 1,  
           common.legend = TRUE,
@@ -345,7 +373,11 @@ ggarrange(p.risk, p.vol,
          # vjust = 2,
           font.label = list(size = 10, 
                             face = "plain", 
-                            color ="black"))
+                            color ="black")) %>% 
+  ggexport(filename = paste(pathManuscript, "Fig5.pdf", sep = "/"),
+           height = 6, 
+           width = 6.5)
+           
 
 
 
@@ -489,7 +521,11 @@ ggarrange(p.spruce, p.H_dom, p.thin, p.nbrs.diff,
           # vjust = 2,
           font.label = list(size = 10, 
                             face = "plain", 
-                            color ="black"))
+                            color ="black")) %>% 
+  ggexport(filename = paste(pathManuscript, "Fig6.pdf", sep = "/"),
+           height = 4.3, 
+           width = 7)
+
 
 
 
