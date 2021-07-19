@@ -130,9 +130,6 @@ df.out %>%
   summarise(my_y = mean(windRisk, na.rm = T),
             m_H = mean(H_dom, na.rm = F))
 
-# problem in CC85 nad in Raasepuri! check how oriinal data are generated
-# !!! need to check: how many variation of regimes I have? Should be ~5 variations?
-# check by mainType category
 
 df.out %>% 
   group_by(mainType) %>% 
