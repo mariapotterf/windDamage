@@ -160,6 +160,9 @@ df.out$geo_grad <-factor(df.out$geo_grad,
                            levels = c("south", "center", "north"))
 
 
+
+# Check initial conditions ------------------------------------------------
+
 # HOw to fill in stands structure to have a continuous landscape every time?
 # use my main category
 # can I reuse values for missing fatds from BAU no change (time_change = 0)
@@ -203,8 +206,10 @@ df.out %>%
 
 
 windows()
+# Make sure that each stand have only one regime???
 df.out %>% 
   filter(year == 2111 & (regime == "BAU_"| regime == "SA_DWextract")) %>% #"BAU_") %>% # SA_DWextract
+  #distinct(regime)
   ggplot(aes(x = regime,
              y = BA,
              fill = regime)) +
@@ -221,6 +226,58 @@ length(unique(df.out$id)) # only 790 stands
 
 
 
+# Filter only the stands that have all regimes ----------------------------
+
+head(df.out)
+# Filter rows by groups: https://stackoverflow.com/questions/65110401/r-dplyr-filter-common-values-by-group
+
+
+
+regime = c("a", "a", "a",
+          "b", "b", "b",
+          "c", "c", "c")
+id = c(1,2,4,
+        8,4,5,
+        1,3, 4)
+
+dd <- data.frame(regime,
+                 id)
+
+
+
+dd %>%
+  group_by(id) %>%
+  filter(n_distinct(regime) == n_distinct(regime))
+  #filter(n_distinct(regime))
+
+
+# Here it seems that every stand has  all regimes? for KOrsnas?
+
+
+# Filter only stands that have all regimes
+# how many regimes has each stand??? --------------------------------------------------------------------
+
+
+
+# number of stands in KOrsnas;
+df.out %>% 
+  filter(siteName == "Korsnas" & climChange == "no" & regime == "BAUwT_30") %>% 
+  dplyr::select(id, year, H_dom,  siteName, climChange,regime ) %>% 
+ # print(n = 80)
+  distinct(id) #%>% 
+  #nrow()
+# 297
+
+
+#df2<-
+  df.out %>% 
+  filter(siteName == "Korsnas" & climChange == "no" & regime == "CCF_4") %>% 
+ #   nrow()
+  group_by(id) %>%
+  filter(n_distinct(regime) == n_distinct(df.out$regime)) %>% 
+    distinct(id)
+  
+  
 
 
 # Test hypotheses:  --------------------------------------------------------
@@ -282,7 +339,7 @@ df.out %>%
 # Make simple point with poit range:
 # consider change = adaptation, climate change and gradient
 df.out %>% 
-  filter(mainType != "CCF" | mainType != "SA") %>% 
+  filter(mainType != "CCF" & mainType != "SA") %>% 
   filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
   group_by(geo_grad, climChange, change_time,  modif ) %>% # modif,
   summarise(my_y = mean(windRisk, na.rm = T)) %>%
@@ -294,19 +351,79 @@ df.out %>%
   facet_grid(.~geo_grad)
 
 
-# Chech the changes in mean Age over the landscape given adaptation regime?
+# why is no adaptation always higher then adaptation?? 
+# What is the stand age given adaptation?
+
 df.out %>% 
-  filter(mainType != "CCF" | mainType != "SA") %>% 
-  filter(Age < quantile(Age, 0.95, na.rm = T))  %>%  
-  group_by(geo_grad, climChange, change_time,  modif ) %>% # modif,
+  filter(geo_grad == "center" & (mainType != "CCF" & mainType != "SA") & year == 2016) %>% 
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  sample_n(5000) %>% 
+ # group_by(geo_grad, climChange, change_time,  modif ) %>% # modif,
+ # summarise(mean_risk = mean(windRisk, na.rm = T),
+  #          mean_age = mean(Age, na.rm = T)) %>%
+  ggplot(aes(x = windRisk,
+             y = Age)) +
+  geom_point(alpha = 0.2) + 
+  geom_smooth(method = "gam") + 
+  facet_grid(.~change_time)
+  
+
+
+
+# Plot risk vs  biodiversity ----------------------------------------------
+
+df.out %>% 
+  filter((mainType != "CCF" & mainType != "SA")) %>% # geo_grad == "center" & 
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+ # sample_n(5000) %>% 
+  ggplot(aes(x = windRisk,
+             y = COMBINED_HSI,
+             group = interaction(climChange, thinning),
+             col = interaction(climChange, thinning))) +
+  #geom_point(alpha = 0.2) + 
+  scale_color_manual(values = c("red",  "red",  "red", "black", "black", 'black')) +
+  geom_smooth(method = "gam") + 
+  facet_grid(geo_grad~modif) + 
+  ggtitle('Center')
+
+
+
+# Chech the changes in mean Age over the landscape given adaptation regime?
+windows(7,2.5)
+df.out %>% 
+  filter(year !=  2015) %>% 
+  #filter(geo_grad == "center" ) %>% #
+#  filter(Age < quantile(Age, 0.95, na.rm = T))  %>%  
+  group_by(geo_grad, climChange, modif,  year) %>% # modif, change_time
   summarise(my_y = mean(Age, na.rm = T)) %>%
-  ggplot(aes(x = change_time,
-             y = my_y,
-             #shape = climChange,
-             color = climChange)) +
-  geom_point() + 
-  ylab("Age") +
+  ggplot(aes(x = year,
+             y = my_y)) +
+  geom_line(aes(linetype = climChange,
+                color =  modif ),
+             lwd = 1) + 
+  ylab("Mean age\n (landscape)") +
+  ylim(0,100) + 
   facet_grid(.~geo_grad)
+
+
+
+# check wind damage risk?
+windows(7,2.5)
+df.out %>% 
+  filter(year !=  2015) %>% 
+  #filter(geo_grad == "center" ) %>% #
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  group_by(geo_grad, climChange, modif,  year) %>% # modif, change_time
+  summarise(my_y = mean(windRisk, na.rm = T)) %>%
+  ggplot(aes(x = year,
+             y = my_y)) +
+  geom_line(aes(linetype = climChange,
+                color =  modif ),
+            lwd = 1) + 
+  ylab("Mean wind risk\n (landscape)") +
+  #ylim(0,100) + 
+  facet_grid(.~geo_grad)
+
 
 
 # Compare age between 2016-2111?
