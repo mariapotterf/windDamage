@@ -227,6 +227,7 @@ length(unique(df.out$id)) # only 790 stands
 
 
 # Filter only the stands that have all regimes ----------------------------
+# does not work??? 
 
 head(df.out)
 # Filter rows by groups: https://stackoverflow.com/questions/65110401/r-dplyr-filter-common-values-by-group
@@ -351,6 +352,73 @@ df.out %>%
   facet_grid(.~geo_grad)
 
 
+
+# Make plot with median annd quantiles:
+windows(7,2.5)
+df.out %>% 
+  filter(mainType != "CCF" & mainType != "SA") %>% 
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  ggplot() + 
+  stat_summary(mapping = aes(x = modif, #change_time
+                             y = windRisk,
+                             group = climChange,
+                             col = climChange),
+               fun.min = function(z) { quantile(z,0.25) },
+               fun.max = function(z) { quantile(z,0.75) },
+               fun = median,
+               position=position_dodge(width=0.4)) +
+  facet_grid(.~geo_grad) +
+  theme_classic()+
+  theme(legend.position = "bottom")
+
+
+
+
+# Make plot for HSI:
+windows(7,2.5)
+df.out %>% 
+  filter(mainType != "CCF" & mainType != "SA") %>% 
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  ggplot() + 
+  stat_summary(mapping = aes(x = modif, #change_time, 
+                             y = COMBINED_HSI,
+                             group = climChange,
+                             col = climChange),
+               fun.min = function(z) { quantile(z,0.25) },
+               fun.max = function(z) { quantile(z,0.75) },
+               fun = median,
+               position=position_dodge(width=0.4)) +
+  facet_grid(.~geo_grad) +
+  theme_classic()+
+  theme(legend.position = "bottom")
+
+
+
+# Put HSI and wind risk in one plot ass scatter plot, color by adaptation and clim change -------------------
+df.out %>% 
+  filter(mainType != "CCF" & mainType != "SA") %>% 
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  group_by(geo_grad, climChange, modif ) %>% # modif,
+  summarize(m.risk  = median(windRisk, na.rm = T),
+            m.HSI   = median(COMBINED_HSI, na.rm = T)) %>% 
+  ggplot(aes(x = m.HSI,
+             y = m.risk,
+             color =  climChange,
+             group = climChange,
+            # size = modif,
+             shape = modif)) +
+  geom_point(size = 2) + 
+  geom_line(aes(linetype = climChange)) +
+  xlim(0,1) +
+  ylim(0,0.04)+
+  facet_grid(.~geo_grad) + 
+  theme_classic()
+  
+
+
+
+
+
 # why is no adaptation always higher then adaptation?? 
 # What is the stand age given adaptation?
 
@@ -375,16 +443,16 @@ df.out %>%
 df.out %>% 
   filter((mainType != "CCF" & mainType != "SA")) %>% # geo_grad == "center" & 
   filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
- # sample_n(5000) %>% 
+  sample_n(5000) %>% 
   ggplot(aes(x = windRisk,
              y = COMBINED_HSI,
              group = interaction(climChange, thinning),
              col = interaction(climChange, thinning))) +
   #geom_point(alpha = 0.2) + 
-  scale_color_manual(values = c("red",  "red",  "red", "black", "black", 'black')) +
+  #scale_color_manual(values = c("red",  "red",  "red", "black", "black", 'black')) +
+ # scale_linetype_manual(values = c("dotted", 'dashed',  'solid')) +
   geom_smooth(method = "gam") + 
-  facet_grid(geo_grad~modif) + 
-  ggtitle('Center')
+  facet_grid(geo_grad~modif) 
 
 
 
