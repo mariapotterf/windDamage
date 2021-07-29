@@ -104,16 +104,17 @@ df.ls3 <- lapply(df.ls2, function(df, ...)  {
   df1 <- df %>%
       mutate(regime = replace(regime, regime == "BAU", "BAU_")) %>% # replace BAU to facilitate further classification
       mutate(mainType = case_when(
-        grepl("BAUwGTR"    , regime) ~ "BAUwGTR",
-        grepl("BAUwT_GTR"  , regime) ~ "BAUwT_GTR",
-        grepl("BAU_"       , regime) ~ "BAU",
-        grepl("BAUwT"      , regime) ~ "BAUwT",
-        grepl("BAUwoT"     , regime) ~ "BAUwoT",
-        grepl("SA"         , regime) ~ "SA",
-        grepl("CCF"        , regime) ~ "CCF")) %>%
+        grepl("BAUwGTR"     , regime) ~ "BAUwGTR",
+        grepl("BAUwT_GTR"   , regime) ~ "BAUwT_GTR",
+        grepl("BAU_"        , regime) ~ "BAU",
+        grepl("BAUwT"       , regime) ~ "BAUwT",
+        grepl("BAUwoT"      , regime) ~ "BAUwoT",
+        grepl("SA"          , regime) ~ "SA",
+        grepl("CCF"         , regime) ~ "CCF")) %>%
       mutate(thinning = case_when(
-        grepl("wG|wT", regime) ~ "thin_YES",
-        grepl("woT", regime) ~ "thin_NO",
+        grepl("wG|wT"       , regime) ~ "thin_YES",
+        grepl("woT"         , regime) ~ "thin_NO",
+        grepl("SA_DWextract", regime) ~ "thin_NO",
         TRUE~'thin_YES'))
   return(df1)
 })
@@ -123,22 +124,8 @@ df.ls3 <- lapply(df.ls2, function(df, ...)  {
 df.out <- do.call(rbind, df.ls3)
 
 
-# test if I have affect of climate change?? 
-# seems taht now is ok, althought there are still NA values in raasepori
-df.out %>% 
-  group_by(name) %>% 
-  summarise(my_y = mean(windRisk, na.rm = T),
-            m_H = mean(H_dom, na.rm = F))
 
-
-df.out %>% 
-  group_by(mainType) %>% 
-  distinct(regime) %>%
-  #arrange(year) %>% 
-  print(n = 200)
-
-
-# add Geo gradient:
+# add Geo gradient: -------------------
 df.out <- df.out %>% 
   mutate(geo_grad = case_when(
     grepl("Korsnas", siteName) ~ "center",
@@ -158,6 +145,7 @@ df.out$climChange <-factor(df.out$climChange,
 # Change order of change time---------------------------------------
 df.out$geo_grad <-factor(df.out$geo_grad, 
                            levels = c("south", "center", "north"))
+
 
 
 
@@ -281,6 +269,7 @@ df.out %>%
   
 
 
+  
 # Test hypotheses:  --------------------------------------------------------
 
 # select only Korsnas - do not put there N-S gradient
@@ -350,6 +339,44 @@ df.out %>%
              color = climChange)) +
     geom_point() + 
   facet_grid(.~geo_grad)
+
+
+
+# H1: for thinning included or not? need to set only to 'modif' not to 'time_change'
+# as thinnings does not have all categories
+df.out %>% 
+  filter(mainType != "CCF" & mainType != "SA") %>% 
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  group_by(geo_grad, climChange, modif, thinning ) %>% # modif,
+  summarise(my_y = mean(windRisk, na.rm = T)) %>%
+  ggplot(aes(x = modif,
+             y = my_y,
+             group = climChange,
+             color = climChange)) +
+  geom_point() + 
+  geom_line() +
+  facet_grid(thinning~geo_grad)
+
+
+
+
+# Make plot of wind risk over years?
+df.out %>% 
+  #filter(mainType != "CCF" & mainType != "SA") %>% 
+  filter(mainType == "SA") #%>% 
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  group_by(year, siteName, climChange, modif) %>% # modif,
+  summarise(my_y = mean(windRisk, na.rm = T)) #%>%
+  ggplot(aes(x = modif,
+             y = my_y,
+             group = climChange,
+             color = climChange)) +
+  geom_point() + 
+  geom_line() +
+  facet_grid(.~siteName)
+
+  
+  # !!! thinning_YES in main type SA? need to check!!! 2021/07/29
 
 
 
