@@ -361,24 +361,68 @@ df.out %>%
 
 
 # Make plot of wind risk over years?
+library(ggthemes)
+library("scales")
 df.out %>% 
-  #filter(mainType != "CCF" & mainType != "SA") %>% 
-  filter(mainType == "SA") #%>% 
+  filter(mainType == "CCF" | mainType == "BAU") %>% 
   filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
-  group_by(year, siteName, climChange, modif) %>% # modif,
-  summarise(my_y = mean(windRisk, na.rm = T)) #%>%
-  ggplot(aes(x = modif,
-             y = my_y,
-             group = climChange,
-             color = climChange)) +
-  geom_point() + 
-  geom_line() +
-  facet_grid(.~siteName)
+  group_by(year, geo_grad, climChange, modif, mainType) %>% # modif,
+  summarise(my_y = mean(windRisk, na.rm = T)) %>%
+  ggplot(aes(x = year)) +
+  geom_ribbon(data = ~ pivot_wider(.,
+                       names_from = climChange,
+                      values_from = my_y),
+  aes(ymin = no,
+     ymax = cc85,
+     fill = modif), alpha = 0.2)  +
+  geom_line(aes(y = my_y,
+              color = modif,     
+              linetype = climChange),
+          lwd  = 1) +
+  scale_linetype_manual(values=c('dotted', 'solid', 'dashed')) +
+  theme_bw() +
+  facet_grid(mainType ~ geo_grad) +
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(angle = 90, 
+                                 vjust = 0.5, 
+                                 face="plain", 
+                                 size = 9, 
+                                 family = "sans")) #
 
   
-  # !!! thinning_YES in main type SA? need to check!!! 2021/07/29
+  
+ 
+# get for HSi:
+df.out %>% 
+  filter(mainType == "CCF" | mainType == "BAU") %>% 
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  group_by(year, geo_grad, climChange, modif, mainType) %>% # modif,
+  summarise(my_y = mean(COMBINED_HSI, na.rm = T)) %>%
+  ggplot(aes(x = year)) +
+  geom_ribbon(data = ~ pivot_wider(.,
+                                   names_from = climChange,
+                                   values_from = my_y),
+              aes(ymin = no,
+                  ymax = cc85,
+                  fill = modif), alpha = 0.2)  +
+  geom_line(aes(y = my_y,
+                color = modif,     
+                linetype = climChange),
+            lwd  = 1) +
+  scale_linetype_manual(values=c('dotted', 'solid', 'dashed')) +
+  theme_bw() +
+  facet_grid(mainType ~ geo_grad) +
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(angle = 90, 
+                                   vjust = 0.5, 
+                                   face="plain", 
+                                   size = 9, 
+                                   family = "sans")) +
+  ylab("Combined HSI")
 
 
+# !!!!! make category for CCF as delayed! CCF_1 to CCF_4!
+# or make category 
 
 # Make plot with median annd quantiles:
 windows(7,2.5)
