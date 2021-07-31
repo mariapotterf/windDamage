@@ -92,6 +92,10 @@ df.ls2 <- lapply(df.ls1, function(df, ...)  {
       grepl("_20", regime)  ~ "20",
       grepl("_m5", regime)  ~ "-5",
       grepl("_m20", regime) ~ "-20",
+      grepl("CCF_1", regime)  ~ "-5",
+      grepl("CCF_2", regime)  ~ "0",
+      grepl("CCF_3", regime)  ~ "5",
+      grepl("CCF_4", regime)  ~ "10",
       TRUE~'0'))
   
   return(df1)
@@ -147,6 +151,35 @@ df.out$geo_grad <-factor(df.out$geo_grad,
                            levels = c("south", "center", "north"))
 
 
+
+
+# GEt time delay for CCF? -------------------------------------------------
+
+# check one stand, only for CCF variation
+# check when BA is lowred, and what is the age
+# get approaximate delay in time
+# for all clim change???
+df.out %>% 
+  filter(mainType == "CCF" & geo_grad == "center") %>% 
+  distinct(id)
+
+# select id = 28248101
+df.out %>% 
+  filter(mainType == "CCF" & geo_grad == "center" & id == "28248101" & climChange == "no") %>%
+ # distinct(climChange) 
+  ggplot(aes(x = year,
+             y = BA,
+             col = regime)) +
+  geom_line() +
+  scale_x_continuous(breaks = seq(2020, 2100, by = 10)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) #+
+  #facet_grid(.~regime)
+  #dplyr::select(year, Age, regime, BA, V) %>% 
+  #arrange(regime) 
+  #filter()
+
+# BA breaks: -3, 0, +3, +6 (basal area)
+# time_change -5, 0, 5, 10
 
 
 # Check initial conditions ------------------------------------------------
