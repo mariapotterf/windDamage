@@ -75,6 +75,9 @@ df.ls1 <- lapply(df.ls, function(df, ...) {
       grepl('_10' , regime) ~ 'extended',
       grepl('_15' , regime) ~ 'extended',
       grepl('_30' , regime) ~ 'extended',
+      grepl("CCF_1", regime)  ~ "shorten",
+      grepl("CCF_3", regime)  ~ "extended",
+      grepl("CCF_4", regime)  ~ "extended",
       TRUE~ 'normal')) 
     return(df1)
 }
@@ -152,11 +155,7 @@ df.out$geo_grad <-factor(df.out$geo_grad,
 
 
 
-
-# GEt time delay for CCF? -------------------------------------------------
-
-# check one stand, only for CCF variation
-# check when BA is lowred, and what is the age
+# Get time delay for CCF -----------------------------------------------
 # get approaximate delay in time
 # for all clim change???
 df.out %>% 
@@ -306,7 +305,7 @@ df.out %>%
 # Test hypotheses:  --------------------------------------------------------
 
 # select only Korsnas - do not put there N-S gradient
-# select only regimes to test my hypotheses: RF, adaptation, w/wo thinning
+# select only regimes to test my hypotheses: RF, adaptation, w/wo thinning, CCF
 # keep climate change
 # for old trees: use indicator N_where_D_gt_40
 # check for clarity just the last 30 years
@@ -349,14 +348,84 @@ my_shade_pt <- function() {
 # Make a plot: how does Climate change and regime modification affect wind damage risk?
 windows()
 df.out %>% 
-  filter(geo_grad == "north") %>% 
-  #filter(mainType == "BAU") %>%  
+  filter(geo_grad == "center") %>% 
+  filter(mainType == "BAU" | mainType == "CCF") %>%  
   filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
   group_by(year, climChange, change_time, modif, mainType ) %>% 
   summarise(my_y = mean(windRisk, na.rm = T)) %>% 
   ungroup() %>% 
   ggplot(aes(x = year )) +
-  my_shade_pt() 
+  my_shade_pt() +
+  ylab("wind risk")
+
+
+# for HSI
+windows()
+df.out %>% 
+  filter(geo_grad == "center") %>% 
+  filter(mainType == "BAU" | mainType == "CCF") %>%  
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
+  group_by(year, climChange, change_time, modif, mainType ) %>% 
+  summarise(my_y = mean(COMBINED_HSI, na.rm = T)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = year )) +
+  my_shade_pt() +
+  ylab("COMB_HSI")
+  
+
+
+# Make scatter plot: HSI vs wind risk given climChange 
+df.out %>% 
+  filter(geo_grad == "center") %>% 
+  filter(mainType == "BAU" | mainType == "CCF") %>%  
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
+  group_by(year, climChange, change_time, modif, mainType ) %>% 
+  summarise(my_risk = mean(windRisk, na.rm = T),
+            my_HSI  = mean(COMBINED_HSI, na.rm = T)) %>% 
+  #ungroup() %>% 
+  ggplot(aes(x = my_risk,
+             y = my_HSI,
+             col = mainType)) +
+  geom_point(alpha = 0.5)  +
+  facet_grid(climChange~modif)
+
+
+
+# Plot differences in HSI and risk given adaptation
+df.out %>% 
+  filter(geo_grad == "center" & climChange == "no") %>% 
+  filter(mainType == "BAU" | mainType == "CCF") %>%  
+  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  # filter out data above certain percentile
+  group_by(climChange, modif, mainType ) %>% 
+  summarise(my_risk = mean(windRisk, na.rm = T),
+            my_HSI  = mean(COMBINED_HSI, na.rm = T)) #%>% 
+  
+
+
+# Get % change between groups ---------------------------------------------------
+set.seed(5)
+dd <- data.frame(id = rep(c(1:4), 3),
+                 val = c(rnorm(4) +2,
+                         rnorm(4) +3,
+                         rnorm(4) +4),
+                 grp = rep(c("control", "ch1", "ch2"), each = 4))
+
+dd %>% 
+  group_by(grp) %>% 
+  summarise(my_mean = mean(val)) 
+
+dd %>% 
+  group_by(grp) %>% 
+  summarise(my_mean = mean(val)) %>%
+  mutate(perc_change = (my_mean - my_mean[grp == 'control'])/my_mean[grp == 'control']*100) %>% 
+
+ # mutate(perc_change = scales::percent((my_mean - my_mean[grp == 'control'])/my_mean[grp == 'control'])) %>% 
+  ggplot(aes(x = grp,
+             y = perc_change)) +
+  geom_col()
+
+
+
 
 
 # Make simple point with poit range:
