@@ -85,9 +85,30 @@ df.ls1 <- lapply(df.ls, function(df, ...) {
 }
    )
 
+# Consider GRT and CCF and thinning as as adaptation?
+df.ls2 <- lapply(df.ls1, function(df, ...) {
+  df1 <- df %>%
+    mutate(adapt = case_when(
+      grepl('_m5' , regime) ~ 'shorten',
+      grepl('_m20', regime) ~ 'shorten',
+      grepl('_5'  , regime) ~ 'extended',
+      grepl('_10' , regime) ~ 'extended',
+      grepl('_15' , regime) ~ 'extended',
+      grepl('_30' , regime) ~ 'extended',
+      grepl("CCF_1", regime)  ~ "CCF",
+      grepl("CCF_3", regime)  ~ "CCF",
+      grepl("CCF_4", regime)  ~ "CCF",
+      grepl("GTR", regime)  ~ "GTR",
+      TRUE~ 'normal')) 
+  return(df1)
+}
+)
+
+
+
 # Classify the type of regime, type of adjustement (extension or shortening) ----------------
 # and change in time (how many years) 
-df.ls2 <- lapply(df.ls1, function(df, ...)  {
+df.ls3 <- lapply(df.ls2, function(df, ...)  {
   df1 <- df %>%
     mutate(change_time = case_when(
       grepl("_15", regime)  ~ "15",
@@ -109,7 +130,7 @@ df.ls2 <- lapply(df.ls1, function(df, ...)  {
   
 # Add dominant regime ---------------------------------------------------------
 
-df.ls3 <- lapply(df.ls2, function(df, ...)  {
+df.ls4 <- lapply(df.ls3, function(df, ...)  {
   df1 <- df %>%
       mutate(regime = replace(regime, regime == "BAU", "BAU_")) %>% # replace BAU to facilitate further classification
       mutate(mainType = case_when(
@@ -130,7 +151,7 @@ df.ls3 <- lapply(df.ls2, function(df, ...)  {
 
 
 # Merge data together -----------------------------------------------
-df.out <- do.call(rbind, df.ls3)
+df.out <- do.call(rbind, df.ls4)
 
 
 
@@ -437,11 +458,12 @@ dd %>%
 
  
 
-# Lollipop charts: % change wind risk and HSI  -----------------------------------------------------------------------------
+# Lollipop charts: % change wind risk and HSI for shorten/extented -----------------------------------------------------------------------------
 
 # Calculate % change between means for BAu shortening/extension
 windows(5.5, 5.5)
 df.out %>% 
+ # filter(year > 2050) %>% 
   #filter(geo_grad == "center" ) %>% # & climChange == "no"
   filter(mainType != "SA" & mainType != "GTR" ) %>% # & climChange == "no"
   group_by(geo_grad, mainType, climChange, modif )%>% # modif,
@@ -461,7 +483,7 @@ df.out %>%
                     yend=perc_change,
                     col = modif)) +
   geom_point(aes(col = modif), size = 5) +
-  ylim(-15, 15) +
+#  ylim(-15, 15) +
   ylab("% Change in wind risk") +
    facet_grid(geo_grad~mainType) +
   theme(legend.position="bottom") 
@@ -472,6 +494,7 @@ df.out %>%
 
 # For combined HSI: 
 df.out %>% 
+ # filter(year > 2050) %>% 
  # filter(geo_grad == "center" ) %>% # & climChange == "no"
   filter(mainType != "SA" & mainType != "GTR" ) %>% # & climChange == "no"
   group_by(geo_grad, mainType, climChange, modif )%>% # modif,
@@ -497,13 +520,80 @@ df.out %>%
 
 
     
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# Lollipop charts: % change wind risk and HSI for shorten/extented/CCF/GRT -----------------------------------------------------------------------------
+
+# Calculate % change between means for BAu shortening/extension
+# # !!! need to check if correct % change values!!
+windows(5.5, 5.5)
+df.out %>% 
+ # filter(year > 2050) %>% 
+  filter(mainType != "SA"  ) %>% # & climChange == "no"  # & mainType != "GTR"
+  group_by(geo_grad, climChange, adapt ) %>% # modif,
+  summarise(my_y = mean(windRisk, na.rm = T)) %>%
+  mutate(control = my_y[adapt == "normal"],
+         perc_change = my_y/control * 100 - 100) %>%
+  filter(adapt != "normal") %>% 
+  mutate(adapt = factor(adapt, 
+                        levels = c("extended", "shorten", "GTR" ,"CCF" ))) %>% 
+  ggplot(aes(x = climChange,
+             y = perc_change,
+             fill = adapt)) +
+  geom_hline(yintercept = 0) +
+  geom_segment( aes(x= climChange, 
+                    xend= climChange, 
+                    y=0, 
+                    yend=perc_change,
+                    col = climChange)) +
+  geom_point(aes(col = climChange), size = 5) +
+  #  ylim(-15, 15) +
+  ylab("% Change in wind risk") +
+  facet_grid(geo_grad~adapt) +
+  theme(legend.position="bottom") 
+#theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+
+
+
+
+# For combined HSI: 
+# !!! need to check if correct % change values!!
+windows(5.5, 5.5)
+df.out %>% 
+  # filter(year > 2050) %>% 
+  filter(mainType != "SA"  ) %>% # & climChange == "no"  # & mainType != "GTR"
+  group_by(geo_grad, climChange, adapt ) %>% # modif,
+  summarise(my_y = mean(COMBINED_HSI, na.rm = T)) %>%
+  mutate(control = my_y[adapt == "normal"],
+         perc_change = my_y/control * 100 - 100) %>%
+  filter(adapt != "normal") %>% 
+  mutate(adapt = factor(adapt, 
+                        levels = c("extended", "shorten", "GTR" ,"CCF" ))) %>% 
+  ggplot(aes(x = climChange,
+             y = perc_change,
+             fill = adapt)) +
+  geom_hline(yintercept = 0) +
+  geom_segment( aes(x= climChange, 
+                    xend= climChange, 
+                    y=0, 
+                    yend=perc_change,
+                    col = climChange)) +
+  geom_point(aes(col = climChange), size = 5) +
+  #  ylim(-15, 15) +
+  ylab("% Change in HSI") +
+  facet_grid(geo_grad~adapt) +
+  theme(legend.position="bottom") 
+
+
+
+
+
 
   
   
   
   
 
-# Make simple point with poit range:
+# Make simple point with poit range: --------------------------------
 # consider change = adaptation, climate change and gradient
 df.out %>% 
   filter(mainType != "CCF" & mainType != "SA") %>% 
@@ -519,16 +609,7 @@ df.out %>%
 
 
 
-# Get just the effect of modification of rotation length on wind risk?
-df.out %>% 
-  filter(mainType == "BAU" & geo_grad == 'center') %>%
-  group_by(climChange, modif) %>% 
-  summarise(my_y = mean(windRisk, na.rm = T)) %>%
-  ggplot(aes(x = modif,
-             y = my_y,
-             color = climChange)) +
-  geom_pointrange()
-  
+
 
 
 
@@ -613,7 +694,7 @@ df.out %>%
 
 
 
-# Make plot with median annd quantiles:
+# Make plot with median annd quantiles: ----------------------------------
 windows(7,2.5)
 df.out %>% 
   filter(year == 2016) %>% 
@@ -633,7 +714,7 @@ df.out %>%
   theme(legend.position = "bottom")
 
 
-# how does the shortening affect tree age over landscape?
+# how does the shortening affect tree age over landscape? --------------------------------------
 # 
 windows(7,2.5)
 df.out %>% 
@@ -653,7 +734,7 @@ df.out %>%
 
 
 
-# Make plot for HSI:
+# Make median +- quantil plot for HSI: -------------------------------------------------
 windows(7,2.5)
 df.out %>% 
   filter(mainType != "CCF" & mainType != "SA") %>% 
@@ -673,9 +754,9 @@ df.out %>%
 
 
 
-# Put HSI and wind risk in one plot ass scatter plot, color by adaptation and clim change -------------------
+# Put HSI and wind risk in one plot as scatter plot, color by adaptation and clim change -------------------
 df.out %>% 
-  filter(mainType != "CCF" & mainType != "SA") %>% 
+  #filter(mainType != "CCF" & mainType != "SA") %>% 
   filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
   group_by(geo_grad, climChange, modif ) %>% # modif,
   summarize(m.risk  = median(windRisk, na.rm = T),
@@ -688,10 +769,9 @@ df.out %>%
              shape = modif)) +
   geom_point(size = 2) + 
   geom_line(aes(linetype = climChange)) +
-  xlim(0,1) +
-  ylim(0,0.04)+
-  facet_grid(.~geo_grad) + 
-  theme_classic()
+ # xlim(0,1) +
+ # ylim(0,0.04)+
+  facet_grid(.~geo_grad) 
   
 
 # Get differences in HSI and wind risk values given adaptation:
