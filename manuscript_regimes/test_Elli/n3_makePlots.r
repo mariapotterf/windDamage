@@ -89,13 +89,16 @@ df.ls1 <- lapply(df.ls, function(df, ...) {
 # Consider GRT and CCF and thinning as as adaptation?
 df.ls2 <- lapply(df.ls1, function(df, ...) {
   df1 <- df %>%
-    mutate(adapt = case_when(
-      grepl('_m5' , regime) ~ 'shorten',
-      grepl('_m20', regime) ~ 'shorten',
-      grepl('_5'  , regime) ~ 'extended',
-      grepl('_10' , regime) ~ 'extended',
-      grepl('_15' , regime) ~ 'extended',
-      grepl('_30' , regime) ~ 'extended',
+    mutate(adapt = case_when(   
+      regime == 'BAUwoT'     ~ 'woThin',
+      grepl('_m5' , regime)  ~ 'shorten',
+      grepl('_m20', regime)  ~ 'shorten',
+      grepl('_5'  , regime)  ~ 'extended',
+      grepl('_10' , regime)  ~ 'extended',
+      grepl('_15' , regime)  ~ 'extended',
+      grepl('_30' , regime)  ~ 'extended',
+
+      #grepl('_30' , regime) ~ 'woThin',
       grepl("CCF_1", regime)  ~ "CCF",
       grepl("CCF_3", regime)  ~ "CCF",
       grepl("CCF_4", regime)  ~ "CCF",
@@ -157,22 +160,6 @@ df.out <- do.call(rbind, df.ls4)
 # remove the 2015 year
 df.out <- df.out %>% 
   filter(year != 2015)
-
-# DOes BAUwGTR have thinnings?
-df.out %>% 
-  filter(regime == "BAUwGTR") %>% 
-  distinct(id) 
-  
-
-df.out %>% 
-  filter(regime == "BAUwGTR" & id == 29008597) %>% 
-  #distinct(id) # 29010995
-  dplyr::select(year, THIN, V)
-
-# BAUwGTR has thinings! very little but have them. Maybe I can calculate how many thinnings each regimes have and how does this 
-# changes with clim Change?
-
-  
 
 # add Geo gradient: -------------------
 df.out <- df.out %>% 
@@ -249,6 +236,24 @@ df.out %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) #+
 
 
+  
+  
+  # DOes BAUwGTR have thinnings? YES !----------------------------------------
+  df.out %>% 
+    filter(regime == "BAUwGTR") %>% 
+    distinct(id) 
+  
+  
+  df.out %>% 
+    filter(regime == "BAUwGTR" & id == 29008597) %>% 
+    #distinct(id) # 29010995
+    dplyr::select(year, THIN, V)
+  
+  # BAUwGTR has thinings! very little but have them. Maybe I can calculate how many thinnings each regimes have and how does this 
+  # changes with clim Change?
+  
+  
+  
 # Check initial conditions ------------------------------------------------
 
 # HOw to fill in stands structure to have a continuous landscape every time?
@@ -503,9 +508,9 @@ dd %>%
 
  
 
-# Lollipop charts: % change wind risk and HSI for shorten/extented -----------------------------------------------------------------------------
+# Lollipop charts: % change wind risk and HSI for shorten/extented -----------------------------------------------
 
-# Calculate % change between means for BAu shortening/extension
+# Calculate % change between means for BAu shortening/extension --------------------------------------------------
 windows(5.5, 5.5)
 df.out %>% 
  # filter(year > 2050) %>% 
@@ -598,15 +603,25 @@ df.out %>%
 
 
 
+
+# CHeck regimes without thinning? -----------------------------------------
+
+df.out %>% 
+  filter(adapt == "woThin") %>% 
+  distinct(regime)
+
+# seems correct; maybe exclude other woThin regimes? "BAUwoT_m20", "BAUwoT_10"      
+
     
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# Lollipop charts: % change wind risk and HSI for shorten/extented/CCF/GRT -----------------------------------------------------------------------------
+# Lollipop charts: % change wind risk and HSI for shorten/extented/CCF/woTHIN/GTR -----------------------------------------------------------------------------
+
 
 # Calculate % change between means for BAu shortening/extension
 # # !!! need to check if correct % change values!!
 windows(5.5, 5.5)
 df.out %>% 
- # filter(year > 2050) %>% 
+  filter(regime != "BAUwoT_m20" & regime != "BAUwoT_10") %>% 
   filter(mainType != "SA"  ) %>% # & climChange == "no"  # & mainType != "GTR"
   group_by(geo_grad, climChange, adapt ) %>% # modif,
   summarise(my_y = mean(windRisk, na.rm = T)) %>%
@@ -614,10 +629,9 @@ df.out %>%
          perc_change = my_y/control * 100 - 100) %>%
   filter(adapt != "normal") %>% 
   mutate(adapt = factor(adapt, 
-                        levels = c("extended", "shorten", "GTR" ,"CCF" ))) %>% 
+                        levels = c("extended", "shorten", 'woThin', "GTR" ,"CCF" ))) %>% 
   ggplot(aes(x = climChange,
-             y = perc_change,
-             fill = adapt)) +
+             y = perc_change)) +
   geom_hline(yintercept = 0) +
   geom_segment( aes(x= climChange, 
                     xend= climChange, 
@@ -625,6 +639,7 @@ df.out %>%
                     yend=perc_change,
                     col = climChange)) +
   geom_point(aes(col = climChange), size = 5) +
+  scale_color_grey() +
   #  ylim(-15, 15) +
   ylab("% Change in wind risk") +
   facet_grid(geo_grad~adapt) +
