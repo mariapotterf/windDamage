@@ -68,6 +68,7 @@ df.ls <- lapply(df.names, function(name, ...) data.table::fread(paste(inPath, in
 
 
 # Modify the structure of df ------------------------------------------------------
+# categories for modifications:
 df.ls1 <- lapply(df.ls, function(df, ...) {
     df1 <- df %>%
     mutate(modif = case_when(
@@ -134,9 +135,9 @@ df.ls4 <- lapply(df.ls3, function(df, ...)  {
   df1 <- df %>%
       mutate(regime = replace(regime, regime == "BAU", "BAU_")) %>% # replace BAU to facilitate further classification
       mutate(mainType = case_when(
-        grepl("BAUwGTR"     , regime) ~ "GTR",
-        grepl("BAUwT_GTR"   , regime) ~ "GTR",
-        grepl("BAU_"        , regime) ~ "BAU",
+        grepl("BAUwGTR"     , regime) ~ "GTRwT",
+        grepl("BAUwT_GTR"   , regime) ~ "GTRwT",
+        grepl("BAU_"        , regime) ~ "BAUwT",
         grepl("BAUwT"       , regime) ~ "BAUwT",
         grepl("BAUwoT"      , regime) ~ "BAUwoT",
         grepl("SA"          , regime) ~ "SA",
@@ -153,7 +154,25 @@ df.ls4 <- lapply(df.ls3, function(df, ...)  {
 # Merge data together -----------------------------------------------
 df.out <- do.call(rbind, df.ls4)
 
+# remove the 2015 year
+df.out <- df.out %>% 
+  filter(year != 2015)
 
+# DOes BAUwGTR have thinnings?
+df.out %>% 
+  filter(regime == "BAUwGTR") %>% 
+  distinct(id) 
+  
+
+df.out %>% 
+  filter(regime == "BAUwGTR" & id == 29008597) %>% 
+  #distinct(id) # 29010995
+  dplyr::select(year, THIN, V)
+
+# BAUwGTR has thinings! very little but have them. Maybe I can calculate how many thinnings each regimes have and how does this 
+# changes with clim Change?
+
+  
 
 # add Geo gradient: -------------------
 df.out <- df.out %>% 
