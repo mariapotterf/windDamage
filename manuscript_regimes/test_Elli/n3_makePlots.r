@@ -37,20 +37,22 @@ source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 
 # Set themes ----
 theme_set(theme_classic())
-theme_update(panel.grid.major = element_line(colour = "grey95",
+theme_update(panel.grid.major = element_line(colour = "grey95",  # background gridlines
                                              size = 0.1,
                                              linetype = 2),
-             strip.background = element_rect(color="grey95", 
-                                             fill="grey95",
+             strip.background = element_rect(color="white",      # headings for facets
+                                             fill="white",
                                              size=0.1, 
-                                             linetype="solid"))
+                                             linetype="solid"),
+             panel.background = element_rect(fill = "white",     # individual plots
+                                             colour = "grey50",
+                                             linetype = "solid"))
 
 
 
 
 
-# get data
-# ----------------------
+# Get data ------------------------------------------------------------------------------
 inPath = "C:/MyTemp/myGitLab/windDamage/manuscript_regimes"
 inFolder = "output_CC"
 #outFolder = 'output_CC'
@@ -62,10 +64,10 @@ df.ls <- lapply(df.names, function(name, ...) data.table::fread(paste(inPath, in
                                                            data.table=FALSE, stringsAsFactors = FALSE))
 
 
-lapply(df.ls, function(df) unique(df$siteName))
+# lapply(df.ls, function(df) unique(df$siteName))
 
 
-# modify the structure of df
+# Modify the structure of df ------------------------------------------------------
 df.ls1 <- lapply(df.ls, function(df, ...) {
     df1 <- df %>%
     mutate(modif = case_when(
@@ -83,8 +85,8 @@ df.ls1 <- lapply(df.ls, function(df, ...) {
 }
    )
 
-# Classify the type of regime, type of adjustement (extension or shortening)
-# and change in time (how many years)
+# Classify the type of regime, type of adjustement (extension or shortening) ----------------
+# and change in time (how many years) 
 df.ls2 <- lapply(df.ls1, function(df, ...)  {
   df1 <- df %>%
     mutate(change_time = case_when(
@@ -105,7 +107,7 @@ df.ls2 <- lapply(df.ls1, function(df, ...)  {
 
 } )
   
-# add dominant regime
+# Add dominant regime ---------------------------------------------------------
 
 df.ls3 <- lapply(df.ls2, function(df, ...)  {
   df1 <- df %>%
@@ -127,7 +129,7 @@ df.ls3 <- lapply(df.ls2, function(df, ...)  {
 })
 
 
-# Merge data together
+# Merge data together -----------------------------------------------
 df.out <- do.call(rbind, df.ls3)
 
 
@@ -135,9 +137,9 @@ df.out <- do.call(rbind, df.ls3)
 # add Geo gradient: -------------------
 df.out <- df.out %>% 
   mutate(geo_grad = case_when(
-    grepl("Korsnas", siteName) ~ "center",
+    grepl("Korsnas", siteName)   ~ "center",
     grepl("Raasepori", siteName) ~ "south",
-    grepl("Simo", siteName) ~ "north" ))
+    grepl("Simo", siteName)      ~ "north" ))
 
  
 
@@ -317,7 +319,7 @@ df.out %>%
 
 # all have thinings if not specified otherwise 
 
-# Do I have a variation between CC scenarios and sites?
+# Do I have a variation between CC scenarios and sites? -------------------------------------------------------------------
 # calculate means of H_dom 
 my_shade_pt <- function() {
   list(
@@ -435,7 +437,7 @@ dd %>%
 
  
 
-# Lollipop charts -----------------------------------------------------------------------------
+# Lollipop charts: % change wind risk and HSI  -----------------------------------------------------------------------------
 
 # Calculate % change between means for BAu shortening/extension
 windows(5.5, 5.5)
@@ -462,7 +464,8 @@ df.out %>%
   ylim(-15, 15) +
   ylab("% Change in wind risk") +
    facet_grid(geo_grad~mainType) +
-  theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+  theme(legend.position="bottom") 
+  #theme(panel.background = element_rect(fill = "white", colour = "grey50"))
 
   
 
@@ -490,9 +493,7 @@ df.out %>%
   geom_point(aes(col = modif), size = 5) +
  # ylim(-15, 15) +
   ylab("% change in HSI") +
-  facet_grid(geo_grad~mainType) +
-  theme(panel.background = element_rect(fill = "white", colour = "grey50"))
-
+  facet_grid(geo_grad~mainType) 
 
 
     
