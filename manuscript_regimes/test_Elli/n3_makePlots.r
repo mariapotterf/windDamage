@@ -204,6 +204,32 @@ df.out %>%
 # time_change -5, 0, 5, 10
 
 
+
+
+#  Inspect CCF: does shortenig have more frequent thinnings? ---------------------------------
+# shorter CCF = more frequent thinnings
+df.out %>% 
+  filter(mainType == "CCF" & geo_grad == "center" & id == "28248101" & climChange == "no") %>%
+  dplyr::select(year, THIN, regime) %>% 
+  filter(!is.na(THIN)) %>% 
+  group_by(regime) %>% 
+  arrange(regime) %>% 
+  ggplot(aes(x = year,
+             y = THIN,
+             color = regime)) +
+  geom_point()+
+  facet_grid(regime~.)
+
+
+  # distinct(climChange) 
+  ggplot(aes(x = year,
+             y = BA,
+             col = regime)) +
+  geom_line() +
+  scale_x_continuous(breaks = seq(2020, 2100, by = 10)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) #+
+
+
 # Check initial conditions ------------------------------------------------
 
 # HOw to fill in stands structure to have a continuous landscape every time?
@@ -465,7 +491,7 @@ windows(5.5, 5.5)
 df.out %>% 
  # filter(year > 2050) %>% 
   #filter(geo_grad == "center" ) %>% # & climChange == "no"
-  filter(mainType != "SA" & mainType != "GTR" ) %>% # & climChange == "no"
+  filter(mainType != "SA" & mainType != "GTR" & year != 2015) %>% # & climChange == "no"
   group_by(geo_grad, mainType, climChange, modif )%>% # modif,
   summarise(my_y = mean(windRisk, na.rm = T)) %>%
   mutate(control = my_y[modif == "normal"],
@@ -495,8 +521,7 @@ df.out %>%
 # For combined HSI: 
 df.out %>% 
  # filter(year > 2050) %>% 
- # filter(geo_grad == "center" ) %>% # & climChange == "no"
-  filter(mainType != "SA" & mainType != "GTR" ) %>% # & climChange == "no"
+  filter(mainType != "SA" & mainType != "GTR" & year != 2015) %>% # & climChange == "no"
   group_by(geo_grad, mainType, climChange, modif )%>% # modif,
   summarise(my_y = mean(COMBINED_HSI, na.rm = T)) %>%
   mutate(control = my_y[modif == "normal"],
@@ -516,7 +541,42 @@ df.out %>%
   geom_point(aes(col = modif), size = 5) +
  # ylim(-15, 15) +
   ylab("% change in HSI") +
-  facet_grid(geo_grad~mainType) 
+  facet_grid(geo_grad~mainType) +
+  theme(legend.position="bottom")
+
+
+
+# Scatter plot: x, y  = % change in HSI and wind risk, coloured by adaptation  ------------------------------
+
+# For combined HSI: 
+df.out %>% 
+  #filter(year > 2050) %>% 
+  filter(mainType != "SA" & mainType != "GTR" ) %>% # & climChange == "no"
+  group_by(geo_grad, mainType, climChange, modif ) %>% # modif,
+  summarise(my_risk = mean(windRisk, na.rm = T),
+            my_HSI = mean(COMBINED_HSI, na.rm = T)) %>%
+  mutate(control_HSI = my_HSI[modif == "normal"],
+         perc_change_HSI = my_HSI/control_HSI * 100 - 100,
+         control_risk = my_risk[modif == "normal"],
+         perc_change_risk = my_risk/control_risk * 100 - 100)  %>%
+  filter(modif != "normal") %>% 
+  mutate(modif = factor(modif, 
+                        levels = c('extended', 'shorten'))) %>% 
+  ggplot(aes(x = perc_change_HSI,
+             y = perc_change_risk,
+             color = mainType,
+             shape = modif)) + 
+  geom_vline(xintercept = 0, col = 'grey') +
+  geom_hline(yintercept = 0, col = 'grey') +
+  geom_point()   + 
+ # scale_color_manual(values = c("red", "blue", 'red', 'orange')) +
+  scale_shape_manual(values = c(1,16)) +
+  ylim(-23,23) +
+  xlim(-23,23)
+  #facet_grid(geo_grad~climChange)
+  
+
+
 
 
     
