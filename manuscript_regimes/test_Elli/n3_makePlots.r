@@ -89,19 +89,15 @@ df.ls1 <- lapply(df.ls, function(df, ...) {
 # Consider GRT and CCF and thinning as as adaptation?
 df.ls2 <- lapply(df.ls1, function(df, ...) {
   df1 <- df %>%
-    mutate(adapt = case_when(   
-      regime == 'BAUwoT'     ~ 'woThin',
+    mutate(adapt = case_when(
+      grepl('BAUwoT', regime) ~ 'noThin',
       grepl('_m5' , regime)  ~ 'shorten',
       grepl('_m20', regime)  ~ 'shorten',
       grepl('_5'  , regime)  ~ 'extended',
       grepl('_10' , regime)  ~ 'extended',
       grepl('_15' , regime)  ~ 'extended',
       grepl('_30' , regime)  ~ 'extended',
-
-      #grepl('_30' , regime) ~ 'woThin',
-      grepl("CCF_1", regime)  ~ "CCF",
-      grepl("CCF_3", regime)  ~ "CCF",
-      grepl("CCF_4", regime)  ~ "CCF",
+      grepl("CCF_", regime)  ~ "CCF",
       grepl("GTR", regime)  ~ "GTR",
       TRUE~ 'normal')) 
   return(df1)
@@ -319,7 +315,7 @@ length(unique(df.out$id)) # only 790 stands
 
 
 
-# Filter only the stands that have all regimes ----------------------------
+# Filter only the stands that have all regimes NOT WORKING ----------------------------
 # does not work??? 
 
 head(df.out)
@@ -424,9 +420,21 @@ my_shade_pt <- function() {
 cols = c('#0072B2', # blue
            '#E69F00', # buffer 500
            '#F0E442', # buffer 2000
-           '#000000' # black
-  )
-  
+           '#000000') # black
+
+# Color shades  
+cols_red = c('#F6BDC0', '#F07470', '#DC1C13')
+
+# Yeallow to red color palette
+#https://www.color-hex.com/color-palette/8727
+cols_ylRd5 <- c('#ff0000', # red
+               '#ff5a00', 
+               '#ff9a00', 
+               '#ffce00', 
+               '#f0ff00') # yellow
+cols_ylRd3 <- c(	'#ff9a00', # yellow 
+            '#ff5a00', # orange
+            '#ff0000' ) #red
 
 # Line plot by years: How does Climate change and regime modification affect wind damage risk? -----------------------
 windows()
@@ -570,9 +578,9 @@ df.out %>%
 
 
 
-# Scatter plot: x, y  = % change in HSI and wind risk, coloured by adaptation  ------------------------------
+# Scatter plot: x, y  = % change in HSI and wind risk, coloured by extend/shorten adaptation  ------------------------------
 
-# For combined HSI: 
+# For combined HSI& risk: 
 df.out %>% 
   #filter(year > 2050) %>% 
   filter(mainType != "SA" & mainType != "GTR" ) %>% # & climChange == "no"
@@ -619,7 +627,13 @@ df.out %>%
 
 # Calculate % change between means for BAu shortening/extension
 # # !!! need to check if correct % change values!!
+df.out %>% 
+  filter(adapt == "woThin") %>% 
+  distinct(regime)
+
 windows(5.5, 5.5)
+
+
 df.out %>% 
   filter(regime != "BAUwoT_m20" & regime != "BAUwoT_10") %>% 
   filter(mainType != "SA"  ) %>% # & climChange == "no"  # & mainType != "GTR"
@@ -627,9 +641,11 @@ df.out %>%
   summarise(my_y = mean(windRisk, na.rm = T)) %>%
   mutate(control = my_y[adapt == "normal"],
          perc_change = my_y/control * 100 - 100) %>%
-  filter(adapt != "normal") %>% 
+ # print(n = 50)
+  
+filter(adapt != "normal") %>% 
   mutate(adapt = factor(adapt, 
-                        levels = c("extended", "shorten", 'woThin', "GTR" ,"CCF" ))) %>% 
+                        levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
   ggplot(aes(x = climChange,
              y = perc_change)) +
   geom_hline(yintercept = 0) +
@@ -639,8 +655,8 @@ df.out %>%
                     yend=perc_change,
                     col = climChange)) +
   geom_point(aes(col = climChange), size = 5) +
-  scale_color_grey() +
-  #  ylim(-15, 15) +
+  scale_color_manual(values = cols_red) +
+  ylim(-60, 60) +
   ylab("% Change in wind risk") +
   facet_grid(geo_grad~adapt) +
   theme(legend.position="bottom") 
@@ -649,8 +665,8 @@ df.out %>%
 
 
 
-# For combined HSI: 
-# !!! need to check if correct % change values!!
+# For combined HSI ------------------------------------
+
 windows(5.5, 5.5)
 df.out %>% 
   # filter(year > 2050) %>% 
@@ -661,7 +677,7 @@ df.out %>%
          perc_change = my_y/control * 100 - 100) %>%
   filter(adapt != "normal") %>% 
   mutate(adapt = factor(adapt, 
-                        levels = c("extended", "shorten", "GTR" ,"CCF" ))) %>% 
+                        levels = c("extended", "shorten", 'woThin', "GTR" ,"CCF" ))) %>% 
   ggplot(aes(x = climChange,
              y = perc_change,
              fill = adapt)) +
@@ -672,13 +688,116 @@ df.out %>%
                     yend=perc_change,
                     col = climChange)) +
   geom_point(aes(col = climChange), size = 5) +
-  #  ylim(-15, 15) +
+  scale_color_manual(values = cols_red) +
+  ylim(-70, 70) +
   ylab("% Change in HSI") +
   facet_grid(geo_grad~adapt) +
   theme(legend.position="bottom") 
 
 
 
+# Put differences in HSI and wind damage risk together in points plots --------------
+
+
+
+
+# Calculate % change between BAU_normal and other adaptations? ---------
+df.plot <- 
+    df.out %>% 
+    filter(mainType != "SA" ) %>% # & climChange == "no"
+    group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
+    summarise(mean_risk = mean(windRisk, na.rm = T),
+              mean_HSI  = mean(COMBINED_HSI, na.rm = T)) %>%
+    mutate(adaptPaste = paste(adapt, mainType, sep = "_")) %>%
+    group_by(geo_grad, climChange) %>% 
+    mutate(control_risk = mean_risk[match('normal_BAUwT', adaptPaste)],
+           control_HSI  = mean_HSI[ match('normal_BAUwT', adaptPaste)],
+           perc_change_HSI  = mean_HSI /control_HSI * 100 - 100,
+           perc_change_risk = mean_risk/control_risk * 100 - 100) %>% 
+  #  print(n = 30) %>% 
+    dplyr::select('climChange', 'adapt', 'mainType', 
+                  'mean_risk', 'control_risk', 'perc_change_risk', 
+                  'mean_HSI',  'control_HSI',  'perc_change_HSI',
+                  'adaptPaste') 
+  
+# make point plots by geo gradient  --------------------------------------------- 
+# https://stackoverflow.com/questions/57153428/r-plot-color-combinations-that-are-colorblind-accessible
+colorBlindBlack8  <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
+                       "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+df.plot %>%  
+    filter(adapt != "normal" ) %>% 
+    mutate(adapt = factor(adapt, 
+                          levels =  c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
+    ggplot(aes(x = perc_change_HSI,
+               y = perc_change_risk,
+               color = adapt,
+               shape = climChange)) + 
+    geom_vline(xintercept = c(0,100), col = 'grey', lty = "dashed") +
+    geom_hline(yintercept = c(0,100), col = 'grey', lty = "dashed") +
+    geom_point(size = 4, alpha = 0.8) +  
+    ylim(-50,170) +
+    xlim(-50,170) + 
+    facet_grid(.~geo_grad) +
+ # scale_color_manual(values = colorBlindBlack8) +
+  ylab("Change in wind damage risk (%)") +
+  xlab("Change in combined HSI (%)") +
+    guides(colour = guide_legend(override.aes = list(size=3))) # change the point size in teh legend
+  
+
+# Lollipop risk by adaptation: means, absolute ---------------------------------------
+windows(7,5.5)
+df.plot %>% 
+  filter(adapt != "normal") %>% 
+  mutate(adapt = factor(adapt, 
+                        levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
+  ggplot(aes(x = climChange,
+             y = mean_risk*100)) +
+  geom_hline(yintercept = 0) +
+  geom_segment( aes(x= climChange, 
+                    xend= climChange, 
+                    y=0, 
+                    yend= mean_risk*100,
+                    col = climChange)) +
+  geom_point(aes(col = climChange), size = 5) +
+  scale_color_manual(values = cols_ylRd3) +
+  ylim(-3, 14) +
+  ylab("Mean wind damage risk") +
+  facet_grid(geo_grad~adapt) +
+  theme(legend.position="bottom") 
+#theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+
+
+windows(7,5.5)
+df.plot %>% 
+  filter(adapt != "normal") %>% 
+  mutate(adapt = factor(adapt, 
+                        levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
+  ggplot(aes(x = climChange,
+             y = mean_HSI)) +
+  geom_hline(yintercept = c(0, 0.5), 
+             col = 'grey80',
+             lty = "dashed") +
+  geom_segment( aes(x= climChange, 
+                    xend= climChange, 
+                    y=0, 
+                    yend= mean_HSI,
+                    col = climChange)) +
+  geom_point(aes(col = climChange), size = 5) +
+  scale_color_manual(values = cols_ylRd3) +
+  ylim(0, 1) +
+  ylab("Mean combined HSI") +
+  facet_grid(geo_grad~adapt) +
+  theme(legend.position="bottom") 
+  
+  
+  
+  
+    
+  
+  
+
+  
 
 
 
@@ -686,7 +805,7 @@ df.out %>%
   
   
   
-
+# Explore the data: -----------------------------------------------
 # Make simple point with poit range: --------------------------------
 # consider change = adaptation, climate change and gradient
 df.out %>% 
