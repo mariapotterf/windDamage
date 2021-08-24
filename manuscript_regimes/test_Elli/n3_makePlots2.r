@@ -304,9 +304,9 @@ my_shade_pt <- function() {
   
 # Define color scheme
 # Color shades: red  
-cols_red = c('#F6BDC0', 
-             '#F07470', 
-             '#DC1C13')
+  cols_ylRd3 <- c(	'#ff9a00', # yellow 
+                   '#ff5a00', # orange
+                   '#ff0000' ) #red
 
 
 
@@ -319,6 +319,42 @@ cols_red = c('#F6BDC0',
 
 
 # Calculate % change between BAU_normal and other adaptations? ---------
+
+# keep only regimes of interest:
+# BAU: 
+# Extended
+# Shortened
+# no Thinning
+# GTR
+# CCF"
+
+my_regimes <- c(# Benchmark:
+             "BAU_","BAUwT",
+                # extended:
+             "BAU_5","BAUwT_5", 
+             "BAU_10","BAUwT_10", 
+             "BAU_15","BAUwT_15", #"BAUwT_30","BAU_30"  # extended
+                # shortened:
+             "BAU_m5", "BAUwT_m5", # shortent
+                # CCF
+             "CCF_2",
+                # no thinning
+             "BAUwoT",
+                # Green tree retention
+             "BAUwGTR","BAUwT_GTR")
+
+# not selected egimes:
+#[1]  "SA_DWextract"
+#     "BAUwoT_m20"                 
+#[13] "BAUwoT_10"
+  # CCF_1, CCF_3, CCF_4
+               
+
+# subset only regimes of interest and check if values will change?
+df.out2 <- df.out %>% 
+  filter(regime %in% my_regimes)
+
+
 df.plot <- 
     df.out %>% 
     filter(mainType != "SA" ) %>% # & climChange == "no"
