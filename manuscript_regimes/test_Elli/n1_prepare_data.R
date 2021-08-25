@@ -15,14 +15,9 @@
 #   - use SA values in 2016 to have the same beginning for data under all regimes
 
 # Calculate wind risk values - prepare data
-#   - make landscapes by year
-#   - calculate open edge and neighbours - maybe enought with TRE and False values at the beginning
+#   - set all open_edge = TRUE
 #   - calculate thinning values
 #   -
-
-
-# How to prepare continous landscape??? if there is a missing regime, 
-# i can fill in values from the closest regime for the particular stand?
 
 
 
