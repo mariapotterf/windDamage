@@ -304,9 +304,11 @@ my_shade_pt <- function() {
   
 # Define color scheme
 # Color shades: red  
-  cols_ylRd3 <- c(	'#ff9a00', # yellow 
+cols_ylRd3 <- c(	'#ff9a00', # yellow 
                    '#ff5a00', # orange
                    '#ff0000' ) #red
+
+
 
 
 
@@ -348,16 +350,45 @@ my_regimes <- c(# Benchmark:
 #     "BAUwoT_m20"                 
 #[13] "BAUwoT_10"
   # CCF_1, CCF_3, CCF_4
+
+
+
+# Make functions for plotting: LOLLIPOP
+my_lollipop <- function() {
+  list(
+    geom_hline(yintercept = 0),# +
+    #geom_segment( aes(x= climChange, 
+     #                 xend= climChange, 
+      #                y=0, 
+          #            yend= yval*100,#mean_risk*100,
+       #               col = climChange)), # +
+    geom_point(aes(col = climChange), 
+               size = 5), # +
+    scale_color_manual(values = cols_ylRd3),#  +
+    facet_grid(geo_grad~adapt), # +
+    theme(legend.position="bottom")
+  )
+}
+
+
+
+
+
                
 
 # subset only regimes of interest and check if values will change?
 df.out2 <- df.out %>% 
   filter(regime %in% my_regimes)
 
+my_cols = c('climChange', 'adapt', 'mainType', 
+              'mean_risk', 'control_risk', 'perc_change_risk', 
+              'mean_HSI',  'control_HSI',  'perc_change_HSI',
+              'adaptPaste')
 
+# Get a compare toward the BAU normal
 df.plot <- 
-    df.out %>% 
-    filter(mainType != "SA" ) %>% # & climChange == "no"
+    df.out2 %>% 
+  #  filter(mainType != "SA" ) %>% # & climChange == "no"
     group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
     summarise(mean_risk = mean(windRisk, na.rm = T),
               mean_HSI  = mean(COMBINED_HSI, na.rm = T)) %>%
@@ -365,36 +396,30 @@ df.plot <-
     group_by(geo_grad, climChange) %>% 
     mutate(control_risk = mean_risk[match('normal_BAUwT', adaptPaste)],
            control_HSI  = mean_HSI[ match('normal_BAUwT', adaptPaste)],
-           perc_change_HSI  = mean_HSI /control_HSI * 100 - 100,
+           perc_change_HSI  = mean_HSI /control_HSI  * 100 - 100,
            perc_change_risk = mean_risk/control_risk * 100 - 100) %>% 
-  #  print(n = 30) %>% 
-    dplyr::select('climChange', 'adapt', 'mainType', 
-                  'mean_risk', 'control_risk', 'perc_change_risk', 
-                  'mean_HSI',  'control_HSI',  'perc_change_HSI',
-                  'adaptPaste') 
+    dplyr::select(all_of(my_cols)) %>% 
+    filter(adapt != "normal") %>% 
+    mutate(adapt = factor(adapt, 
+                         levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" )))  
+  
   
 
 # Lollipop risk by adaptation: means, absolute ---------------------------------------
 windows(7,5.5)
 df.plot %>% 
-  filter(adapt != "normal") %>% 
-  mutate(adapt = factor(adapt, 
-                        levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
   ggplot(aes(x = climChange,
              y = mean_risk*100)) +
-  geom_hline(yintercept = 0) +
-  geom_segment( aes(x= climChange, 
+  my_lollipop()  +
+  geom_segment(aes(x= climChange, 
                     xend= climChange, 
                     y=0, 
-                    yend= mean_risk*100,
+                    yend= mean_risk*100,#mean_risk*100,
                     col = climChange)) +
-  geom_point(aes(col = climChange), size = 5) +
-  scale_color_manual(values = cols_ylRd3) +
-  ylim(-3, 14) +
-  ylab("Mean wind damage risk") +
-  facet_grid(geo_grad~adapt) +
-  theme(legend.position="bottom") 
-#theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+ # ylim() +
+  ylab("Mean wind damage risk")
+  
+
 
 
 windows(7,5.5)
@@ -453,10 +478,22 @@ df.plot %>%
 # Are there differences for individual species??? ======================================
 # ========================================================
 
-# now only two of
-#  "CAPERCAILLIE"  "HAZEL_GROUSE" 
+# CAPERCAILLIE  
+# HAZEL_GROUSE
+# LESSER_SPOTTED_WOODPECKER
+# SIBERIAN_FLYING_SQUIRREL
+# LONG_TAILED_TIT
+# THREE_TOED_WOODPECKER
+
+
+# automate script plotting:
+col_keep = c('climChange', 'adapt', 'mainType', 
+             'mean_risk', 'control_risk', 'perc_change_risk', 
+             'mean_HSI',  'control_HSI',  'perc_change_HSI',
+             'adaptPaste')
 
 # CAPERCAILIE   =============================
+windows(width = 7, height = 3)
 
 df.CAP <- 
   df.out %>% 
@@ -471,10 +508,7 @@ df.CAP <-
          perc_change_HSI  = mean_HSI /control_HSI * 100 - 100,
          perc_change_risk = mean_risk/control_risk * 100 - 100) %>% 
   #  print(n = 30) %>% 
-  dplyr::select('climChange', 'adapt', 'mainType', 
-                'mean_risk', 'control_risk', 'perc_change_risk', 
-                'mean_HSI',  'control_HSI',  'perc_change_HSI',
-                'adaptPaste') 
+  dplyr::select(col_keep) 
 
 
 # Lollipop risk by adaptation: means, absolute ---------------------------------------
@@ -590,15 +624,81 @@ df.HASEL %>%
   geom_vline(xintercept = c(0,100), col = 'grey', lty = "dashed") +
   geom_hline(yintercept = c(0,100), col = 'grey', lty = "dashed") +
   geom_point(size = 4, alpha = 0.8) +  
-  #ylim(-50,170) +
-  #xlim(-50,170) + 
   facet_grid(.~geo_grad) +
-  # scale_color_manual(values = colorBlindBlack8) +
   ylab("Change in wind damage risk (%)") +
   xlab("Change in HAZEL_GROUSE (%)") +
   guides(colour = guide_legend(override.aes = list(size=3))) # change the point size in teh legend
 
 
+
+###!! 
+# ==========================================
+#    LESSER_SPOTTED_WOODPECKER 
+# ==========================================
+
+df.woodPeck <- 
+  df.out %>% 
+  filter(mainType != "SA" ) %>% # & climChange == "no"
+  group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
+  summarise(mean_risk = mean(windRisk, na.rm = T),
+            mean_HSI  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T)) %>%
+  mutate(adaptPaste = paste(adapt, mainType, sep = "_")) %>%
+  group_by(geo_grad, climChange) %>% 
+  mutate(control_risk = mean_risk[match('normal_BAUwT', adaptPaste)],
+         control_HSI  = mean_HSI[ match('normal_BAUwT', adaptPaste)],
+         perc_change_HSI  = mean_HSI /control_HSI * 100 - 100,
+         perc_change_risk = mean_risk/control_risk * 100 - 100) %>% 
+  #  print(n = 30) %>% 
+  dplyr::select('climChange', 'adapt', 'mainType', 
+                'mean_risk', 'control_risk', 'perc_change_risk', 
+                'mean_HSI',  'control_HSI',  'perc_change_HSI',
+                'adaptPaste') 
+
+
+# Lollipop LESSER_SPOTTED_WOODPECKER by adaptation: means, absolute ---------------------------------------
+windows(7,5.5)
+df.HASEL %>% 
+  filter(adapt != "normal") %>% 
+  mutate(adapt = factor(adapt, 
+                        levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
+  ggplot(aes(x = climChange,
+             y = mean_HSI)) +
+  geom_hline(yintercept = c(0, 0.5), 
+             col = 'grey80',
+             lty = "dashed") +
+  geom_segment( aes(x= climChange, 
+                    xend= climChange, 
+                    y=0, 
+                    yend= mean_HSI,
+                    col = climChange)) +
+  geom_point(aes(col = climChange), size = 5) +
+  scale_color_manual(values = cols_ylRd3) +
+  ylim(0, 1) +
+  ylab("Mean LESSER_SPOTTED_WOODPECKER") +
+  facet_grid(geo_grad~adapt) +
+  theme(legend.position="bottom") 
+
+
+# =======================================
+#    LESSER_SPOTTED_WOODPECKER scatter plot
+# =======================================
+
+windows(width = 7, length = 3.5)
+df.woodPeck %>%  
+  filter(adapt != "normal" ) %>% 
+  mutate(adapt = factor(adapt, 
+                        levels =  c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
+  ggplot(aes(x = perc_change_HSI,
+             y = perc_change_risk,
+             color = adapt,
+             shape = climChange)) + 
+  geom_vline(xintercept = c(0,100), col = 'grey', lty = "dashed") +
+  geom_hline(yintercept = c(0,100), col = 'grey', lty = "dashed") +
+  geom_point(size = 4, alpha = 0.8) +  
+  facet_grid(.~geo_grad) +
+  ylab("Change in wind damage risk (%)") +
+  xlab("Change in LESSER_SPOTTED_WOODPECKER (%)") +
+  guides(colour = guide_legend(override.aes = list(size=3))) # change the point size in teh legend
 
 
 
