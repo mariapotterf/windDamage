@@ -1,0 +1,594 @@
+
+# ----------------------------------------
+# process Ellinoora data for no CC, and climate change included
+# ----------------------------------------
+
+# steps:
+# Get input data:
+#   - get stand geometry from GPKG - already derived from previous project
+#   - select one watershed from South and one from North
+#   - get simulated regimes: for no change, CC4.5, CC8.5
+# Select which regimes to use
+#     need the most stands with regimes
+#     have the same stand id for geometry and for simulated data
+#     if unreal values - replace by mean?
+#   - use SA values in 2016 to have the same beginning for data under all regimes
+
+# Calculate wind risk values - prepare data
+#   - set all open_edge = TRUE
+#   - calculate thinning values
+#   -
+
+
+
+# Make working example for no climate changes; then calculate values for CC scenario 
+rm(list = ls())
+
+
+setwd("C:/MyTemp/myGitLab/windDamage")
+
+# Read libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(sf)
+library(rgdal)
+library(ggspatial)
+library(rgeos)
+library(raster)
+library(dplyr)
+library(spData)
+library(sf)
+library(RColorBrewer)
+
+
+# Correct order of variables, factors & levels
+# need to have same names of columns?? YES
+# when data are sourced (source()), they are all available in my script
+source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
+
+
+
+# get data
+# ----------------------
+inPath = "C:/MyTemp/2021_WindRisk_biodiversity/inputData/simulated/rslt_FBE_rcp0"
+#inFolder = "input_CC"
+#outFolder = 'output_CC'
+
+
+names = c("Korsnas", 'Simo', 'Raasepori')
+#names = c("Raasepori")
+
+getFiles <- function(myName, ...) {
+  
+  #myName =  c("Korsnas")  #c("Raasepori")
+  
+  source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
+  print(myName) 
+  
+  fileNameNO     = paste( "without_MV_", myName, '_rsu.csv', sep = "")
+  fileNameCC45   = paste( "CC45_MV_",    myName, '_rsu.csv', sep = "")
+  fileNameCC85   = paste( "CC85_MV_",    myName, '_rsu.csv', sep = "")
+  fileNameRST    = paste( "df_raster_",  myName, '.csv', sep = "")
+  
+  # Read files
+  df.no <- data.table::fread(paste(inPath, inFolder, fileNameNO,  sep = "/"),  # 
+                             data.table=FALSE, stringsAsFactors = FALSE)
+  df.cc45 <- data.table::fread(paste(inPath, inFolder, fileNameCC45, sep = "/"),
+                               data.table=FALSE, stringsAsFactors = FALSE)
+  df.cc85 <- data.table::fread(paste(inPath, inFolder, fileNameCC85, sep = "/"),
+                               data.table=FALSE, stringsAsFactors = FALSE)
+  # Get values for wind speed and temps sum
+  df.raster <-   data.table::fread(paste(inPath, inFolder, "raster", fileNameRST, sep = "/"),
+                                   data.table=FALSE, stringsAsFactors = FALSE)
+  # filter the stands:
+  # keep  only the overlapping standid
+  shared.stands = Reduce(intersect, 
+                         list(unique(df.no$id),
+                              unique(df.raster$standid),
+                              unique(df.cc45$id),
+                              unique(df.cc85$id)))
+  
+  
+  # Subset df.raster data to only simulated stands
+  df.raster <- df.raster %>% 
+    filter(standid %in% shared.stands)
+  
+  
+  # add missing SOIL_CLASS data to no clim change data
+  df.soil.class <- df.cc45 %>% 
+    dplyr::select(id, SOIL_CLASS) %>% 
+    distinct()
+  
+  
+  # Add this to no CC scenario
+  df.no <- df.no %>% 
+    right_join(df.soil.class, by = c('id'))
+  
+  
+  # List data frames
+  df.ls <- list(df.no, df.cc45, df.cc85)
+  
+  
+  # Add raster values: temp sum and avgWind speed
+  # indication for raster values
+  # add temperature and wind speed values to each table by id
+  df.ls <- lapply(df.ls, function(df) df %>%  right_join(df.raster, 
+                                                         by = c('id' = 'standid')))
+  
+  # Remove files
+  rm(df.no, df.cc45, df.cc85, df.raster)
+  print('removed original tables')
+  
+  # Get initial year: 2015 based on SA values in 2016 ------------------------
+  df.ls.ini <- lapply(df.ls, addInitialYear)
+  
+  # Test data: in CC visible in Raasepori???
+  # lapply(df.ls.ini, function(df) df %>% group_by(name) %>%  
+  #         summarise(my_m = mean(H_dom, na.rm = TRUE)))
+  
+  # Classify thinning values ---------------------------------------------
+  df.ls.thin = lapply(df.ls.ini, classifyTHIN)
+  
+  # Indicate climate change category; add vector to df
+  clim.cat = c("no", "cc45", "cc85")
+  df.ls.thin = mapply(cbind, 
+                      df.ls.thin, 
+                      "climChange"= clim.cat, 
+                      SIMPLIFY=F)
+  
+  # Get vector of columns names to keep for statistics
+  glm.colnames <- c("species",
+                    "H_dom",
+                    "time_thinning",
+                    "windSpeed",
+                    "open_edge",
+                    "soilType",
+                    "soilDepthLess30",
+                    "siteFertility",   # siteFertility
+                    "tempSum")
+  
+  
+  # remove all lists
+  rm(df.ls, df.ls.ini)
+  
+  # Format the table ------------------------------
+  df.ls.glm<- lapply(df.ls.thin, formatWindRiskTable)
+  
+  
+  # Calculate wind risk ------------------------------
+  
+  # apply the glm formula to calulate wind risk 
+  df.risk.ls <- lapply(df.ls.glm, function(df) {
+    df$windRisk <- predict.glm(windRisk.m,
+                               subset(df, select = glm.colnames),
+                               type="response")
+  return(df)
+    })
+  
+  # merge data into one ----------------------
+  # Merge optimal data in one files, filter for incorrect stands
+  df.out <- do.call(rbind, df.risk.ls)
+  
+  # add indication of name as new column
+  df.out$siteName <- myName
+  
+  
+  # Filter the rown that have na values??? why?
+  #df.out %>% 
+   # filter(!is.na(H_dom)) %>% 
+    #ungroup() %>% 
+    #distinct(id) %>% 
+    #nrow()
+  
+  # Export simplified table ----------------------------------------------
+  outName = paste(myName, ".csv", sep = "")
+  data.table::fwrite(df.out, paste(getwd(), 'manuscript_regimes', outFolder, outName, sep = "/"))
+  
+ 
+}
+
+
+#for (i in seq_along(names)) {print (i)}
+df.ls2 <- lapply(names, getFiles)
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# For single file ---------------------------------------------------------
+
+# To do:
+# merge simulated data with XY coordiantes: find unique id number??
+# reclassify regimes
+
+
+
+# 
+# # Read all simulated data
+# dfs_input <- list.files(paste(inPath, inFolder, sep = "/"),
+#                        pattern = ".csv$")
+# (dfs_input)
+# # Change name to add place indicator:
+# dfs_names <- gsub("_rsu.csv", "", dfs_input)
+# dfs_names <- gsub("_MV_", "_", dfs_names) # actually, names are already included
+# 
+# # Read individual .csv
+# df.list <- lapply(dfs_input, function(name) data.table::fread(paste(inPath, inFolder, name, sep = "/"),
+#                                                data.table=FALSE, 
+#                                                stringsAsFactors = FALSE))
+
+
+
+# Read corrected simulated names: Korsnas
+# Unclear how to automate this, as needs to complete SOIL CLASS info?
+#name = "Korsnas"
+#fileName = paste( "without_MV_", name, '_rsu.csv', sep = "")
+#paste(inPath, inFolder, "without_MV_Korsnas_rsu.csv", sep = "/")
+# 
+system.time(df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
+                       data.table=TRUE, 
+                       stringsAsFactors = FALSE))
+
+
+system.time(df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
+                                       data.table=FALSE, 
+                                       stringsAsFactors = FALSE))
+
+
+df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
+                           data.table=FALSE, 
+                           stringsAsFactors = FALSE)
+
+
+#df.cc45 <- data.table::fread(paste(inPath, inFolder, "CC45_MV_Korsnas_rsu.csv", sep = "/"),
+ #                          data.table=FALSE, 
+  #                         stringsAsFactors = FALSE)
+#df.cc85 <- data.table::fread(paste(inPath, inFolder, "CC85_MV_Korsnas_rsu.csv", sep = "/"),
+ #                            data.table=FALSE, 
+  #                           stringsAsFactors = FALSE)
+
+# Get values for wind speed and temps sum
+df.raster <-   data.table::fread("C:/MyTemp/2021_WindRisk_biodiversity/inputData/spatial/df_raster_XY.csv",
+                                 data.table=FALSE, 
+                                 stringsAsFactors = FALSE)
+
+
+# Inspect the data: how to merge XY data with simulated stands??
+# try id and ID?
+length(unique(df.no$id)) # 5960
+length(unique(df.raster$Padded_id))
+
+unique(df.no$regime) # I have two SA regimes???
+unique(df.no$branching_group) # SElection cut is missing
+
+# Do I have simulated data for SA and SA_DW regimes??
+df.no %>% 
+  filter(regime == 'SA_DWextract'  ) %>% # ~ 2,000,000 data
+  nrow() 
+
+# 
+df.no %>% 
+  filter(regime == 'SA'  ) %>% # ~ 1,000,000 data
+  nrow() 
+
+
+# which branching group is named as SA?
+df.no %>% 
+  #filter(regime == 'SA_DWextract'  ) %>% # |regime == 'SA'
+  filter(is.na(regime)) %>% # |regime == 'SA'
+  distinct(branching_group)
+
+
+# Merge XY data with individual stands: Check how Maria did it??
+# the stands ID are unique only within the Grid cells: (k3, k4..)
+# the simulated data have includes grid indication!
+# maybe tehre is a simpler way around?
+df.raster %>% 
+  names
+
+unique(df.raster$OBJECTID)
+
+# How are grids stored in my db?
+unique(df.raster$FID_utm200)
+
+length(df.raster$Padded_id) # example: 6635984, unique ID 54079
+# Padded ID seems ok? 
+
+# are two padded_id teh same?
+identical(df.raster$Padded_id,
+       as.integer(df.raster$Padded_id_))
+
+df.raster %>% 
+  mutate(Padded_id_int = as.integer(Padded_id_)) %>% 
+  dplyr::select(Padded_id, Padded_id_int) %>% 
+  head()
+
+# I have identical values for df.radster, but what values corresponds to 
+# simulated ids?
+# make grid indication as the last column
+df.no %>% 
+  distinct(name) # seems that tehre is 5960 unique IDs! 
+
+# Extract last two characters from the name column to have grid cell indication
+library(stringr)
+
+df1 = data.frame(State = c('Arizona AZ',
+                           'Georgia GG', 
+                           'Newyork NY',
+                           'Indiana IN',
+                           'Florida FL'), 
+                 Score=c(62,47,55,74,31))
+
+df1
+
+
+
+df1 %>% 
+  
+  mutate(grid_cell = str_sub(State,-2)) %>% 
+  head()
+
+
+
+
+# try to work in SQL database to speed up script?
+my_db <- src_sqlite(my_db_file, create = TRUE)
+
+
+# Try padding with zeros??
+# eg. fill in 00000XX values to have always 8 characters starting with 0
+system.time(
+  df.no2 <- 
+  df.no %>% 
+  mutate(zero_id = formatC(id, 
+                           width = 8, 
+                           format = "d", 
+                           flag = "0")) %>% 
+  mutate(cell = str_sub(name,-2)) %>% 
+  mutate(nb = case_when(
+    cell == "k3" ~ "1",
+    cell == "k4" ~ "2",
+    cell == "l2" ~ "3",
+    cell == "l3" ~ "4",
+    cell == "l4" ~ "5",
+    cell == "l5" ~ "6",
+    cell == "m3" ~ "7",
+    cell == "m4" ~ "8",
+    cell == "m5" ~ "9",
+    cell == "n3" ~ "10",
+    cell == "n4" ~ "11",
+    cell == "n5" ~ "12",
+    cell == "n6" ~ "13",
+    cell == "p3" ~ "14",
+    cell == "p4" ~ "15",
+    cell == "p5" ~ "16",
+    cell == "p6" ~ "17",
+    cell == "q3" ~ "18",
+    cell == "q4" ~ "19",
+    cell == "q5" ~ "20",
+    cell == "r4" ~ "21",
+    cell == "r5" ~ "22",
+    cell == "s4" ~ "23",
+    cell == "s5" ~ "24",
+    cell == "t4" ~ "25",
+    cell == "t5" ~ "26",
+    cell == "u4" ~ "27",
+    cell == "u5" ~ "28",
+    cell == "v3" ~ "29",
+    cell == "v4" ~ "30",
+    cell == "v5" ~ "31",
+    cell == "w3" ~ "32",
+    cell == "w4" ~ "33",
+    cell == "w5" ~ "34",
+    cell == "x4" ~ "35",
+    cell == "x5" ~ "36")) %>% 
+   mutate(id = paste0(nb, zero_id)) )
+
+
+length(unique(df.no2$id)) # 54079
+
+# Do I really do n't have any K2 data???
+df.no %>% 
+  filter(grepl('k2', name)) %>% 
+  dplyr::select(name)  # any K2 in the data
+
+
+
+
+
+
+
+
+
+#length(unique(df.raster$standid))  # 302 
+
+# filter the stands:
+# keep  only the overlapping standid; consider all input data
+shared.stands = Reduce(intersect, 
+                       list(unique(df.no$id),
+                            unique(df.raster$standid),
+                            unique(df.cc45$id),
+                            unique(df.cc85$id)))
+
+# Subset df.raster data to only simulated stands
+df.raster <- df.raster %>% 
+  filter(standid %in% shared.stands)
+
+
+# add missing SOIL_CLASS data to no clim change data;
+# no clim change data is missing SOIL_CLASS data
+df.soil.class <- df.cc45 %>% 
+  dplyr::select(id, SOIL_CLASS) %>% 
+  distinct()
+
+
+# Add this to no CC scenario
+df.no <- df.no %>% 
+  right_join(df.soil.class, by = c('id'))
+
+
+# include the respective SA values in 2016 to other data as 2015 to have a common start
+# SA values need to be according to CCF;
+# make as function to first extract values and then it to original dataset;
+# need to expand it for all regimes
+
+
+
+# Make list of input df (with and without CC) -----------------------------------
+df.ls <- list(df.no, df.cc45, df.cc85)
+
+
+# Add raster values: temp sum and avgWind speed
+# indication for raster values
+# add temperature and wind speed values to each table by id
+df.ls <- lapply(df.ls, function(df) df %>%  right_join(df.raster, 
+                                                        by = c('id' = 'standid')))
+
+
+# Get initial year: 2015 based on SA values in 2016 ------------------------
+
+
+
+
+
+
+
+# Update a function
+addInitialYear <- function(df, ...) {
+  # Add first year to simulated data, getting the SA values
+  # for all regimes
+  # change it for 2015
+  library(tidyr)
+  
+#  df <- df.ls[[1]] 
+  
+  df.sa <- df %>% 
+    filter(regime == "SA_DWextract" & year == 2016) %>% 
+    mutate(year = 2015) %>%    # change the year indication
+    dplyr::select(-c(regime))  # remove column regime
+  
+  # get indication of column order in original data
+  col_names = names(df)
+  
+  # get vector of regimes  
+  regime_v <- 
+    df %>% 
+    distinct(regime) %>% 
+    pull(regime)
+  
+  # rename the column and reorder columns in sa_2015
+  #df.sa.out <- 
+  df.out <-
+    df.sa %>% 
+    crossing(regime_v) %>% # merge dataframe with vector of regime names 
+    rename(regime = regime_v) %>%
+    dplyr::bind_rows(df)  # merge data to new column, colums sort out by names
+ 
+  return(df.out)
+}
+
+
+#aa<- addInitialYear(df.ls[[1]])
+
+
+df.ls.ini <- lapply(df.ls, addInitialYear)
+
+
+#df.ls.ini[[1]] %>% 
+  #group_by(name) %>% 
+ # dplyr::select(name, H_dom) %>% 
+  #summary()
+
+
+# Classify thinning values ---------------------------------------------
+df.ls.thin = lapply(df.ls.ini, classifyTHIN)
+
+# Indicate climate change category; add vector to df
+clim.cat = c("no", "cc45", "cc85")
+df.ls.thin = mapply(cbind, df.ls.thin, "climChange"= clim.cat, SIMPLIFY=F)
+
+
+
+# calculate wind risk for individual regimes for 3 CC  -----------------------------------------------
+
+# Get vector of columns names to keep for statistics
+glm.colnames <- c("species",
+                  "H_dom",
+                  "time_thinning",
+                  "windSpeed",
+                  "open_edge",
+                  "soilType",
+                  "soilDepthLess30",
+                  "siteFertility",   # siteFertility
+                  "tempSum")
+
+
+
+# Format the table ------------------------------
+df.ls.glm<- lapply(df.ls.thin, formatWindRiskTable)
+
+
+
+# Calculate wind risk ------------------------------
+
+# apply the glm formula to calulate wind risk 
+df.risk.ls <- lapply(df.ls.glm, function(df) {df$windRisk <- predict.glm(windRisk.m,
+                                                           subset(df, select = glm.colnames),
+                                                           type="response")
+                  return(df)})
+
+# inspect values
+#lapply(df.risk.ls, function(df) range(df$windRisk, na.rm = T))
+# Make a testing function: do I see differences in tree heights??
+lapply(df.risk.ls, function(df) df %>% 
+         # group_by(regime) %>% 
+         dplyr::select(H_dom, windRisk) %>% 
+         summary())
+
+
+
+# merge data into one ----------------------
+# Merge optimal data in one files, filter for incorrect stands
+df.out <- do.call(rbind, df.risk.ls)
+
+
+# Export simplified table ----------------------------------------------
+#data.table::fwrite(df.out2, paste(getwd(), 'manuscript_regimes', outFolder, outTab, sep = "/"))
+
+
+
+
+# Testing -------------------------------------------------------------------
+
+# do differences in climate change exist here already??
+# yes, input data are correct. need to filter for excessive values
+#df.test <- do.call(rbind, df.ls)
+
+df.ls[[3]] %>% 
+  #group_by(name) %>% 
+  dplyr::select(name, H_dom) %>% 
+  summary()
+
+
+
+# which stands have unrealistic H_dom values?
+df.test %>% 
+  #filter(H_dom > 45430)
+  filter(H_dom > 100) %>% 
+  distinct(id, name, regime)
+
+
+
+
+  
