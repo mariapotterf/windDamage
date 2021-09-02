@@ -209,16 +209,36 @@ df.ls2 <- lapply(names, getFiles)
 # For single file ---------------------------------------------------------
 
 # To do:
-# merge simulated data with XY coordiantes: find unique id number??
 # Check if : 
 #  have all regimes? e.g. selection cut
 #  have all columns needed?
-# 
-# Reclassify regimes
+# merge simulated data with XY coordinates: 
+#   create a unique id number for simulated data to fit XY data
+#   XY data contains raster characteristics: made in script 'NFI_data/getRaster_values.R'
+# Reclassify regimes names
+
 
 # Convert csv to db: will it reads faster?? --------------------------
 
 
+# ========================================
+#       Read data
+# ========================================
+
+library(DBI)
+
+# Create a new database:  
+# RSQLite: https://cran.r-project.org/web/packages/RSQLite/vignettes/RSQLite.html
+
+mydb <- dbConnect(RSQLite::SQLite(), "my-db.sqlite")
+
+# write my csv into database
+dbWriteTable(mydb, "df.no2", df.no2)
+
+# Check teh table
+dbListTables(mydb)
+
+dbDisconnect(mydb)
 
 
 
@@ -244,72 +264,60 @@ df.ls2 <- lapply(names, getFiles)
 #fileName = paste( "without_MV_", name, '_rsu.csv', sep = "")
 #paste(inPath, inFolder, "without_MV_Korsnas_rsu.csv", sep = "/")
 # 
+
+# Make working example for no climate changes; then calculate values for CC scenario 
+rm(list = ls())
+
+
+setwd("C:/MyTemp/myGitLab/windDamage")
+
+# Read libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(sf)
+library(rgdal)
+library(dplyr)
+library(spData)
+library(sf)
+library(stringr)
+
+
+# Correct order of variables, factors & levels
+# need to have same names of columns?? YES
+# when data are sourced (source()), they are all available in my script
+source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
+
+
+
+# get data
+# ----------------------
+inPath = "C:/MyTemp/2021_WindRisk_biodiversity/inputData/simulated"
+
+
+# read data straight from the zip file
+data <- read.table(paste(inPath, "rslt_FBE_rcp85.zip",sep = "/"), 
+                   nrows=10, header=T, quote="\"", sep=",")
+
+library(vroom)
+a<-vroom(paste(inPath, "rslt_FBE_rcp85.zip",sep = "/"))
+
+
 system.time(df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
                        data.table=TRUE))
 
-
-#nrow(df.no)
-
-
-
-
-
-#system.time(df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
- #                                      data.table=FALSE, 
-  #                                     stringsAsFactors = FALSE))
-
-
-#df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
- #                          data.table=FALSE, 
-  #                         stringsAsFactors = FALSE)
-
-
-#df.cc45 <- data.table::fread(paste(inPath, inFolder, "CC45_MV_Korsnas_rsu.csv", sep = "/"),
- #                          data.table=FALSE, 
-  #                         stringsAsFactors = FALSE)
-#df.cc85 <- data.table::fread(paste(inPath, inFolder, "CC85_MV_Korsnas_rsu.csv", sep = "/"),
- #                            data.table=FALSE, 
-  #                           stringsAsFactors = FALSE)
+# Changed naming just to check the file !! 
+df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp45.csv", sep = "/"))
+df.cc85 <- data.table::fread(paste(inPath, "rslt_FBE_rcp85.csv", sep = "/"))
 
 # Get values for wind speed and temps sum
 df.raster <-   data.table::fread("C:/MyTemp/2021_WindRisk_biodiversity/inputData/spatial/df_raster_XY.csv",
                                  data.table=TRUE)
 
 
-# Inspect the data: how to merge XY data with simulated stands??
-# try id and ID?
-length(unique(df.no$id)) # 5960
-length(unique(df.raster$Padded_id))
-
-unique(df.no$regime) # I have two SA regimes???
-unique(df.no$branching_group) # SElection cut is missing
-
-# Do I have simulated data for SA and SA_DW regimes??
-df.no %>% 
-  filter(regime == 'SA_DWextract'  ) %>% # ~ 2,000,000 data
-  nrow() 
-
-# 
-df.no %>% 
-  filter(regime == 'SA'  ) %>% # ~ 1,000,000 data
-  nrow() 
-
-
-# which branching group is named as SA?
-df.no %>% 
-  #filter(regime == 'SA_DWextract'  ) %>% # |regime == 'SA'
-  filter(is.na(regime)) %>% # |regime == 'SA'
-  distinct(branching_group)
-
-
-# Merge XY data with individual stands: Check how Maria did it??
-# the stands ID are unique only within the Grid cells: (k3, k4..)
-# the simulated data have includes grid indication!
 
 
 
-# try to work in SQL database to speed up script?
-my_db <- src_sqlite(my_db_file, create = TRUE)
 
 # ==========================================
 #      Create unique ID for simulated data       --------------------------------
@@ -322,8 +330,7 @@ my_db <- src_sqlite(my_db_file, create = TRUE)
 # 3. Add numeric grid indication at the beginning of the 8 digit paddled 'id'
 # 4. voila! done
 
-system.time(
-  df.no2 <- 
+df.no2 <- 
   df.no %>% 
   mutate(zero_id = formatC(id, 
                            width = 8, 
@@ -367,15 +374,23 @@ system.time(
     cell == "w5" ~ "34",
     cell == "x4" ~ "35",
     cell == "x5" ~ "36")) %>% 
-   mutate(id = paste0(nb, zero_id)) )
+   mutate(id = paste0(nb, zero_id))
 
+
+# ---------------------------------------------
+#   Get diagnostics
+# -------------------------------------------
 
 length(unique(df.no2$id)) # 54079
 
-# Do I really do n't have any K2 data???
-df.no %>% 
-  filter(grepl('k2', name)) %>% 
-  dplyr::select(name)  # any K2 in the data
+
+unique(df.no2$branching_group)
+
+
+
+
+
+
 
 
 
