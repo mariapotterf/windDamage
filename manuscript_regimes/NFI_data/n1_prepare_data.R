@@ -33,13 +33,10 @@ library(dplyr)
 library(tidyr)
 library(sf)
 library(rgdal)
-library(ggspatial)
-library(rgeos)
-library(raster)
 library(dplyr)
 library(spData)
 library(sf)
-library(RColorBrewer)
+library(stringr)
 
 
 # Correct order of variables, factors & levels
@@ -52,6 +49,9 @@ source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
 # get data
 # ----------------------
 inPath = "C:/MyTemp/2021_WindRisk_biodiversity/inputData/simulated/rslt_FBE_rcp0"
+
+
+
 #inFolder = "input_CC"
 #outFolder = 'output_CC'
 
@@ -210,7 +210,15 @@ df.ls2 <- lapply(names, getFiles)
 
 # To do:
 # merge simulated data with XY coordiantes: find unique id number??
-# reclassify regimes
+# Check if : 
+#  have all regimes? e.g. selection cut
+#  have all columns needed?
+# 
+# Reclassify regimes
+
+# Convert csv to db: will it reads faster?? --------------------------
+
+
 
 
 
@@ -237,18 +245,23 @@ df.ls2 <- lapply(names, getFiles)
 #paste(inPath, inFolder, "without_MV_Korsnas_rsu.csv", sep = "/")
 # 
 system.time(df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
-                       data.table=TRUE, 
-                       stringsAsFactors = FALSE))
+                       data.table=TRUE))
 
 
-system.time(df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
-                                       data.table=FALSE, 
-                                       stringsAsFactors = FALSE))
+#nrow(df.no)
 
 
-df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
-                           data.table=FALSE, 
-                           stringsAsFactors = FALSE)
+
+
+
+#system.time(df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
+ #                                      data.table=FALSE, 
+  #                                     stringsAsFactors = FALSE))
+
+
+#df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  # 
+ #                          data.table=FALSE, 
+  #                         stringsAsFactors = FALSE)
 
 
 #df.cc45 <- data.table::fread(paste(inPath, inFolder, "CC45_MV_Korsnas_rsu.csv", sep = "/"),
@@ -260,8 +273,7 @@ df.no <- data.table::fread(paste(inPath, "rslt_FBE_rcp0.csv",  sep = "/"),  #
 
 # Get values for wind speed and temps sum
 df.raster <-   data.table::fread("C:/MyTemp/2021_WindRisk_biodiversity/inputData/spatial/df_raster_XY.csv",
-                                 data.table=FALSE, 
-                                 stringsAsFactors = FALSE)
+                                 data.table=TRUE)
 
 
 # Inspect the data: how to merge XY data with simulated stands??
@@ -293,61 +305,23 @@ df.no %>%
 # Merge XY data with individual stands: Check how Maria did it??
 # the stands ID are unique only within the Grid cells: (k3, k4..)
 # the simulated data have includes grid indication!
-# maybe tehre is a simpler way around?
-df.raster %>% 
-  names
-
-unique(df.raster$OBJECTID)
-
-# How are grids stored in my db?
-unique(df.raster$FID_utm200)
-
-length(df.raster$Padded_id) # example: 6635984, unique ID 54079
-# Padded ID seems ok? 
-
-# are two padded_id teh same?
-identical(df.raster$Padded_id,
-       as.integer(df.raster$Padded_id_))
-
-df.raster %>% 
-  mutate(Padded_id_int = as.integer(Padded_id_)) %>% 
-  dplyr::select(Padded_id, Padded_id_int) %>% 
-  head()
-
-# I have identical values for df.radster, but what values corresponds to 
-# simulated ids?
-# make grid indication as the last column
-df.no %>% 
-  distinct(name) # seems that tehre is 5960 unique IDs! 
-
-# Extract last two characters from the name column to have grid cell indication
-library(stringr)
-
-df1 = data.frame(State = c('Arizona AZ',
-                           'Georgia GG', 
-                           'Newyork NY',
-                           'Indiana IN',
-                           'Florida FL'), 
-                 Score=c(62,47,55,74,31))
-
-df1
-
-
-
-df1 %>% 
-  
-  mutate(grid_cell = str_sub(State,-2)) %>% 
-  head()
-
 
 
 
 # try to work in SQL database to speed up script?
 my_db <- src_sqlite(my_db_file, create = TRUE)
 
+# ==========================================
+#      Create unique ID for simulated data       --------------------------------
+# ==========================================
 
-# Try padding with zeros??
-# eg. fill in 00000XX values to have always 8 characters starting with 0
+# Steps: 
+# 1. 'Zero paddling': add zeros to the beginning of 'id' , 
+#     eg. fill in 00000XX values to have always 8 characters starting with 0
+# 2. rename grid cells ('k3') into consecutive numbers ('1'...)
+# 3. Add numeric grid indication at the beginning of the 8 digit paddled 'id'
+# 4. voila! done
+
 system.time(
   df.no2 <- 
   df.no %>% 
