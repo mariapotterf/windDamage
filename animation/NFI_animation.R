@@ -11,13 +11,23 @@ rm(list.ls())
 # color the code
 
 require(sf)
-df.geom <- sf::st_read("C:/MyTemp/2021_WindRisk_biodiversity/output", 
-                       layer = "XY_UTM_35")
+df.geom <- sf::st_read("C:/MyTemp/2021_WindRisk_biodiversity/output.gdb", 
+                       layer = "XY_attr")
+
+# Get polygon of teh Finland
+df.FI <- sf::st_read("C:/MyTemp/2021_WindRisk_biodiversity/raw", 
+                       layer = "FIN_adm0_3067")
 
 
 # plot with ggplot; ggplot is quite slow
 library(ggplot2)
-ggplot(df.geom) + geom_sf(aes(fill = Luokka))
+ggplot(df.FI) + 
+  geom_point(data = df.geom, aes(x = X_10,
+                                 y = Padded_id, color = PaajakoNro)) +
+  geom_sf(color = "black", fill = NA, size = 1.2) 
+
+
+
 
 
 # subset one regimes for a nice attribute table
@@ -47,6 +57,9 @@ df.all<-
 # plot data
 library(ggspatial)
 theme_set(theme_bw())
+
+
+
 
 
 windows()
