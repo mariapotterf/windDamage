@@ -183,25 +183,27 @@ formatWindRiskTable <- function(df, ...) {
   
   library(dplyr)
   
+  #df <- dd
+  
   # subset only important columns for wind risk model
   df.sub <- df %>% 
     dplyr::select(id, year, Age, SC,
                   SOIL_CLASS, PEAT, MAIN_SP, 
-                  H_dom, windSpeed, avgTemp, since_thin, regime)
+                  H_dom, windSpeed, avgTemp, since_thin, regime) # exclude regime?
   
   
   #   df<- df.cc45_2
   # add new column
-  df.sub <- df.sub %>% mutate(open_edge = "TRUE")
+  df.all <- df.sub %>% mutate(open_edge = "TRUE")
 
   # Recalssify values
   # # Reclassify values:
   df.all<-
-    df.sub %>% 
+    df.all %>% 
     mutate(PEAT.v = case_when(PEAT == 0 ~ "mineral soil",
                               PEAT == 1 ~ "peat"))  %>%
     mutate(SC.v = case_when(SC %in% 1:3 ~ "fertile",
-                            SC %in% 4:6 ~ "poor")) %>%                 # COMPLETE SOIL CALSS to get mineral coarse/fine??
+                            SC %in% 4:7 ~ "poor")) %>%                 # added 7? COMPLETE SOIL CALSS to get mineral coarse/fine??
     mutate(soil_depth_less30 = ifelse(SOIL_CLASS == 1, TRUE,FALSE)) %>% 
     dplyr::select(-c(PEAT, SC))
   
@@ -228,7 +230,7 @@ formatWindRiskTable <- function(df, ...) {
                   siteFertility   = SC.v,
                   tempSum         = avgTemp)
   
-  # Correct the factor levels 
+  # Correct order the factor levels 
   # for categoric variables  ------------------------------------
   df.all<- df.all %>% 
     mutate(species = factor(species, levels = c("pine", 
@@ -263,15 +265,93 @@ formatWindRiskTable <- function(df, ...) {
   # Calculate wind risk ----------------------------
   windRisk.v = calculate_windRisk(df.all)
   
-  # Convert to normal vector
-  #vv<- as.vector(windRisk.v)
+ # df.all <- df.all %>% 
+  #  cbind(windRisk = windRisk.v)
   
-  # Merge vector as a new column into the original data 
- # df.sample <- df.sample %>% 
-  #  cbind(windRisk = vv)
+  
+  #df.all %>% 
+   # filter(is.na(windRisk)) %>% 
+    #select()
   
   return(windRisk.v)
 }
+
+
+
+
+readFiles <- function(df_name, ...) {
+  
+  # Read simulated data
+  df <- data.table::fread(paste(inPath, in_folder, in_name, sep = "/"),  #
+                          data.table=TRUE)
+  # print(head(df))
+  
+  return(df)
+}
+getUniqueID_sim <- function(df, ...) {
+  # 
+  #    # ========================================== #
+  #    #      Create unique ID for simulated data   # --------------------------------
+  #    #            to merge them with XY           # --------------------------------
+  #    # ========================================== #
+  # 
+  #    # Steps:
+  #    # 1. 'Zero paddling': add zeros to the beginning of 'id' ,
+  #    #     eg. fill in 00000XX values to have always 8 characters starting with 0
+  #    # 2. rename grid cells ('k3') into consecutive numbers ('1'...)
+  #    # 3. Add numeric grid indication at the beginning of the 8 digit paddled 'id'
+  #    # 4. voila! done
+  # 
+  df <-
+    df %>%
+    mutate(zero_id = formatC(id,
+                             width = 8,
+                             format = "d",
+                             flag = "0")) %>%
+    mutate(cell = str_sub(name,-2))  %>%
+    mutate(nb = case_when(
+      cell == "k3" ~ "1",
+      cell == "k4" ~ "2",
+      cell == "l2" ~ "3",
+      cell == "l3" ~ "4",
+      cell == "l4" ~ "5",
+      cell == "l5" ~ "6",
+      cell == "m3" ~ "7",
+      cell == "m4" ~ "8",
+      cell == "m5" ~ "9",
+      cell == "n3" ~ "10",
+      cell == "n4" ~ "11",
+      cell == "n5" ~ "12",
+      cell == "n6" ~ "13",
+      cell == "p3" ~ "14",
+      cell == "p4" ~ "15",
+      cell == "p5" ~ "16",
+      cell == "p6" ~ "17",
+      cell == "q3" ~ "18",
+      cell == "q4" ~ "19",
+      cell == "q5" ~ "20",
+      cell == "r4" ~ "21",
+      cell == "r5" ~ "22",
+      cell == "s4" ~ "23",
+      cell == "s5" ~ "24",
+      cell == "t4" ~ "25",
+      cell == "t5" ~ "26",
+      cell == "u4" ~ "27",
+      cell == "u5" ~ "28",
+      cell == "v3" ~ "29",
+      cell == "v4" ~ "30",
+      cell == "v5" ~ "31",
+      cell == "w3" ~ "32",
+      cell == "w4" ~ "33",
+      cell == "w5" ~ "34",
+      cell == "x4" ~ "35",
+      cell == "x5" ~ "36")) %>%
+    mutate(ID = paste0(nb, zero_id)) %>%
+    mutate(ID = as.character(ID))
+  
+  return(df)
+}
+
 
 
 
