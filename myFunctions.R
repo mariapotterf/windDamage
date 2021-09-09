@@ -114,12 +114,11 @@ find_nbrs_geom <- function(sf, ...) {
 
 
 # Use couple central-neighbors to compare tree heights or set open_edge = T
-#  ------------------------------
+
 # this lopps over teh couples oine - neighbors 
 # and estimate the open_edge value for each stand
 # output is a matrix
-open_edge_by_nbrs <- function(nbrs, 
-                              df.sim,...) {
+open_edge_by_nbrs <- function(nbrs, df.sim,...) {
   require(sf)
   require(dplyr)
   
@@ -178,23 +177,33 @@ open_edge_by_nbrs <- function(nbrs,
 # ------------------------------------------------
 # function to adjust table ---------------
 # gegenartes the same open_edge values!!!
+
+# 
 formatWindRiskTable <- function(df, ...) {
   
   library(dplyr)
+  
+  # subset only important columns for wind risk model
+  df.sub <- df %>% 
+    dplyr::select(id, year, Age, SC,
+                  SOIL_CLASS, PEAT, MAIN_SP, 
+                  H_dom, windSpeed, avgTemp, since_thin, regime)
+  
+  
   #   df<- df.cc45_2
   # add new column
-  df$open_edge = "TRUE"
+  df.sub <- df.sub %>% mutate(open_edge = "TRUE")
 
   # Recalssify values
   # # Reclassify values:
   df.all<-
-    df %>% 
+    df.sub %>% 
     mutate(PEAT.v = case_when(PEAT == 0 ~ "mineral soil",
                               PEAT == 1 ~ "peat"))  %>%
     mutate(SC.v = case_when(SC %in% 1:3 ~ "fertile",
                             SC %in% 4:6 ~ "poor")) %>%                 # COMPLETE SOIL CALSS to get mineral coarse/fine??
-    
-    mutate(soil_depth_less30 = ifelse(SOIL_CLASS == 1, TRUE,FALSE)) 
+    mutate(soil_depth_less30 = ifelse(SOIL_CLASS == 1, TRUE,FALSE)) %>% 
+    dplyr::select(-c(PEAT, SC))
   
   # continue the table to split it in chunks
   df.all <- df.all %>%
@@ -206,8 +215,9 @@ formatWindRiskTable <- function(df, ...) {
                                TRUE ~ "other")) %>% 
     mutate(H_dom = replace_na(H_dom, 0.0001)) %>%  # no possible to get log(0) or log(NA)  
     mutate(H_dom = H_dom * 10) %>%           # Susanne values are in dm instead of meters
-    mutate_if(is.character, as.factor)  #%>%    # convert all characters to factor
-  # head()
+    mutate_if(is.character, as.factor)  %>%    # convert all characters to factor
+    dplyr::select(-c(SOIL_CLASS,MAIN_SP ))
+    #head()
   
   # try if I can calculate the preidtcion based on subset data
   # to make sure that data did not get randomly reorganized
@@ -218,35 +228,49 @@ formatWindRiskTable <- function(df, ...) {
                   siteFertility   = SC.v,
                   tempSum         = avgTemp)
   
-  # -----------------------------------------
-  #          Correct the factor levels 
-  #          for categoric variables
-  # ------------------------------------
-  df.all$species          <- factor(df.all$species, 
-                                    levels = c("pine", 
+  # Correct the factor levels 
+  # for categoric variables  ------------------------------------
+  df.all<- df.all %>% 
+    mutate(species = factor(species, levels = c("pine", 
                                                "spruce", 
-                                               "other"))
+                                               "other")))
+  df.all<- df.all %>% 
+    mutate(time_thinning = factor(time_thinning, 
+                                  levels = c("0-5", 
+                                             "6-10", 
+                                             ">10"))) 
+  df.all<- df.all %>% 
+    mutate(open_edge = factor(open_edge,
+                              levels = c("FALSE", 
+                                       "TRUE")))
   
-  df.all$time_thinning    <- factor(df.all$time_thinning, 
-                                    levels = c("0-5", 
-                                               "6-10", 
-                                               ">10"))
-  df.all$open_edge        <- factor(df.all$open_edge,
-                                    levels = c("FALSE", 
-                                               "TRUE"))
-  df.all$soilType         <- factor(df.all$soilType,
+  df.all<- df.all %>% 
+    mutate(soilType= factor(soilType,
                                     levels = c("mineral coarse", 
                                                "mineral fine",
-                                               "organic"))
-  df.all$soilDepthLess30  <- factor(df.all$soilDepthLess30, 
+                                               "organic")))
+  df.all<- df.all %>% 
+    mutate(soilDepthLess30 = factor(soilDepthLess30, 
                                     levels = c("FALSE", 
-                                               "TRUE"))
-  df.all$siteFertility    <- factor(df.all$siteFertility,
+                                               "TRUE")))
+  df.all<- df.all %>% 
+    mutate(siteFertility = factor(siteFertility,
                                     levels = c("poor", 
-                                               "fertile"))
-  df.all$tempSum          <- df.all$tempSum/100   # according to Susane 
+                                               "fertile")))
+  df.all<- df.all %>% 
+    mutate(tempSum = tempSum/100)   # according to Susane
   
-  return(df.all)
+  # Calculate wind risk ----------------------------
+  windRisk.v = calculate_windRisk(df.all)
+  
+  # Convert to normal vector
+  #vv<- as.vector(windRisk.v)
+  
+  # Merge vector as a new column into the original data 
+ # df.sample <- df.sample %>% 
+  #  cbind(windRisk = vv)
+  
+  return(windRisk.v)
 }
 
 
@@ -520,160 +544,138 @@ calculateDailyMeans <- function(sf, gridNames, ...) {
 
 
 
-
-
-# ---------------------------------------
-# 
-#  Get Suvanto's calculation and fake model:
-
-# ---------------------
-#
-
-# Convert logit to probabilities
-logit2prob <- function(logit){
-  odds <- exp(logit)
-  prob <- odds / (1 + odds)
-  return(prob)
-}
-
-
+# Wind risk
 
 # =========================
 # fake data
 # Check if the model works???
 # ---------------------
 
-set.seed(42)
-
-row.num = 80
-
-species         <- factor(rep(c("pine", "spruce", "other"),
-                              each = row.num), 
-                          levels = c("pine", "spruce", "other"))
-H_dom          <- c(runif(row.num, min = 10, max = 200),
-                     runif(row.num, min = 0, max = 100),
-                     runif(row.num, min = 30, max = 150))
-time_thinning   <-  factor(sample(c("0-5", "6-10", ">10"),
-                                  length(species), replace = TRUE), 
-                           levels = c("0-5", "6-10", ">10"))
-windSpeed       <- runif(length(species), min = 10, max = 30)
-open_edge      <- ifelse(rbinom(length(species), 1, 0.9), "FALSE", "TRUE") 
-soilType        <- sample(c("mineral coarse", "mineral fine",
-                            "organic"),
-                          length(species), replace = TRUE)
-soilDepthLess30 <- ifelse(rbinom(length(species), 1, 0.5),
-                          "FALSE","TRUE")
-siteFertility   <- factor(sample(c("poor", "fertile"),
-                                 length(species),
-                                 replace = TRUE),
-                          levels = c("poor", "fertile"))
-tempSum         <- runif(length(species), min = 6, max = 16)
-#damageDensity  <- rep(0, length(species))
-
-wind_damage     <- rbinom(length(species), 1, 0.4)
-
-
-# put data together
-df.fake<-data.frame(species, 
-               H_dom,
-               time_thinning,
-               windSpeed,
-               open_edge,
-               soilType,
-               soilDepthLess30,
-               siteFertility,
-               tempSum,
-               wind_damage)
-
-
-
-# convert my categorial variables into binary classes
-# create vector of colnames with categorical variables
-categVars <- c("species", 
-               "time_thinning", 
-               "open_edge",
-               "soilType", 
-               "soilDepthLess30",
-               "siteFertility")
-
-
-# get suvanto coeffuiicients
-# replace them in the fake model
-# calculate predicted values * ar the same as manual values?
-
-fake.m <- glm(formula = wind_damage ~ species + log(H_dom)  +  
-                time_thinning + 
-                log(windSpeed) + open_edge + soilType +
-                soilDepthLess30 + 
-                siteFertility + tempSum +
-                log(H_dom):species, 
-              data = df.fake, 
-              family = "binomial") # family = binomial(link = "logit")
-
-
-
-# ----------------------------
-# Get Suvanto's coefficients
-# ---------------------------
-# Suvanto's coefficients (more accurate from Susanne code): 20 digits
-intercept                    = - 14.690374506245104769
-b1.spec.spruce               = - 8.494158565180855547
-b2.spec.other                = - 9.314355152502169943
-b3.log.H_dom                = + 1.660897636823469137   # log
-b4.last_thinning.6.10        = - 0.298186071853962231
-b5.last_thinning.over.10     = - 0.844019963540904472
-b6.log.wind                  = + 0.748957880201017501   # log
-b7.open_edge_border         = + 0.310378186345018792
-b8.soil_min.fine             = - 0.355681075669793900
-b9.soil_organic              = - 0.216004202249671151
-b10.soil_depth.less.30cm      = + 0.214100256449853671
-b11.site_fertility            = - 0.425096042510456240
-b12.temperature_sum           = + 0.095854694562656148
-b13.spec.spruce.X.log.H_dom  = + 1.634359050870280550 
-b14.spec.other.X.log.H_dom   = + 1.624775941830151726
-
-
-# Put coefficients in a vector, to replace the coefficients in a formula
-suvantoCoeffs<-c(intercept, 
-                 b1.spec.spruce,
-                 b2.spec.other,
-                 b3.log.H_dom,
-                 b4.last_thinning.6.10,
-                 b5.last_thinning.over.10,
-                 b6.log.wind,
-                 b7.open_edge_border,
-                 b8.soil_min.fine,
-                 b9.soil_organic,
-                 b10.soil_depth.less.30cm,
-                 b11.site_fertility,
-                 b12.temperature_sum,
-                 b13.spec.spruce.X.log.H_dom,
-                 b14.spec.other.X.log.H_dom)
-
-
-# -------------------------------
-# Replace the dummy coefficients 
-#    by the real ones
-# -------------------------------
-# First, copy the model
-windRisk.m <- fake.m
-
-
-# replace coefficients:
-windRisk.m$coefficients<-suvantoCoeffs
-
-
-# create new data, just change tree H_dom variable
-df.fake2<-df.fake
-df.fake2$H_dom<- c(runif(row.num, min = 10, max = 200),
-               runif(row.num, min = 0, max = 300),
-               runif(row.num, min = 30, max = 150))
+calculate_windRisk <- function(df, ...) {
+  
+  # Create fake data --------------------------------
+  
+  set.seed(42)
+  
+  row.num = 80
+  
+  species         <- factor(rep(c("pine", "spruce", "other"),
+                                each = row.num), 
+                            levels = c("pine", "spruce", "other"))
+  H_dom          <- c(runif(row.num, min = 10, max = 200),
+                      runif(row.num, min = 0, max = 100),
+                      runif(row.num, min = 30, max = 150))
+  time_thinning   <-  factor(sample(c("0-5", "6-10", ">10"),
+                                    length(species), replace = TRUE), 
+                             levels = c("0-5", "6-10", ">10"))
+  windSpeed       <- runif(length(species), min = 10, max = 30)
+  open_edge      <- ifelse(rbinom(length(species), 1, 0.9), "FALSE", "TRUE") 
+  soilType        <- sample(c("mineral coarse", "mineral fine",
+                              "organic"),
+                            length(species), replace = TRUE)
+  soilDepthLess30 <- ifelse(rbinom(length(species), 1, 0.5),
+                            "FALSE","TRUE")
+  siteFertility   <- factor(sample(c("poor", "fertile"),
+                                   length(species),
+                                   replace = TRUE),
+                            levels = c("poor", "fertile"))
+  tempSum         <- runif(length(species), min = 6, max = 16)
+  wind_damage     <- rbinom(length(species), 1, 0.4)
+  
+  
+  # put data together
+  df.fake<-data.frame(species, 
+                      H_dom,
+                      time_thinning,
+                      windSpeed,
+                      open_edge,
+                      soilType,
+                      soilDepthLess30,
+                      siteFertility,
+                      tempSum,
+                      wind_damage)
+  
+  
+  
+  # get suvanto coefficients
+  # replace them in the fake model
+  # calculate predicted values * ar the same as manual values?
+  
+  fake.m <- glm(formula = wind_damage ~ species + log(H_dom)  +  
+                  time_thinning + 
+                  log(windSpeed) + open_edge + soilType +
+                  soilDepthLess30 + 
+                  siteFertility + tempSum +
+                  log(H_dom):species, 
+                data = df.fake, 
+                family = "binomial") # family = binomial(link = "logit")
+  
+  
+  
+  # ----------------------------
+  # Get Suvanto's coefficients
+  # ---------------------------
+  # Suvanto's coefficients (more accurate from Susanne code): 20 digits
+  intercept                     = - 14.690374506245104769
+  b1.spec.spruce                = - 8.494158565180855547
+  b2.spec.other                 = - 9.314355152502169943
+  b3.log.H_dom                  = + 1.660897636823469137   # log
+  b4.last_thinning.6.10         = - 0.298186071853962231
+  b5.last_thinning.over.10      = - 0.844019963540904472
+  b6.log.wind                   = + 0.748957880201017501   # log
+  b7.open_edge_border           = + 0.310378186345018792
+  b8.soil_min.fine              = - 0.355681075669793900
+  b9.soil_organic               = - 0.216004202249671151
+  b10.soil_depth.less.30cm      = + 0.214100256449853671
+  b11.site_fertility            = - 0.425096042510456240
+  b12.temperature_sum           = + 0.095854694562656148
+  b13.spec.spruce.X.log.H_dom   = + 1.634359050870280550 
+  b14.spec.other.X.log.H_dom    = + 1.624775941830151726
+  
+  
+  # Put coefficients in a vector, to replace the coefficients in a formula
+  suvantoCoeffs<-c(intercept, 
+                   b1.spec.spruce,
+                   b2.spec.other,
+                   b3.log.H_dom,
+                   b4.last_thinning.6.10,
+                   b5.last_thinning.over.10,
+                   b6.log.wind,
+                   b7.open_edge_border,
+                   b8.soil_min.fine,
+                   b9.soil_organic,
+                   b10.soil_depth.less.30cm,
+                   b11.site_fertility,
+                   b12.temperature_sum,
+                   b13.spec.spruce.X.log.H_dom,
+                   b14.spec.other.X.log.H_dom)
+  
+  
+  # -------------------------------
+  # Replace the dummy coefficients 
+  #    by the real ones
+  # -------------------------------
+  # First, copy the model
+  windRisk.m <- fake.m
+  
+  
+  # replace coefficients:
+  windRisk.m$coefficients<-suvantoCoeffs
+  
+  
+  # Normally predicted values - converted from logit values
+  predicted<-predict.glm(windRisk.m,
+                            df, 
+                            type="response")
+  return(predicted)
+  
+}
 
 
-# Normally predicted values - converted from logit values
-df.fake2$predicted<-predict.glm(windRisk.m, 
-                           df.fake2, 
-                           type="response")
+
+# -------------------------------------
+# Manual calculate wind risk
+# -------------------------------------
 
 
 # -------------------------------
@@ -686,101 +688,110 @@ df.fake2$predicted<-predict.glm(windRisk.m,
 #    - convert sum(row) values to logit to get the probability estimation
 # -------------------------------
 
-# convert my categorial variables into binary classes
-# create vector of colnames with categorical variables
-categVars <- c("species", 
-               "time_thinning", 
-               "open_edge",
-               "soilType", 
-               "soilDepthLess30",
-               "siteFertility")
+
+# Crtl+Shift+C = un/comment
+
+# # convert my categorial variables into binary classes
+# # create vector of colnames with categorical variables
+# categVars <- c("species", 
+#                "time_thinning", 
+#                "open_edge",
+#                "soilType", 
+#                "soilDepthLess30",
+#                "siteFertility")
+# 
+# 
+# library(fastDummies)
+# 
+# df.fake.bin <- fastDummies::dummy_cols(df.fake,
+#                                        select_columns = categVars, # only categorical
+#                                        remove_first_dummy = TRUE)  # remove reference category
+# 
+# # remove the original variables and observed value of damages
+# df.fake.bin<-df.fake.bin[ , !(names(df.fake.bin) %in% c(categVars,
+#                                                         "wind_damage"))]
+# 
+# 
+# # complete the dataframe by interactions 
+# # to have the same amount of columns as number of coefficients
+# # add logarithm in a formula
+# # add columnf for intersectp => fill with 1
+# df.fake.bin$interc <- 1
+# 
+# df.fake.bin$log_H_dom  <- log(df.fake.bin$H_dom)
+# df.fake.bin$log_Wspeed <- log(df.fake.bin$windSpeed)
+# 
+# # add interactions
+# df.fake.bin$spec.spruce.X.log.H_dom <- df.fake.bin$species_spruce * df.fake.bin$log_H_dom
+# df.fake.bin$spec.other.X.log.H_dom  <- df.fake.bin$species_other  * df.fake.bin$log_H_dom
+# 
+# 
+# # to put it in correct order
+# colnames.ordered<-c("interc",
+#                     "species_spruce",
+#                     "species_other",
+#                     "log_H_dom",
+#                     "time_thinning_6-10", 
+#                     "time_thinning_>10",
+#                     "log_Wspeed",
+#                     "open_edge_TRUE",
+#                     "soilType_mineral fine",
+#                     "soilType_organic",
+#                     "soilDepthLess30_TRUE",
+#                     "siteFertility_fertile",
+#                     "tempSum",
+#                     "spec.spruce.X.log.H_dom",
+#                     "spec.other.X.log.H_dom" )
+# 
+# # order the dataframe to corresponds columnwise to coefficients
+# # keep only specified columns
+# df.fake.ord<-df.fake.bin[colnames.ordered]
+# 
+# 
+# # Multiply the dataframe columns by vector of coefficients
+# 
+# # calculate partial df.fake 
+# # the final column need to be summed up
+# part.df.fake <- sweep(df.fake.ord, 2, suvantoCoeffs, "*")
+# 
+# # sum by rows and add intercept value
+# df.fake.ord$pred.manual <- logit2prob(rowSums(part.df.fake))
+# 
+# # Convert logit to probabilities
+# logit2prob <- function(logit){
+#   odds <- exp(logit)
+#   prob <- odds / (1 + odds)
+#   return(prob)
+# }
+# 
+# 
+# 
+# # sum by rows and add intercept value
+# df.fake.ord$pred.manual <- logit2prob(rowSums(part.df.fake))
+# 
+# 
+# # Calculate teh probability based on model: 
+# # the manual calculation (with logits) and this should be the same!!
+# # Calcutate probability values given the example data
+# df.fake.ord$predict.wind <- predict.glm(windRisk.m, 
+#                                         df.fake, 
+#                                         type = "response")
+# 
+# 
+# # Compare manual probability estimation and 
+# # calculated using the model
+# df.fake.ord$diff<- round(df.fake.ord$pred.manual,6) - round(df.fake.ord$predict.wind,6)
+# 
+# range(df.fake.ord$diff)
+# 
+# # ----------------------
+# # conclusions! easier to recreate model and just replace the coefficeint for it, 
+# # no need to convert to binary, get logits etlc...
+# # need to check it on one more data??
 
 
-library(fastDummies)
-
-df.fake.bin <- fastDummies::dummy_cols(df.fake,
-                                  select_columns = categVars, # only categorical
-                                  remove_first_dummy = TRUE)  # remove reference category
-
-# remove the original variables and observed value of damages
-df.fake.bin<-df.fake.bin[ , !(names(df.fake.bin) %in% c(categVars,
-                                         "wind_damage"))]
-
-
-# complete the dataframe by interactions 
-# to have the same amount of columns as number of coefficients
-# add logarithm in a formula
-# add columnf for intersectp => fill with 1
-df.fake.bin$interc <- 1
-
-df.fake.bin$log_H_dom  <- log(df.fake.bin$H_dom)
-df.fake.bin$log_Wspeed <- log(df.fake.bin$windSpeed)
-
-# add interactions
-df.fake.bin$spec.spruce.X.log.H_dom <- df.fake.bin$species_spruce * df.fake.bin$log_H_dom
-df.fake.bin$spec.other.X.log.H_dom  <- df.fake.bin$species_other  * df.fake.bin$log_H_dom
-
-
-# to put it in correct order
-colnames.ordered<-c("interc",
-                    "species_spruce",
-                    "species_other",
-                    "log_H_dom",
-                    "time_thinning_6-10", 
-                    "time_thinning_>10",
-                    "log_Wspeed",
-                    "open_edge_TRUE",
-                    "soilType_mineral fine",
-                    "soilType_organic",
-                    "soilDepthLess30_TRUE",
-                    "siteFertility_fertile",
-                    "tempSum",
-                    "spec.spruce.X.log.H_dom",
-                    "spec.other.X.log.H_dom" )
-
-# order the dataframe to corresponds columnwise to coefficients
-# keep only specified columns
-df.fake.ord<-df.fake.bin[colnames.ordered]
-
-
-# Multiply the dataframe columns by vector of coefficients
-
-# calculate partial df.fake 
-# the final column need to be summed up
-part.df.fake <- sweep(df.fake.ord, 2, suvantoCoeffs, "*")
-
-# sum by rows and add intercept value
-df.fake.ord$pred.manual <- logit2prob(rowSums(part.df.fake))
-
-# Convert logit to probabilities
-logit2prob <- function(logit){
-  odds <- exp(logit)
-  prob <- odds / (1 + odds)
-  return(prob)
-}
 
 
 
-# sum by rows and add intercept value
-df.fake.ord$pred.manual <- logit2prob(rowSums(part.df.fake))
 
-
-# Calculate teh probability based on model: 
-# the manual calculation (with logits) and this should be the same!!
-# Calcutate probability values given the example data
-df.fake.ord$predict.wind <- predict.glm(windRisk.m, 
-                                   df.fake, 
-                                   type = "response")
-
-
-# Compare manual probability estimation and 
-# calculated using the model
-df.fake.ord$diff<- round(df.fake.ord$pred.manual,6) - round(df.fake.ord$predict.wind,6)
-
-range(df.fake.ord$diff)
-
-# ----------------------
-# conclusions! easier to recreate model and just replace the coefficeint for it, 
-# no need to convert to binary, get logits etlc...
-# need to check it on one more data??
 
