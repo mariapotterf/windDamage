@@ -56,7 +56,9 @@ df.names = list.files(paste(inPath, inFolder, sep = "/"),
 
 # Read dataframes
 df.ls <- lapply(df.names, function(name, ...) data.table::fread(paste(inPath, inFolder, name,  sep = "/"),  # 
-                                                           data.table=TRUE, stringsAsFactors = FALSE))
+                                                           data.table=TRUE, 
+                                                           stringsAsFactors = FALSE,
+                                                           integer64="character"))
 
 
 # Sample the specific IDs
@@ -67,7 +69,7 @@ sub_ids <- sample(my_ids, 1000)
 sub_ids <- as.numeric(sub_ids)
 
 # subset teh same stands from each regime
-df.ls2 <- list()
+#df.ls2 <- list()
 df.ls2 <- lapply(df.ls, function(df) df %>% 
          filter(id %in% sub_ids))
 
@@ -129,7 +131,7 @@ rm(df.ls)
 # Classify climate change
 df.out <- df.out %>% 
   mutate(climChange = case_when(
-    grepl("RCP0", name) ~ "no",
+    grepl("RCP0", name)  ~ "no",
     grepl("RCP45", name) ~ "cc45",
     grepl("RCP85", name) ~ "cc85"))
 
@@ -170,21 +172,33 @@ library(ggplot2)
 
 
 # simple plotting of differences between regimes and CC
+# wind risk --------------------
 df.out %>% 
   group_by(id, regime, climChange) %>% 
   summarize(my_risk = mean(windRisk, na.rm = T)) %>% 
   ggplot(aes(x = regime,
              y = my_risk*100,
              fill = climChange)) +
-  geom_boxplot()
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
+
+# combined HSI
+df.out %>% 
+  group_by(id, regime, climChange) %>% 
+  summarize(mean_HSI = mean(COMBINED_HSI, na.rm = T)) %>% 
+  ggplot(aes(x = regime,
+             y = mean_HSI,
+             fill = climChange)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 
 
 # Calculate the % change to plot on the map
 # Reference: BAU
 # Export file to check it with map ------------------------------
-#df.plot <- 
+df.plot <- 
   df.out %>% 
   group_by(id, climChange, regime) %>% 
   summarise(mean_risk = mean(windRisk, na.rm = T),
@@ -192,14 +206,124 @@ df.out %>%
   mutate(control_risk = mean_risk[match('BAU', regime)],
          control_HSI  = mean_HSI[ match('BAU', regime)],
          perc_change_HSI  = mean_HSI /control_HSI  * 100 - 100,
-         perc_change_risk = mean_risk/control_risk * 100 - 100) %>%
-  data.table::fwrite(paste(inPath, "output/plotting", 'id_1000.csv', sep = "/"))
+         perc_change_risk = mean_risk/control_risk * 100 - 100)# %>%
+  #data.table::fwrite(paste(inPath, "output/plotting", 'id_1000.csv', sep = "/"))
 
 
   
+ 
+# 
+# wind damage risk  vs individual species -------------------------
+
+# CAPERCAILLIE  
+# HAZEL_GROUSE
+# LESSER_SPOTTED_WOODPECKER
+# SIBERIAN_FLYING_SQUIRREL
+# LONG_TAILED_TIT
+# THREE_TOED_WOODPECKER
+
+
+windows(width = 7, height = 3)
+
+df.species.means <- 
+  df.out %>% 
+  group_by(regime) %>% # modif, #geo_grad,
+  summarise(mean_risk    = mean(windRisk, na.rm = T),
+            mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
+            mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
+            mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
+            mean_LESSER  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T),
+            mean_TIT     = mean(LONG_TAILED_TIT, na.rm = T),
+            mean_SQR     = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T)
+            )  %>%
+  mutate(control_risk    = mean_risk[match('BAU', regime)],
+         control_CAPER   = mean_CAPER[match('BAU', regime)],
+         p_change_CAPER  = mean_CAPER /control_CAPER * 100 - 100,
+         p_change_risk   = mean_risk/control_risk * 100 - 100,
+         control_HAZ     = mean_HAZ[match('BAU', regime)],
+         p_change_HAZ    = mean_HAZ /control_HAZ * 100 - 100,
+         control_THREE   = mean_THREE[match('BAU', regime)],
+         p_change_THREE  = mean_THREE /control_THREE * 100 - 100,
+         control_LESSER  = mean_LESSER[match('BAU', regime)],
+         p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
+         control_TIT     = mean_TIT[match('BAU', regime)],
+         p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
+         control_SQR     = mean_SQR[match('BAU', regime)],
+         p_change_SQR    = mean_SQR /control_SQR * 100 - 100) 
+
   
+ # plot XY scatter plots by regimes and fill with species
+
+pt_details <- function() {
+  list(
+    geom_point(),
+    ylab(''),
+    xlab(''),
+    geom_vline(xintercept = 0, color = "grey", lty = "dashed"), 
+    geom_hline(yintercept = 0, color = "grey", lty = "dashed"),
+    theme(axis.title  = element_text(size = 10, face="plain", family = "sans"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
+          axis.text.y = element_text(face="plain", size = 9, family = "sans"),
+          legend.position = "right",
+          strip.background =element_rect(fill="white", 
+                                         color = NA))
+    )
+}
+
+
+p1 <- 
+  df.species.means %>% 
+  ggplot(aes(x = p_change_CAPER,
+             y = p_change_risk,
+             color = regime)) + 
+    ggtitle("a) capercaillie\n") +
+    pt_details() +
+  ylab("wind damage\nrisk change")
   
-  
+
+p2 <- df.species.means %>% 
+  ggplot(aes(x = p_change_HAZ,
+             y = p_change_risk,
+             color = regime)) +
+  pt_details() +
+  ggtitle("b) hasel grouse\n")
+
+p3 <- df.species.means %>% 
+  ggplot(aes(x = p_change_THREE,
+             y = p_change_risk,
+             color = regime)) +
+  pt_details() +
+  ggtitle("c) three toed\nwoodpacker")
+
+p4 <- df.species.means %>% 
+  ggplot(aes(x = p_change_LESSER,
+             y = p_change_risk,
+             color = regime)) +
+  pt_details() +
+  ggtitle("d) lesser spotted\nwoodpecker") +
+  ylab("wind damage\nrisk change")
+ 
+p5 <- df.species.means %>% 
+  ggplot(aes(x = p_change_TIT,
+             y = p_change_risk,
+             color = regime)) +
+  pt_details() +
+  ggtitle("e) long tailed\ntit")
+
+p6 <- df.species.means %>% 
+  ggplot(aes(x = p_change_SQR,
+             y = p_change_risk,
+             color = regime)) +
+  pt_details() +
+  ggtitle("f) siberian flying\nsquirrel")
+
+
+windows(7,4)
+ggarrange(p1,p2,p3,p4,p5,p6, 
+          widths = c(1.05,1, 1, 1.05,1,1),
+             ncol = 3,nrow = 2,
+             common.legend = TRUE,
+          legend = 'right')
   
   
   
