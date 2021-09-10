@@ -105,6 +105,8 @@ df_name <- gsub(".csv", '', df_name)
 
 #df_name = c("rcp0BAUwT", "rcp85xxx8")
 
+
+# Fur all functions ------------------------------------
 lapply(df_name, processAll) 
 
 processAll <- function(df_name, ...) {
@@ -241,7 +243,7 @@ getUniqueID_sim <- function(df, ...) {
 
 # Example    --------------------------------------------------------
 
-df_name   = 
+#df_name   = 
 in_name   = paste0(df_name, '.csv')
 (out_name = paste0(df_name, '_rsk.csv'))
 
