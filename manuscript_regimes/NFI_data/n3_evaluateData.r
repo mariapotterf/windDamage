@@ -154,6 +154,13 @@ df.out$climChange <-factor(df.out$climChange,
                             levels = c("no", "cc45", "cc85"))
 
 
+# Order the regimes by 'intensity': from the most intensive to the least intensive: 
+# a bit questionnable if my order is correct? CCF can be very intensive n terms of thinning
+# ordered in terms of timing of final cut
+df.out <- df.out %>% 
+  mutate(regime = factor(regime, 
+                         levels = c("short_30", "short_10","BAU", "noThin", "ext_10", "ext_30", "GTR", "CCF")))
+
 # Test hypotheses:  --------------------------------------------------------
 
 # select only regimes to test my hypotheses: RF, adaptation, w/wo thinning, CCF
@@ -171,7 +178,7 @@ names(df.out)
 
 # Make several histograms at once: reshape the data from wide to long:
 # whould I use median or mean??? 
-# highly skewed, I sjhould use median!!
+# highly skewed, I should use median!!
 df.ind <- 
   df.out %>% 
   dplyr::select(#'year',
@@ -295,6 +302,23 @@ df.out %>%
 
 
 
+# Deadwood
+windows(height = 3, width = 7)
+df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(V_total_deadwood, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  geom_line(size = 1.2) +
+ # ylim(0,1) +
+  facet_grid(.~climChange) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw() +
+  ylab("Total deadwood [V m3/ha]") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
 
 
 
@@ -359,19 +383,21 @@ df.species.means <-
          p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
          control_TIT     = mean_TIT[match('BAU', regime)],
          p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
-         control_SQIRR     = mean_SQIRR[match('BAU', regime)],
-         p_change_SQIRR    = mean_SQIRR /control_SQIRR * 100 - 100) 
+         control_SQIRR   = mean_SQIRR[match('BAU', regime)],
+         p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100) 
 
   
- # plot XY scatter plots by regimes and fill with species
+ # plot XY scatter plots by regimes and fill with species --------------------
 
 pt_details <- function() {
   list(
     geom_point(),
     ylab(''),
     xlab(''),
+    viridis::scale_color_viridis(discrete = TRUE),
     geom_vline(xintercept = 0, color = "grey", lty = "dashed"), 
     geom_hline(yintercept = 0, color = "grey", lty = "dashed"),
+    theme_bw(),
     theme(axis.title  = element_text(size = 10, face="plain", family = "sans"),
           axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
           axis.text.y = element_text(face="plain", size = 9, family = "sans"),
@@ -380,9 +406,8 @@ pt_details <- function() {
                                          color = NA))
     )
 }
-
-
-# Get individual plots for species
+# Get individual plots for species -------------------------------------
+my_lab_risk = c("Difference in\nwind damage risk [%]")
 
 p1 <- 
   df.species.means %>% 
@@ -391,7 +416,7 @@ p1 <-
              color = regime)) + 
     ggtitle("a) capercaillie\n") +
     pt_details() +
-  ylab("wind damage\nrisk change")
+  ylab(my_lab_risk)
   
 
 p2 <- df.species.means %>% 
@@ -414,7 +439,7 @@ p4 <- df.species.means %>%
              color = regime)) +
   pt_details() +
   ggtitle("d) lesser spotted\nwoodpecker") +
-  ylab("wind damage\nrisk change")
+  ylab(my_lab_risk)
  
 p5 <- df.species.means %>% 
   ggplot(aes(x = p_change_TIT,
@@ -424,7 +449,7 @@ p5 <- df.species.means %>%
   ggtitle("e) long tailed\ntit")
 
 p6 <- df.species.means %>% 
-  ggplot(aes(x = p_change_SQR,
+  ggplot(aes(x = p_change_SQIRR,
              y = p_change_risk,
              color = regime)) +
   pt_details() +
@@ -439,16 +464,168 @@ ggarrange(p1,p2,p3,p4,p5,p6,
           legend = 'right')
   
   
+
+
   
 
-# Economic consequences: -------------------------------------------
-# Evaluate sum of harvested timber:
+
+# ------------------------------------
+# Economic consequences:
+# ------------------------------------
+
+
+# Evaluate sum of harvested timber: -----------------------------------------
 
 df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
-  summarise(V_log  = mean(Harvested_V_log, rm.na = T),
-            V_pulp = sum(Harvested_V_pulp, rm.na = T)) #   %>%
+  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))   %>%
+  mutate(BAU_log          = sum_V_log[match('BAU', regime)],
+         BAU_pulp         = sum_V_pulp[ match('BAU', regime)],
+         perc_change_log  = sum_V_log /BAU_log  * 100 - 100,
+         perc_change_pulp = sum_V_pulp/BAU_pulp * 100 - 100)  %>%
+  filter(regime != "BAU")  %>%    # remove BAU from teh table
+  dplyr::select(c(climChange, regime, 
+                  perc_change_log, perc_change_pulp)) %>%
+
+  pivot_longer(!c(regime, climChange), #everything(vars = NULL),
+               names_to = "Timber_quality", 
+               values_to = "perc_V")  %>%
+  ggplot(aes(y=perc_V, 
+             x=regime,
+             fill = Timber_quality)) + 
+  geom_bar(position="dodge", 
+           stat="identity") +
+  facet_grid(.~ climChange) +
+  scale_fill_manual(values=c("#E69F00", "#56B4E9"), 
+                    name="Timber quality",
+                    breaks=c("perc_change_log", "perc_change_pulp"),
+                    labels=c("Log", "Pulp")) +
+  ylab("Difference in harvested\ntimber volume [%]") +
+  xlab("Variations in forest management") +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
   
+
+
+# Make bar plot of changes in biodiversity indicators given regime and climate change
+df.ind.diff <- 
+  df.out %>% 
+  group_by(climChange, regime) %>% # modif, #geo_grad,
+  summarise(mean_risk    = mean(windRisk, na.rm = T),
+            mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
+            mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
+            mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
+            mean_LESSER  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T),
+            mean_TIT     = mean(LONG_TAILED_TIT, na.rm = T),
+            mean_SQIRR   = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T),
+            mean_DW      = mean(V_total_deadwood, na.rm = T),
+            mean_HSI     = mean(COMBINED_HSI, na.rm = T)
+  )  %>%
+  mutate(control_risk    = mean_risk[match('BAU', regime)],
+         control_CAPER   = mean_CAPER[match('BAU', regime)],
+         p_change_CAPER  = mean_CAPER /control_CAPER * 100 - 100,
+         p_change_risk   = mean_risk/control_risk * 100 - 100,
+         control_HAZ     = mean_HAZ[match('BAU', regime)],
+         p_change_HAZ    = mean_HAZ /control_HAZ * 100 - 100,
+         control_THREE   = mean_THREE[match('BAU', regime)],
+         p_change_THREE  = mean_THREE /control_THREE * 100 - 100,
+         control_LESSER  = mean_LESSER[match('BAU', regime)],
+         p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
+         control_TIT     = mean_TIT[match('BAU', regime)],
+         p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
+         control_SQIRR   = mean_SQIRR[match('BAU', regime)],
+         p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100,
+         control_DW      = mean_DW[match('BAU', regime)],
+         p_change_DW     = mean_DW /control_DW * 100 - 100,
+         control_HSI     = mean_HSI[match('BAU', regime)],
+         p_change_HSI    = mean_HSI /control_HSI * 100 - 100) %>% 
+  filter(regime != "BAU")  %>%    # remove BAU from teh table
+  dplyr::select(c(climChange, regime,
+                  p_change_CAPER, 
+                  p_change_HAZ,
+                  p_change_THREE,
+                  p_change_LESSER, 
+                  p_change_TIT,
+                  p_change_SQIRR,
+                  p_change_DW)) %>%
+  pivot_longer(!c(regime, climChange), #everything(vars = NULL),
+               names_to = "Indicator", 
+               values_to = "perc_ch")  #%>%
+  
+# Bar plot for indicators
+#windows()
+df.ind.diff %>% 
+  ggplot(aes(y=perc_ch, 
+             x=regime,
+             fill = Indicator)) + 
+  geom_bar(position="dodge", 
+           stat="identity") +
+  facet_grid(.~ climChange) +
+ # scale_fill_manual(values=c("#E69F00", "#56B4E9"), 
+  #                  name="Timber quality",
+   #                 breaks=c("perc_change_log", "perc_change_pulp"),
+    #                labels=c("Log", "Pulp")) +
+  ylab("Difference in indicator [%]") +
+  xlab("Variations in forest management") +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+
+
+
+
+
+# bar plot for indivators means:
+df.ind.diff2 <- 
+  df.out %>% 
+  group_by(climChange, regime) %>% # modif, #geo_grad,
+  summarise(mean_risk    = mean(windRisk, na.rm = T),
+            mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
+            mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
+            mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
+            mean_LESSER  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T),
+            mean_TIT     = mean(LONG_TAILED_TIT, na.rm = T),
+            mean_SQIRR   = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T),
+           # mean_DW      = mean(V_total_deadwood, na.rm = T),
+            mean_HSI     = mean(COMBINED_HSI, na.rm = T)
+  )  %>%
+  #filter(regime != "BAU")  %>%    # remove BAU from teh table
+  dplyr::select(c(climChange, regime,
+                  mean_CAPER, 
+                  mean_HAZ,
+                  mean_THREE,
+                  mean_LESSER, 
+                  mean_TIT,
+                  mean_SQIRR)) %>%
+  pivot_longer(!c(regime, climChange), #everything(vars = NULL),
+               names_to = "Indicator", 
+               values_to = "perc_ch")  #%>%
+
+# Bar plot for indicators
+df.ind.diff2 %>% 
+  ggplot(aes(y=perc_ch, 
+             x=regime,
+             fill = Indicator)) + 
+  geom_bar(position="dodge", 
+           stat="identity") +
+  facet_grid(.~ climChange) +
+  # scale_fill_manual(values=c("#E69F00", "#56B4E9"), 
+  #                  name="Timber quality",
+  #                 breaks=c("perc_change_log", "perc_change_pulp"),
+  #                labels=c("Log", "Pulp")) +
+  ylab("Indicator [mean]") +
+  xlab("Variations in forest management") +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+
+
+
+
 
 
 
