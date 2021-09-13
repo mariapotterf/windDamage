@@ -161,6 +161,13 @@ df.out$climChange <-factor(df.out$climChange,
 # biodindicator
 
 library(ggplot2)
+library(ggpubr)
+
+
+# Investigate skewness of data: should I use mean or median??
+
+
+
 
 # H1: 
 # We suggest that shorter rotation length will reduce wind damage risk
@@ -234,7 +241,7 @@ df.species.means <-
             mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
             mean_LESSER  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T),
             mean_TIT     = mean(LONG_TAILED_TIT, na.rm = T),
-            mean_SQR     = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T)
+            mean_SQIRR   = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T)
             )  %>%
   mutate(control_risk    = mean_risk[match('BAU', regime)],
          control_CAPER   = mean_CAPER[match('BAU', regime)],
@@ -248,8 +255,8 @@ df.species.means <-
          p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
          control_TIT     = mean_TIT[match('BAU', regime)],
          p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
-         control_SQR     = mean_SQR[match('BAU', regime)],
-         p_change_SQR    = mean_SQR /control_SQR * 100 - 100) 
+         control_SQIRR     = mean_SQIRR[match('BAU', regime)],
+         p_change_SQIRR    = mean_SQIRR /control_SQIRR * 100 - 100) 
 
   
  # plot XY scatter plots by regimes and fill with species
@@ -270,6 +277,8 @@ pt_details <- function() {
     )
 }
 
+
+# Get individual plots for species
 
 p1 <- 
   df.species.means %>% 
@@ -327,6 +336,21 @@ ggarrange(p1,p2,p3,p4,p5,p6,
   
   
   
+
+
+# Evaluate sum of harvested timber:
+
+df.out %>% 
+  group_by(climChange, regime) %>% # modif, #geo_grad,
+  summarise(V_log  = mean(Harvested_V_log, rm.na = T),
+            V_pulp = sum(Harvested_V_pulp, rm.na = T)) #   %>%
+  
+
+
+
+# Evaluate changes in mean age over landscape
+
+
 
 
 
