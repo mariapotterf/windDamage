@@ -162,10 +162,39 @@ df.out$climChange <-factor(df.out$climChange,
 
 library(ggplot2)
 library(ggpubr)
+library()
 
 
 # Investigate skewness of data: should I use mean or median??
 
+names(df.out)
+
+# Make several histograms at once: reshape the data from wide to long:
+# whould I use median or mean??? 
+# highly skewed, I sjhould use median!!
+df.ind <- 
+  df.out %>% 
+  dplyr::select(#'year',
+                "CAPERCAILLIE",
+                "HAZEL_GROUSE",
+                "THREE_TOED_WOODPECKER",
+                "LESSER_SPOTTED_WOODPECKER",
+                "LONG_TAILED_TIT",
+                "SIBERIAN_FLYING_SQUIRREL",
+                "COMBINED_HSI")  %>% # ,
+  # "V_total_deadwood" removed as has a different scale than 0-1 HSI
+   pivot_longer(everything(vars = NULL),
+               names_to = "indicator", values_to = "HSI") #%>%
+
+# Make a histogram for all indicators
+df.ind %>% 
+  ggplot(aes(y = HSI,
+             x = indicator)) + 
+  geom_violin()
+ # geom_histogram(binwidth = 30) + 
+  facet_wrap(.~indicator)
+  
+  
 
 
 
@@ -199,6 +228,81 @@ df.out %>%
              fill = climChange)) +
   geom_boxplot() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+
+# Make line plot over years:
+# try for:
+# a) wind damage risk, 
+# b) age, 
+# c) combined HSI
+library(viridis)
+
+windows(height = 3, width = 7)
+df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(mean_windRisk = mean(windRisk, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = mean_windRisk*100,
+             col = regime)) +
+  geom_line(size = 1.2) +
+  ylim(0,10) +
+  facet_grid(.~climChange) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+
+
+# Age over landscape
+library(viridis)
+
+windows(height = 3, width = 7)
+df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(Age, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  geom_line(size = 1.2) +
+  ylim(20,130) +
+  facet_grid(.~climChange) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw() +
+  ylab("Age [years]") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+
+
+# Combined HSI
+windows(height = 3, width = 7)
+df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(COMBINED_HSI, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  geom_line(size = 1.2) +
+  ylim(0,1) +
+  facet_grid(.~climChange) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw() +
+  ylab("COMBINED_HSI ") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -337,7 +441,7 @@ ggarrange(p1,p2,p3,p4,p5,p6,
   
   
 
-
+# Economic consequences: -------------------------------------------
 # Evaluate sum of harvested timber:
 
 df.out %>% 
