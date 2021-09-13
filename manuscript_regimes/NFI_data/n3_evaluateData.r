@@ -169,7 +169,10 @@ df.out <- df.out %>%
 
 library(ggplot2)
 library(ggpubr)
-library()
+
+
+# Define labels:
+lab_manag = c("Final harvest variation")
 
 
 # Investigate skewness of data: should I use mean or median??
@@ -200,7 +203,6 @@ df.ind %>%
   geom_violin()
  # geom_histogram(binwidth = 30) + 
   facet_wrap(.~indicator)
-  
   
 
 
@@ -238,11 +240,72 @@ df.out %>%
 
 
 
-# Make line plot over years:
+
+# Barplot differenes in wind damage risk compared to BAU by climate change
+p.bar.risk <-
+  df.out %>% 
+  group_by(climChange, regime) %>% # modif, #geo_grad,
+  summarise(windRisk_mean = mean(windRisk, na.rm = T)) %>% 
+  mutate(BAU_risk         = windRisk_mean[match('BAU', regime)],
+         perc_change_risk = windRisk_mean/BAU_risk * 100 - 100)  %>%
+  filter(regime != "BAU")  %>%    # remove BAU from teh table
+  ggplot(aes(y=perc_change_risk, 
+             x=regime,
+             fill = climChange)) + 
+  geom_bar(position="dodge", 
+           stat="identity") +
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                    name="Climate change",
+                    breaks=c("no", "cc45", "cc85"),
+                    labels=c("Reference", "RCP45", "RCP85")) +
+  ylab("Difference in wind\nwind damage risk [%]") +
+  xlab(lab_manag) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom') +
+  geom_hline(yintercept = 0) +
+  coord_flip()
+
+
+
+# Barplot for combined HSI
+# Barplot differenes in wind damage risk compared to BAU by climate change
+p.bar.HSI <-
+  df.out %>% 
+  group_by(climChange, regime) %>% # modif, #geo_grad,
+  summarise(HSI_mean = mean(COMBINED_HSI, na.rm = T)) %>% 
+  mutate(BAU_HSI         = HSI_mean[match('BAU', regime)],
+         perc_change_HSI = HSI_mean/BAU_HSI * 100 - 100)  %>%
+  filter(regime != "BAU")  %>%    # remove BAU from teh table
+  ggplot(aes(y=perc_change_HSI, 
+             x=regime,
+             fill = climChange)) + 
+  geom_bar(position="dodge", 
+           stat="identity") +
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                    name="Climate change",
+                    breaks=c("no", "cc45", "cc85"),
+                    labels=c("Reference", "RCP45", "RCP85")) +
+  ylab("Difference in \ncombined HSI [%]") +
+  xlab(lab_manag) +
+  geom_hline(yintercept = 0) +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom') +
+  coord_flip()
+
+windows(7,4)
+ggarrange(p.bar.risk, p.bar.HSI, ncol = 2, labels = c('a)', 'b)'),
+          common.legend = TRUE, legend = 'bottom' )
+
+
+
+# Make line plot over years:   -----------------------------------------
 # try for:
 # a) wind damage risk, 
 # b) age, 
 # c) combined HSI
+# d) deadwood volume
 library(viridis)
 
 windows(height = 3, width = 7)
@@ -348,7 +411,7 @@ df.plot <-
   
  
 # 
-# wind damage risk  vs individual species -------------------------
+# wind damage risk  vs individual species no climate change !!-------------------------
 
 # CAPERCAILLIE  
 # HAZEL_GROUSE
@@ -502,7 +565,7 @@ df.out %>%
                     breaks=c("perc_change_log", "perc_change_pulp"),
                     labels=c("Log", "Pulp")) +
   ylab("Difference in harvested\ntimber volume [%]") +
-  xlab("Variations in forest management") +
+  xlab(lab_manag) +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position = 'bottom')# +
@@ -568,7 +631,7 @@ df.ind.diff %>%
    #                 breaks=c("perc_change_log", "perc_change_pulp"),
     #                labels=c("Log", "Pulp")) +
   ylab("Difference in indicator [%]") +
-  xlab("Variations in forest management") +
+  xlab(lab_manag) +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position = 'bottom')# +
@@ -617,7 +680,7 @@ df.ind.diff2 %>%
   #                 breaks=c("perc_change_log", "perc_change_pulp"),
   #                labels=c("Log", "Pulp")) +
   ylab("Indicator [mean]") +
-  xlab("Variations in forest management") +
+  xlab(lab_manag) +
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position = 'bottom')# +
