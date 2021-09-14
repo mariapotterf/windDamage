@@ -17,7 +17,7 @@ library(data.table)
 library(dplyr)
 
 
-# Read input data: 
+# Read input data: -------------------
 # XY points
 # Finland shape
 # simulated data
@@ -33,22 +33,14 @@ df.FI <- sf::st_read("C:/MyTemp/2021_WindRisk_biodiversity/raw",
 
 # Get simulated data
 inPath = 'C:/MyTemp/2021_WindRisk_biodiversity/output/windRisk_csv'
-df.sim <- data.table::fread(paste(inPath, "rcp0BAU_rsk.csv",  sep = "/"),  # 
+df.sim <- data.table::fread(paste(inPath, "rcp0BAU.csv",  sep = "/"),  # 
                             data.table=TRUE, 
                             stringsAsFactors = FALSE,
                             integer64="character")
 
 
-# plot with ggplot; ggplot is quite slow
-ggplot(df.FI) + 
-  geom_point(data = df.geom, aes(x = X_10,
-                                 y = Padded_id, 
-                                 color = PaajakoNro)) +
-  geom_sf(color = "black", fill = NA, size = 1.2) 
 
-
-
-# JOin geometry with simulated data: only one regime
+# JOin geometry with simulated data: only one regime   ---------------------------------
 df.all<-
   df.geom %>% 
   dplyr::select(-c(FID_XY_3067, X, Stand, Padded_id_1, FID_MetsaKasvVyoh)) %>% 
@@ -58,18 +50,15 @@ df.all<-
   left_join(df.sim, by = c("ID" = "id")) 
 
 
-# Sample the specific IDs
+# Sample the specific IDs to speed up the plotting -------------------
 my_ids  <- unique(df.all$ID)
 sub_ids <- sample(my_ids, 5000) 
 
 
 # subset teh same stands from each regime
-#df.ls2 <- list()
 df.all.sub <- df.all %>% 
                    filter(ID %in% sub_ids) %>% 
   filter(!is.na(windRisk))
-
-
 
 
 # plot data -------------------------------------------------
@@ -77,6 +66,96 @@ library(viridis)
 library(ggthemes)
 
 theme_set(theme_bw())
+
+
+# Plot map ggplot2 ------------------------------------------------
+
+
+windows()
+df.all.sub %>% 
+  filter(year == 2021) %>% 
+  ggplot() + 
+  geom_sf(aes(color = H_dom))  + # , size = 0.5 , size = AREA
+  scale_color_continuous(low = "lightgreen", 
+                         high = "darkgreen",
+                         space = "Lab", 
+                         na.value = "red", guide = "colourbar")#+
+
+# Plot quantiles
+ggplot(df.FI) + 
+  geom_sf(color = 'black', 
+          fill  = 'grey93') + 
+  geom_point(data = filter(df.all.sub, year == 2111),
+             aes(x = X,
+                 y = Y, 
+                 color = windRisk_cl), 
+             size = 1)  +  # risk_cat
+  viridis::scale_color_viridis(discrete = TRUE, option = "magma") +
+  ggtitle("Wind damage risk [2016]") +
+  ylab('') +
+  xlab('') +
+  theme_map()
+
+
+# on continuous data
+ggplot(df.FI) + 
+  geom_sf(color = 'black', 
+          fill  = 'grey93') + 
+  geom_point(data = filter(df.all.sub, year == 2111),
+             aes(x = X,
+                 y = Y, 
+                 color = windRisk), 
+             size = 1)  +  # risk_cat
+  viridis::scale_color_viridis(discrete = FALSE, option = "magma") +
+  ggtitle("Wind damage risk [2016]") +
+  ylab('') +
+  xlab('') +
+  theme_map()
+
+
+
+
+# R animate: ------------------------------------------------
+
+
+# Get data:
+library(gapminder)
+
+# Charge libraries:
+library(ggplot2)
+library(gganimate)
+library(transformr)
+
+ggplot(df.FI) +   # base map
+  geom_sf(color = 'black', 
+          fill  = 'grey93') + 
+  geom_sf(data = df.all.sub,
+          aes(color = H_dom)) + # , size = Age, size = 0.8size by factor itself!
+  viridis::scale_color_viridis(discrete = FALSE, option = "viridis",
+                               na.value = "red") +
+  annotation_scale(location = "bl", width_hint = 0.4) +
+  theme_bw() +
+  xlab("Longitude") + 
+  ylab("Latitude") +
+  # gganimate specific bits: ------------------
+labs(title = 'Changes in Tree Height over years {current_frame}',
+     color  = "Tree height [m]") +
+  transition_manual(year) +
+  #transition_time(year) +
+  ease_aes('linear')
+
+
+anim_save("NFI_treeHeight.gif")
+# zac. 15:42~ cca 15 min to make one!
+
+
+
+
+
+
+
+
+# Do not run: 
 
 
 # Make classification using quantiles
@@ -107,97 +186,5 @@ df.all.sub$windRisk_cl <- cut(df.all.sub$windRisk,
                                      labels = labels, 
                                      include.lowest = T)
 
-
-
-# Plot map ggplot2 ------------------------------------------------
-
-
-windows()
-df.all.sub %>% 
-  filter(year == 2021) %>% 
-  ggplot() + 
-  geom_sf(aes(color = H_dom))  + # , size = 0.5 , size = AREA
-  scale_color_continuous(low = "lightgreen", 
-                         high = "darkgreen",
-                         space = "Lab", 
-                         na.value = "red", guide = "colourbar")#+
-
-# Plot quantiles
-ggplot(df.FI) + 
-  geom_sf(color = 'black', 
-          fill  = 'grey93') + 
-  geom_point(data = filter(df.all.sub, year == 2111),
-              aes(x = X,
-                 y = Y, 
-                 color = windRisk_cl), 
-             size = 1)  +  # risk_cat
-  viridis::scale_color_viridis(discrete = TRUE, option = "magma") +
-  ggtitle("Wind damage risk [2016]") +
-  ylab('') +
-  xlab('') +
-  theme_map()
-
-
-# on continuous data
-ggplot(df.FI) + 
-  geom_sf(color = 'black', 
-          fill  = 'grey93') + 
-  geom_point(data = filter(df.all.sub, year == 2111),
-             aes(x = X,
-                 y = Y, 
-                 color = windRisk), 
-             size = 1)  +  # risk_cat
-  viridis::scale_color_viridis(discrete = FALSE, option = "magma") +
-  ggtitle("Wind damage risk [2016]") +
-  ylab('') +
-  xlab('') +
-  theme_map()
-
-
-
-
-# R animate: 
-
-
-# Get data:
-library(gapminder)
-
-# Charge libraries:
-library(ggplot2)
-library(gganimate)
-library(transformr)
-
-ggplot(df.FI) + 
-  geom_sf(color = 'black', 
-          fill  = 'grey93') + 
-  geom_sf(data = df.all.sub,
-          aes(color = H_dom)) + # , size = Age, size = 0.8size by factor itself!
-  #scale_color_continuous(#low = "lightgreen", 
-                         #high = "black",
-                         #space = "Lab", 
-                         #na.value = "red", 
-                         #guide = "colourbar"
-                       #  )+
-  viridis::scale_color_viridis(discrete = FALSE, option = "viridis",
-                               na.value = "red") +
-  annotation_scale(location = "bl", width_hint = 0.4) +
-  # annotation_north_arrow(location = "bl", which_north = "true", 
-  #                       pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
-  #                      style = north_arrow_fancy_orienteering) +
-  theme_bw() +
-  xlab("Longitude") + 
-  ylab("Latitude") +
-  # theme(axis.title=element_blank(),
-  #      axis.text=element_blank(),
-  #     axis.ticks=element_blank()) +
-  # gganimate specific bits:
-  labs(title = 'Changes in Tree Height over years {current_frame}') +
-  transition_manual(year) +
-  #transition_time(year) +
-  ease_aes('linear')
-
-
-anim_save("NFI_Age.gif")
-# zac. 15:42~ cca 15 min to make one!
 
 
