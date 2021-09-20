@@ -15,6 +15,7 @@ library(tidyr)
 library(data.table)
 library(stringr)
 library(ggplot2)
+library(ggpubr)
 
 # Correct order of variables, factors & levels
 # need to have same names of columns?? YES
@@ -129,9 +130,9 @@ rm(df.ls)
 # Classify climate change
 df.out <- df.out %>% 
   mutate(climChange = case_when(
-    grepl("RCP0", name)  ~ "no",
-    grepl("RCP45", name) ~ "cc45",
-    grepl("RCP85", name) ~ "cc85"))
+    grepl("RCP0", name)  ~ "reference",
+    grepl("RCP45", name) ~ "RCP45",
+    grepl("RCP85", name) ~ "RCP85"))
 
 
 # Correct regimes names
@@ -149,7 +150,7 @@ df.out <- df.out %>%
 
 # Change order of change time---------------------------------------
 df.out$climChange <-factor(df.out$climChange, 
-                            levels = c("no", "cc45", "cc85"))
+                            levels = c("reference", "RCP45", "RCP85"))
 
 
 # Order the regimes by 'intensity': from the most intensive to the least intensive: 
@@ -161,10 +162,6 @@ df.out <- df.out %>%
 
 
 
-# Make table: initial conditions
-
-
-
 
 
 # Test hypotheses:  --------------------------------------------------------
@@ -173,8 +170,7 @@ df.out <- df.out %>%
 # keep climate change
 # biodindicator
 
-library(ggplot2)
-library(ggpubr)
+
 
 
 # Define labels:
