@@ -249,8 +249,29 @@ df.out %>%
 
 # Barplot differenes in wind damage risk compared to BAU by climate change  --------------
 
-# Barplot differenes in wind damage risk compared to BAU by climate change
-# Put barplot data together to have the same y labels 
+# Make barplots with CI around it!
+# group by ID ad then calculate teh differences?
+
+# df.out %>% 
+#   group_by(id, climChange, regime) %>% # modif, #geo_grad, id, 
+#  # head()
+#   summarise(windRisk_mean = mean(windRisk, na.rm = T),
+#             HSI_mean = mean(COMBINED_HSI, na.rm = T)) %>% 
+#   mutate(BAU_HSI          = HSI_mean[match('BAU', regime)],
+#          perc_change_HSI  = HSI_mean/BAU_HSI * 100 - 100,
+#          BAU_risk         = windRisk_mean[match('BAU', regime)],
+#          perc_change_risk = windRisk_mean/BAU_risk * 100 - 100) #%>%
+#   dplyr::select(c(climChange, regime, 
+#                   perc_change_risk,
+#                   perc_change_HSI)) %>%
+#   pivot_longer(!c(regime, climChange), #everything(vars = NULL),
+#                names_to = "Indicator", 
+#                values_to = "perc_ch")  %>%
+#   
+
+
+
+# Put barplot data together to have the same y labels ------
 
 windows(height = 3.5, width=7)
 df.out %>% 
@@ -278,9 +299,7 @@ df.out %>%
            stat="identity") +
     geom_hline(yintercept = 0) +
   scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
-                    name="Climate change",
-                    breaks=c("no", "cc45", "cc85"),
-                    labels=c("Reference", "RCP45", "RCP85")) +
+                    name="Climate change") +
   ylab("Differences from BAU scenario [%]") +
   xlab(lab_manag) +
     facet_grid(.~Indicator) +
@@ -505,11 +524,93 @@ df.ind.diff %>%
         legend.position = 'bottom')# +
 
 
+# -----------------------------------------------
+# Summary table risk, HSI, harvested volume      ----------------------------------
+# -----------------------------------------------
+
+# have two steps:
+
+df_summary_main <-
+  df.out %>% 
+  group_by(regime, climChange) %>% # modif, #geo_grad,
+  summarise(windRisk_mean = round(mean(windRisk, na.rm = T)*100, digits = 1),
+            windRisk_sd   = round(sd(windRisk, na.rm = T)*100, digits = 1),
+            HSI_mean      = round(mean(COMBINED_HSI, na.rm = T), digits = 1),
+            HSI_sd        = round(sd(COMBINED_HSI, na.rm = T), digits = 1),
+            sum_V_log     = round(sum(Harvested_V_log, na.rm = T)/1000, digits = 1),
+            sum_V_pulp    = round(sum(Harvested_V_pulp, na.rm = T)/1000, digits = 1))  %>%
+  mutate(climChange = case_when(climChange == 'reference' ~ 'REF',
+                                climChange == 'RCP45' ~ 'RCP45',
+                                climChange == 'RCP85' ~ 'RCP85'))
+
+# Format output table
+formated_df_main <- 
+  df_summary_main %>% 
+  mutate(WindDamage    = stringr::str_glue("{windRisk_mean}±{windRisk_sd}"),
+         Combined_HSI  = stringr::str_glue("{HSI_mean}±{HSI_sd}"),
+         Harvested_log = sum_V_log, #stringr::str_glue("{mean_BA}±{sd_BA}"),
+         Harvested_pulp= sum_V_pulp #stringr::str_glue("{mean_V}±{sd_V}"),
+      ) %>%  #,  {scales::percent(sd_height)}
+  dplyr::select(regime, climChange, WindDamage, 
+                Combined_HSI, Harvested_log, Harvested_pulp)
 
 
 
 
-# bar plot for indivators means:
+# Summary table Indicators
+df.out %>% 
+  group_by(climChange, regime) %>% # modif, #geo_grad,
+  summarise(mean_CAPER   = round(mean(CAPERCAILLIE, na.rm = T), 1),
+           # sd_CAPER     = round(sd(CAPERCAILLIE, na.rm = T), 1),
+            mean_HAZ     = round(mean(HAZEL_GROUSE, na.rm = T), 1),
+            #sd_HAZ       = round(sd(HAZEL_GROUSE, na.rm = T), 1),
+            mean_THREE   = round(mean(THREE_TOED_WOODPECKER, na.rm = T),  1),
+          #  sd_THREE       = round(sd(THREE_TOED_WOODPECKER, na.rm = T), 1),
+            mean_LESSER  = round(mean(LESSER_SPOTTED_WOODPECKER, na.rm = T), 1),
+          #  sd_HAZ       = round(sd(LESSER_SPOTTED_WOODPECKER, na.rm = T), 1),
+            mean_TIT     = round(mean(LONG_TAILED_TIT, na.rm = T), 1),
+           # sd_HAZ       = round(sd(LONG_TAILED_TIT, na.rm = T), 1),
+            mean_SQIRR   = round(mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T), 1)#,
+            #sd_HAZ       = round(sd(SIBERIAN_FLYING_SQUIRREL, na.rm = T), 1),
+            #mean_DW      = round(mean(V_total_deadwood, na.rm = T), 1),
+            #sd_DW        = round(sd(V_total_deadwood, na.rm = T), 1)
+  ) 
+
+
+
+# Get geom_tile:
+windows(7, 3)
+df.out %>% 
+  group_by(climChange, regime) %>% # modif, #geo_grad,
+  summarise(mean_CAPER   = round(mean(CAPERCAILLIE, na.rm = T), 1),
+            mean_HAZ     = round(mean(HAZEL_GROUSE, na.rm = T), 1),
+            mean_THREE   = round(mean(THREE_TOED_WOODPECKER, na.rm = T),  1),
+            mean_LESSER  = round(mean(LESSER_SPOTTED_WOODPECKER, na.rm = T), 1),
+            mean_TIT     = round(mean(LONG_TAILED_TIT, na.rm = T), 1),
+            mean_SQIRR   = round(mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T), 1)#,
+            #mean_DW      = round(mean(V_total_deadwood, na.rm = T), 1),
+            #sd_DW        = round(sd(V_total_deadwood, na.rm = T), 1)
+  ) %>% 
+  mutate(climChange = case_when(climChange == 'reference' ~ 'REF',
+                                climChange == 'RCP45' ~ 'RCP45',
+                                climChange == 'RCP85' ~ 'RCP85')) %>% 
+ # mutate(comb = paste(climChange, regime, sep = "_")) %>% 
+  #dplyr::select(-c(climChange, regime)) %>% 
+  gather(key="HSI",
+         value="value",mean_CAPER:mean_SQIRR)   %>%
+ ggplot(aes(x = regime,
+            y = HSI)) + 
+   geom_tile(aes(fill = value)) +
+  #scale_fill_viridis_c(limits = c(0,0.5), direction = -1) +
+  scale_fill_gradient(low = "yellow", high = "red", na.value = NA) +
+  facet_grid(.~climChange) + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+
+
+
+
+# bar plot for indicators means:
 df.ind.diff2 <- 
   df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
@@ -543,10 +644,6 @@ df.ind.diff2 %>%
   geom_bar(position="dodge", 
            stat="identity") +
   facet_grid(.~ climChange) +
-  # scale_fill_manual(values=c("#E69F00", "#56B4E9"), 
-  #                  name="Timber quality",
-  #                 breaks=c("perc_change_log", "perc_change_pulp"),
-  #                labels=c("Log", "Pulp")) +
   ylab("Indicator [mean]") +
   xlab(lab_manag) +
   theme_bw() + 
