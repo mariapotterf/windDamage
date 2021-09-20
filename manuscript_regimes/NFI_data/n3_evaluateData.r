@@ -17,6 +17,7 @@ library(dplyr)
 library(tidyr)
 library(data.table)
 library(stringr)
+library(ggplot2)
 
 # Correct order of variables, factors & levels
 # need to have same names of columns?? YES
