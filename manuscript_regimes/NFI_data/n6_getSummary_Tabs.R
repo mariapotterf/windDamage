@@ -166,9 +166,12 @@ formated_df <-
   #Age    = stringr::str_glue("{scales::percent(share_bball, accuracy = 1)} ({count_bball} / {n})")) %>%
   tidyr::complete(species)  %>%
 
-  dplyr::arrange(desc(Species_share)) %>%   # arrange by the importance
+  dplyr::arrange(desc(Species_share)) %>%   # arrange by the importance NOT WORKING!
   dplyr::select(species, Species_share, Height, Age, Basal_area, Volume) 
 
+
+
+# # copy the table form teh R data.frame format, insert as text and then Convert text to table.
 
 
 

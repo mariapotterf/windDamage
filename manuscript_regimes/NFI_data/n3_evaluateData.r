@@ -3,10 +3,7 @@
 # ----------------------------------
 
 
-# Read data and make plots
-# data form N-S gradient and climate change
-
-# Make working example for no climate changes; then calculate values for CC scenario 
+# Read data and make tables and plots
 rm(list = ls())
 
 
@@ -116,7 +113,7 @@ cl_keep <- c(
 )
 
 # check if I have the same stands all over??
-lapply(df.ls2, function(df) length(unique(df$id))) # the final number varies between regimes
+# lapply(df.ls2, function(df) length(unique(df$id))) # the final number varies between regimes
 
 
 # keep only needed columns
@@ -161,6 +158,14 @@ df.out$climChange <-factor(df.out$climChange,
 df.out <- df.out %>% 
   mutate(regime = factor(regime, 
                          levels = c("short_30", "short_10","BAU", "noThin", "ext_10", "ext_30", "GTR", "CCF")))
+
+
+
+# Make table: initial conditions
+
+
+
+
 
 # Test hypotheses:  --------------------------------------------------------
 
