@@ -87,7 +87,7 @@ cl_keep <- c(
   "Harvested_V_pulp",
   "V_total_deadwood",
   #"DEVEL_CLASS"
-  # "SC"                      
+  "SC",                      
   "SOIL_CLASS",
   # "THIN"  
   "PEAT",
@@ -104,8 +104,8 @@ cl_keep <- c(
   "name",
   # "cell"
   "id",
-  #"avgTemp"
-  #"windSpeed"
+  "avgTemp",
+  "windSpeed",
   "regime",
   "adapt",
   "magnit" ,
@@ -168,6 +168,65 @@ formated_df <-
 
   dplyr::arrange(desc(Species_share)) %>%   # arrange by the importance
   dplyr::select(species, Species_share, Height, Age, Basal_area, Volume) 
+
+
+
+
+# Get enviro characteristics --------------------------
+
+
+# Count the soil conditions
+# -------------------------
+df.out %>% 
+  filter(year == 2016 ) %>% 
+  mutate(soilType = case_when(SOIL_CLASS == 0 ~ "organic",
+                              SOIL_CLASS %in% 1:4 ~ "mineral coarse",
+                              SOIL_CLASS %in% 5:7 ~ "mineral fine")) %>% 
+  group_by(soilType) %>% 
+  summarise(n           = n(), # count species
+            share_n = round(n/tot_stands*100, digits = 1 )) 
+
+# seems that all classes are mineral coarse??
+# Get this value instead from teh NFI inventory
+#soilType           n share_n
+#<chr>          <int>   <dbl>
+#  1 mineral coarse 52455     100
+#> unique(df.out$SOIL_CLASS)
+
+
+# Site fertility
+# -----------------
+df.out %>% 
+  dplyr::filter(year == 2016 ) %>% 
+  mutate(siteFertility = case_when(SC %in% 1:3 ~ "fertile",
+                          SC %in% 4:7 ~ "poor")) %>%                 # added 7? COMPLETE SOIL CALSS to get mineral coarse/fine??
+  group_by(siteFertility) %>% 
+  summarise(n           = n(), 
+            share_n = round(n/tot_stands*100, digits = 1 )) 
+
+
+# siteFertility     n share_n
+# <chr>         <int>   <dbl>
+# 1 fertile       33458    63.8
+# 2 poor          18997    36.2
+
+
+
+# Get wind speed and temperature sum
+# ----------------------------
+df.out %>% 
+  filter(year == 2016 ) %>% 
+  # group_by(siteFertility) %>% 
+  summarise(mean_wind = round(mean(windSpeed, na.rm = T), digits = 1),
+            sd_wind   = round(sd(windSpeed, na.rm = T), digits = 1),
+            mean_temp = round(mean(avgTemp, na.rm = T), digits = 1),
+            sd_temp   = round(sd(avgTemp, na.rm = T), digits = 1))
+
+
+
+# mean_wind sd_wind mean_temp sd_temp
+#1      11.8     1.9    1190.3   200.6
+
 
 
 
