@@ -105,13 +105,18 @@ sampleIDs <- function(x, ...) {
 
 }
 
+# test on single dataframe
 dd<-sampleIDs(1000)
+
 
 length(unique(dd$id))
 
+# ----------------------------------
+#        Test on vector 
+# ----------------------------------
 
 # test it for a vector of values
-sample_size <- c(50, 100, 1000, 5000, 10000, 25000, 40000)
+sample_size <- c((1:5)*1000)
 
 df.ls2 <- lapply(sample_size, sampleIDs)
 
@@ -132,4 +137,7 @@ ggplot(aes(x = as.factor(sample),
   geom_boxplot()
 
 
+
+# it is ok to use 1000 ID to capture data variability; otherwise only number of outliers increases. If needed, I can use sample size between 
+# 1000-5000?
 
