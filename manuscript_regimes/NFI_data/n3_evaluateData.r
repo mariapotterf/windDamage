@@ -130,7 +130,7 @@ rm(df.ls)
 # Classify climate change
 df.out <- df.out %>% 
   mutate(climChange = case_when(
-    grepl("RCP0", name)  ~ "reference",
+    grepl("RCP0", name)  ~ "REF",
     grepl("RCP45", name) ~ "RCP45",
     grepl("RCP85", name) ~ "RCP85"))
 
@@ -150,7 +150,7 @@ df.out <- df.out %>%
 
 # Change order of change time---------------------------------------
 df.out$climChange <-factor(df.out$climChange, 
-                            levels = c("reference", "RCP45", "RCP85"))
+                            levels = c("REF", "RCP45", "RCP85"))
 
 
 # Order the regimes by 'intensity': from the most intensive to the least intensive: 
@@ -588,10 +588,7 @@ df_summary_main <-
             HSI_sd        = round(sd(COMBINED_HSI, na.rm = T), digits = 1),
             DW_mean       = round(mean(V_total_deadwood, na.rm = T), digits = 1),
             DW_sd         = round(sd(V_total_deadwood, na.rm = T), digits = 1)) %>% 
-  left_join(df.timber) %>% 
-  mutate(climChange = case_when(climChange == 'reference' ~ 'REF',
-                                climChange == 'RCP45' ~ 'RCP45',
-                                climChange == 'RCP85' ~ 'RCP85'))
+  left_join(df.timber)
 
 # Third, format output table
 formated_df_main <- 
@@ -604,6 +601,43 @@ formated_df_main <-
       ) %>%  #,  {scales::percent(sd_height)}
   dplyr::select(regime, climChange, WindDamage, Deadwood,
                 Combined_HSI, Harvested_log, Harvested_pulp)
+
+
+
+
+
+
+# Make barplots with +- sd for some indicators from teh summary table??? -------
+# log:
+df_summary_main %>% 
+  ggplot(aes(x = regime,
+             y = mean_sum_V_log,
+             fill = climChange,
+             color = climChange)) + 
+  geom_col(position="dodge2") +
+  geom_errorbar(aes(x=regime, 
+                    ymin=mean_sum_V_log-sd_sum_V_log, 
+                    ymax=mean_sum_V_log+sd_sum_V_log), 
+                width=0.2, colour="grey10", 
+                alpha=0.9, size=0.5,
+                position=position_dodge(.9))# +
+  #geom_point() #+
+  
+
+# Pulp:
+df_summary_main %>% 
+  ggplot(aes(x = regime,
+             y = mean_sum_V_pulp,
+             fill = climChange,
+             color = climChange)) + 
+  geom_col(position="dodge2") +
+  geom_errorbar(aes(x=regime, 
+                    ymin=mean_sum_V_pulp-sd_sum_V_pulp, 
+                    ymax=mean_sum_V_pulp+sd_sum_V_pulp), 
+                width=0.2, colour="grey10", 
+                alpha=0.9, size=0.5,
+                position=position_dodge(.9))# +
+#geom_point() #+
 
 
 
@@ -641,12 +675,7 @@ df.out %>%
             mean_SQIRR   = round(mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T), 1)#,
             #mean_DW      = round(mean(V_total_deadwood, na.rm = T), 1),
             #sd_DW        = round(sd(V_total_deadwood, na.rm = T), 1)
-  ) %>% 
-  mutate(climChange = case_when(climChange == 'reference' ~ 'REF',
-                                climChange == 'RCP45' ~ 'RCP45',
-                                climChange == 'RCP85' ~ 'RCP85')) %>% 
- # mutate(comb = paste(climChange, regime, sep = "_")) %>% 
-  #dplyr::select(-c(climChange, regime)) %>% 
+  ) %>%  
   gather(key="HSI",
          value="value",mean_CAPER:mean_SQIRR)   %>%
  ggplot(aes(x = regime,
@@ -763,17 +792,23 @@ df.species.means <-
          control_TIT     = mean_TIT[match('BAU', regime)],
          p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
          control_SQIRR   = mean_SQIRR[match('BAU', regime)],
-         p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100) 
+         p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100) %>% 
+  dplyr::filter(regime != 'BAU')
 
   
  # plot XY scatter plots by regimes and fill with species --------------------
+
+# Make my own gradient scheme:
+
+
+
 
 pt_details <- function() {
   list(
     geom_point(),
     ylab(''),
     xlab(''),
-    viridis::scale_color_viridis(discrete = TRUE),
+    viridis::scale_color_viridis(discrete = TRUE, option="turbo"),
     geom_vline(xintercept = 0, color = "grey", lty = "dashed"), 
     geom_hline(yintercept = 0, color = "grey", lty = "dashed"),
     theme_bw(),
@@ -792,7 +827,8 @@ p1 <-
   df.species.means %>% 
   ggplot(aes(x = p_change_CAPER,
              y = p_change_risk,
-             color = regime)) + 
+             color = regime,
+             shape = regime)) + 
     ggtitle("a) capercaillie\n") +
     pt_details() +
   ylab(my_lab_risk)
@@ -801,21 +837,24 @@ p1 <-
 p2 <- df.species.means %>% 
   ggplot(aes(x = p_change_HAZ,
              y = p_change_risk,
-             color = regime)) +
+             color = regime,
+             shape = regime)) +
   pt_details() +
   ggtitle("b) hasel grouse\n")
 
 p3 <- df.species.means %>% 
   ggplot(aes(x = p_change_THREE,
              y = p_change_risk,
-             color = regime)) +
+             color = regime,
+             shape = regime)) +
   pt_details() +
   ggtitle("c) three toed\nwoodpacker")
 
 p4 <- df.species.means %>% 
   ggplot(aes(x = p_change_LESSER,
              y = p_change_risk,
-             color = regime)) +
+             color = regime,
+             shape = regime)) +
   pt_details() +
   ggtitle("d) lesser spotted\nwoodpecker") +
   ylab(my_lab_risk)
@@ -823,14 +862,16 @@ p4 <- df.species.means %>%
 p5 <- df.species.means %>% 
   ggplot(aes(x = p_change_TIT,
              y = p_change_risk,
-             color = regime)) +
+             color = regime,
+             shape = regime)) +
   pt_details() +
   ggtitle("e) long tailed\ntit")
 
 p6 <- df.species.means %>% 
   ggplot(aes(x = p_change_SQIRR,
              y = p_change_risk,
-             color = regime)) +
+             color = regime,
+             shape = regime)) +
   pt_details() +
   ggtitle("f) siberian flying\nsquirrel")
 
