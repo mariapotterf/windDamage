@@ -489,8 +489,8 @@ df.out %>%
 
 
 
-# Make bar plot of changes in biodiversity indicators given regime and climate change
-df.ind.diff <- 
+# Make bar plot of changes in biodiversity indicators given regime and climate change --------
+df.ind.diff <-  
   df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
   summarise(mean_risk    = mean(windRisk, na.rm = T),
@@ -555,34 +555,52 @@ df.ind.diff %>%
 
 
 # -----------------------------------------------
-# Summary table risk, HSI, harvested volume      ----------------------------------
+# Summary table risk, HSI, harvested volume      
 # -----------------------------------------------
 
-# have two steps:
+# Need to update harvested volume to first calculate the harvested volume from stand-by id (measure by m3/ha)
+# then calculate their means
+
+# Have three steps: 
+
+# Calculate first sums and means for harvested volume:
+
+df.timber <- df.out %>% 
+  group_by(id, climChange, regime) %>% # modif, #geo_grad,
+  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
+  ungroup() %>% 
+  group_by(climChange, regime) %>% 
+  summarise(mean_sum_V_log     = round(mean(sum_V_log, na.rm = T),1),
+            sd_sum_V_log       = round(sd(sum_V_log, na.rm = T),1),
+            mean_sum_V_pulp    = round(mean(sum_V_pulp, na.rm = T),1),
+            sd_sum_V_pulp      = round(sd(sum_V_pulp, na.rm = T), 1)) 
+  
+
+# Second, get the summary table:
 
 df_summary_main <-
   df.out %>% 
-  group_by(regime, climChange) %>% # modif, #geo_grad,
+  group_by(climChange, regime) %>% 
   summarise(windRisk_mean = round(mean(windRisk, na.rm = T)*100, digits = 2),
             windRisk_sd   = round(sd(windRisk, na.rm = T)*100, digits = 2),
             HSI_mean      = round(mean(COMBINED_HSI, na.rm = T), digits = 1),
             HSI_sd        = round(sd(COMBINED_HSI, na.rm = T), digits = 1),
             DW_mean       = round(mean(V_total_deadwood, na.rm = T), digits = 1),
-            DW_sd         = round(sd(V_total_deadwood, na.rm = T), digits = 1),
-            sum_V_log     = round(sum(Harvested_V_log, na.rm = T)/1000, digits = 1),
-            sum_V_pulp    = round(sum(Harvested_V_pulp, na.rm = T)/1000, digits = 1))  %>%
+            DW_sd         = round(sd(V_total_deadwood, na.rm = T), digits = 1)) %>% 
+  left_join(df.timber) %>% 
   mutate(climChange = case_when(climChange == 'reference' ~ 'REF',
                                 climChange == 'RCP45' ~ 'RCP45',
                                 climChange == 'RCP85' ~ 'RCP85'))
 
-# Format output table
+# Third, format output table
 formated_df_main <- 
   df_summary_main %>% 
   mutate(WindDamage    = stringr::str_glue("{windRisk_mean}±{windRisk_sd}"),
          Combined_HSI  = stringr::str_glue("{HSI_mean}±{HSI_sd}"),
          Deadwood      = stringr::str_glue("{DW_mean}±{DW_sd}"),
-         Harvested_log = sum_V_log, #stringr::str_glue("{mean_BA}±{sd_BA}"),
-         Harvested_pulp= sum_V_pulp #stringr::str_glue("{mean_V}±{sd_V}"),
+         Harvested_log = stringr::str_glue("{mean_sum_V_log}±{sd_sum_V_log}"),
+         Harvested_pulp= stringr::str_glue("{mean_sum_V_pulp}±{sd_sum_V_pulp}"),
       ) %>%  #,  {scales::percent(sd_height)}
   dplyr::select(regime, climChange, WindDamage, Deadwood,
                 Combined_HSI, Harvested_log, Harvested_pulp)
@@ -590,7 +608,7 @@ formated_df_main <-
 
 
 
-# Summary table Indicators
+# Summary table biodiversity Indicators ------------------------------------------------------
 df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
   summarise(mean_CAPER   = round(mean(CAPERCAILLIE, na.rm = T), 1),
