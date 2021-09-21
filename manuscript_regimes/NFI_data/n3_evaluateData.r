@@ -62,7 +62,7 @@ df.ls <- lapply(df.names, function(name, ...) data.table::fread(paste(inPath, in
 
 # Sample the specific IDs
 my_ids  <- unique(df.ls[[1]]$id)
-sub_ids <- sample(my_ids, 1000) 
+sub_ids <- sample(my_ids, 1500) 
 
 # convert from integer64 to numeric:
 sub_ids <- as.numeric(sub_ids)
@@ -277,20 +277,25 @@ windows(height = 3.5, width=7)
 df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
   summarise(windRisk_mean = mean(windRisk, na.rm = T),
-            HSI_mean = mean(COMBINED_HSI, na.rm = T)) %>% 
+            HSI_mean = mean(COMBINED_HSI, na.rm = T),
+            DW_mean = mean(V_total_deadwood, na.rm = T),) %>% 
   mutate(BAU_HSI          = HSI_mean[match('BAU', regime)],
          perc_change_HSI  = HSI_mean/BAU_HSI * 100 - 100,
          BAU_risk         = windRisk_mean[match('BAU', regime)],
-         perc_change_risk = windRisk_mean/BAU_risk * 100 - 100) %>%
-  dplyr::select(c(climChange, regime, 
+         perc_change_risk = windRisk_mean/BAU_risk * 100 - 100,
+         BAU_DW           = DW_mean[match('BAU', regime)],
+         perc_change_DW   = DW_mean/BAU_DW * 100 - 100) %>%
+  dplyr::select(c(climChange, 
+                  regime, 
                   perc_change_risk,
-                  perc_change_HSI)) %>%
+                  perc_change_HSI,
+                  perc_change_DW)) %>%
   pivot_longer(!c(regime, climChange), #everything(vars = NULL),
                names_to = "Indicator", 
                values_to = "perc_ch")  %>%
   mutate(Indicator = factor(Indicator, 
-                            levels = c('perc_change_risk', 'perc_change_HSI' ),
-                            labels = c('Wind damage risk','Combined HSI'))) %>% 
+                            levels = c('perc_change_risk', 'perc_change_HSI', 'perc_change_DW' ),
+                            labels = c('Wind damage risk','Combined HSI', 'Deadwood volume'))) %>% 
   filter(regime != "BAU")  %>%    # remove BAU from teh table
   ggplot(aes(y=perc_ch, 
              x=regime,
@@ -315,7 +320,7 @@ df.out %>%
 
 
 
-# Make line plot over years:   -----------------------------------------
+# Temporal trends over years:   -----------------------------------------
 # try for:
 # a) wind damage risk, 
 # b) age, 
@@ -327,7 +332,7 @@ library(viridis)
 
 # wind risk
 windows(height = 3, width = 7)
-df.out %>% 
+p.risk <- df.out %>% 
   group_by(year, regime, climChange) %>% 
   summarize(mean_windRisk = mean(windRisk, na.rm = T)) %>% 
   ggplot(aes(x = year,
@@ -335,6 +340,7 @@ df.out %>%
              col = regime)) +
   geom_line(size = 1.2) +
   ylim(0,10) +
+  ylab("Wind damage risk [%]") +
   facet_grid(.~climChange) +
   viridis::scale_color_viridis(discrete = TRUE) +
   theme_bw() +
@@ -345,7 +351,7 @@ df.out %>%
 
 # Age over landscape
 windows(height = 3, width = 7)
-df.out %>% 
+p.age <- df.out %>% 
   group_by(year, regime, climChange) %>% 
   summarize(my_mean = mean(Age, na.rm = T)) %>% 
   ggplot(aes(x = year,
@@ -364,7 +370,7 @@ df.out %>%
 
 # Combined HSI
 windows(height = 3, width = 7)
-df.out %>% 
+p.HSI <- df.out %>% 
   group_by(year, regime, climChange) %>% 
   summarize(my_mean = mean(COMBINED_HSI, na.rm = T)) %>% 
   ggplot(aes(x = year,
@@ -383,7 +389,7 @@ df.out %>%
 
 # Deadwood
 windows(height = 3, width = 7)
-df.out %>% 
+p.DW <- df.out %>% 
   group_by(year, regime, climChange) %>% 
   summarize(my_mean = mean(V_total_deadwood, na.rm = T)) %>% 
   ggplot(aes(x = year,
@@ -401,7 +407,7 @@ df.out %>%
 
 # H_dom
 windows(height = 3, width = 7)
-df.out %>% 
+p.H_dom <- df.out %>% 
   group_by(year, regime, climChange) %>% 
   summarize(my_mean = mean(H_dom, na.rm = T)) %>% 
   ggplot(aes(x = year,
@@ -418,6 +424,12 @@ df.out %>%
 
 
 
+# print all at one page ----------------------------------
+windows(width = 8, height = 15)
+ggarrange(p.risk, p.age, p.HSI, p.DW, p.H_dom, ncol = 1, nrow = 5, common.legend = T)
+
+
+
 
 # ------------------------------------
 # Economic consequences:
@@ -425,7 +437,7 @@ df.out %>%
 
 
 # Evaluate sum of harvested timber: -----------------------------------------
-
+windows(7, 3)
 df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
   summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
@@ -533,10 +545,12 @@ df.ind.diff %>%
 df_summary_main <-
   df.out %>% 
   group_by(regime, climChange) %>% # modif, #geo_grad,
-  summarise(windRisk_mean = round(mean(windRisk, na.rm = T)*100, digits = 1),
-            windRisk_sd   = round(sd(windRisk, na.rm = T)*100, digits = 1),
+  summarise(windRisk_mean = round(mean(windRisk, na.rm = T)*100, digits = 2),
+            windRisk_sd   = round(sd(windRisk, na.rm = T)*100, digits = 2),
             HSI_mean      = round(mean(COMBINED_HSI, na.rm = T), digits = 1),
             HSI_sd        = round(sd(COMBINED_HSI, na.rm = T), digits = 1),
+            DW_mean       = round(mean(V_total_deadwood, na.rm = T), digits = 1),
+            DW_sd         = round(sd(V_total_deadwood, na.rm = T), digits = 1),
             sum_V_log     = round(sum(Harvested_V_log, na.rm = T)/1000, digits = 1),
             sum_V_pulp    = round(sum(Harvested_V_pulp, na.rm = T)/1000, digits = 1))  %>%
   mutate(climChange = case_when(climChange == 'reference' ~ 'REF',
@@ -548,10 +562,11 @@ formated_df_main <-
   df_summary_main %>% 
   mutate(WindDamage    = stringr::str_glue("{windRisk_mean}±{windRisk_sd}"),
          Combined_HSI  = stringr::str_glue("{HSI_mean}±{HSI_sd}"),
+         Deadwood      = stringr::str_glue("{DW_mean}±{DW_sd}"),
          Harvested_log = sum_V_log, #stringr::str_glue("{mean_BA}±{sd_BA}"),
          Harvested_pulp= sum_V_pulp #stringr::str_glue("{mean_V}±{sd_V}"),
       ) %>%  #,  {scales::percent(sd_height)}
-  dplyr::select(regime, climChange, WindDamage, 
+  dplyr::select(regime, climChange, WindDamage, Deadwood,
                 Combined_HSI, Harvested_log, Harvested_pulp)
 
 
