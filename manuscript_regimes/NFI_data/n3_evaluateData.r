@@ -437,37 +437,55 @@ ggarrange(p.risk, p.age, p.HSI, p.DW, p.H_dom, ncol = 1, nrow = 5, common.legend
 
 
 # Evaluate sum of harvested timber: -----------------------------------------
+# calculate the sum by id and then get a mean by regime for ids
+# as now I have only sum of the subset, not whole Finland!
+# to have a value representative for site!
 windows(7, 3)
 df.out %>% 
-  group_by(climChange, regime) %>% # modif, #geo_grad,
+  group_by(id, climChange, regime) %>% # modif, #geo_grad,
   summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
-            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))   %>%
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
+  ungroup() %>% 
+  group_by(climChange, regime) %>% 
+  summarise(sum_V_log     = mean(sum_V_log, na.rm = T),
+            sum_V_pulp    = mean(sum_V_pulp, na.rm = T))  %>%
   mutate(BAU_log          = sum_V_log[match('BAU', regime)],
          BAU_pulp         = sum_V_pulp[ match('BAU', regime)],
          perc_change_log  = sum_V_log /BAU_log  * 100 - 100,
          perc_change_pulp = sum_V_pulp/BAU_pulp * 100 - 100)  %>%
   filter(regime != "BAU")  %>%    # remove BAU from teh table
   dplyr::select(c(climChange, regime, 
-                  perc_change_log, perc_change_pulp)) %>%
-  
+                  perc_change_log, 
+                  perc_change_pulp)) %>%
   pivot_longer(!c(regime, climChange), #everything(vars = NULL),
                names_to = "Timber_quality", 
                values_to = "perc_V")  %>%
+  
+  # Change the coding of characters to have nice facet names
+  mutate(Timber_quality = recode(Timber_quality,
+                                 "perc_change_log" = "Log", 
+                                 "perc_change_pulp" = "Pulp")) %>% 
   ggplot(aes(y=perc_V, 
              x=regime,
-             fill = Timber_quality)) + 
+             fill = climChange)) + 
   geom_bar(position="dodge", 
            stat="identity") +
-  facet_grid(.~ climChange) +
-  scale_fill_manual(values=c("#E69F00", "#56B4E9"), 
-                    name="Timber quality",
-                    breaks=c("perc_change_log", "perc_change_pulp"),
-                    labels=c("Log", "Pulp")) +
+  geom_hline(yintercept = 0) +
+  coord_flip() +
+  facet_grid(.~ Timber_quality) +
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                    name="Climate change") +
   ylab("Difference in harvested\ntimber volume [%]") +
   xlab(lab_manag) +
-  theme_bw() + 
+  theme_bw()  + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
+        #legend.position = 'bottom',
+        legend.position = c(.88, .78), # legend position within the plot, x, y
+        legend.title = element_text(size=10),
+        legend.text  = element_text(size=8),
+        legend.background = element_rect(fill = "white", color = "black"),
+        legend.box.background = element_rect(colour = "black")) 
+
 
 
 
