@@ -800,17 +800,18 @@ df.species.means <-
 
 # Make my own gradient scheme:
 
-
+breaks <- c(levels(df.out$regime))
 
 
 pt_details <- function() {
   list(
-    geom_point(),
+   
     ylab(''),
     xlab(''),
-    viridis::scale_color_viridis(discrete = TRUE, option="turbo"),
-    geom_vline(xintercept = 0, color = "grey", lty = "dashed"), 
-    geom_hline(yintercept = 0, color = "grey", lty = "dashed"),
+    geom_vline(xintercept = 0, color = "grey30", lty = "dashed"), 
+    geom_hline(yintercept = 0, color = "grey30", lty = "dashed"),
+    geom_point(size = 2.5, shape = 21, color = 'black'), # +
+    scale_fill_manual(values = my_cols_RdGn),
     theme_bw(),
     theme(axis.title  = element_text(size = 10, face="plain", family = "sans"),
           axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
@@ -822,13 +823,33 @@ pt_details <- function() {
 }
 # Get individual plots for species -------------------------------------
 my_lab_risk = c("Difference in\nwind damage risk [%]")
+# my_cols = c('#d73027',
+#             '#fc8d59',
+#             '#fee090',
+#             '#ffffbf',
+#             '#e0f3f8',
+#             '#91bfdb',
+#             '#4575b4')
+
+my_cols_RdGn <- c(
+  '#b10026', # dark red
+  '#fd8d3c',
+  '#0868ac',  # blue
+#  '#ffeda0',  # bright red
+  '#f7fcb9',
+  '#addd8e',
+  '#41ab5d',
+  '#005a32'  # dark green
+)
+
+
+library(RColorBrewer)
 
 p1 <- 
   df.species.means %>% 
   ggplot(aes(x = p_change_CAPER,
              y = p_change_risk,
-             color = regime,
-             shape = regime)) + 
+             fill = regime)) + 
     ggtitle("a) capercaillie\n") +
     pt_details() +
   ylab(my_lab_risk)
