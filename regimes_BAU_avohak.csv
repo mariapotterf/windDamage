@@ -1,0 +1,82 @@
+branching_group,regime,avohaakut,THIN_included
+,,,
+NA,SA,SA,FALSE
+,,,
+Selection cut_1_5,CCF_1_5,CCF_1_5,TRUE
+Selection cut_1_10,CCF_1_10,CCF_1_10,TRUE
+Selection cut_1_15,CCF_1_15,CCF_1_15,TRUE
+Selection cut_1_20,CCF_1_20,CCF_1_20,TRUE
+Selection cut_1_25,CCF_1_25,CCF_1_25,TRUE
+Selection cut_1_30,CCF_1_30,CCF_1_30,TRUE
+Selection cut_1_35,CCF_1_35,CCF_1_35,TRUE
+Selection cut_1_40,CCF_1_40,CCF_1_40,TRUE
+Selection cut_1_45,CCF_1_45,CCF_1_45,TRUE
+,,,
+Selection cut_2_5,CCF_2_5,CCF_2_5,TRUE
+Selection cut_2_10,CCF_2_10,CCF_2_10,TRUE
+Selection cut_2_15,CCF_2_15,CCF_2_15,TRUE
+Selection cut_2_20,CCF_2_20,CCF_2_20,TRUE
+Selection cut_2_25,CCF_2_25,CCF_2_25,TRUE
+Selection cut_2_30,CCF_2_30,CCF_2_30,TRUE
+Selection cut_2_35,CCF_2_35,CCF_2_35,TRUE
+Selection cut_2_40,CCF_2_40,CCF_2_40,TRUE
+Selection cut_2_45,CCF_2_45,CCF_2_45,TRUE
+,,,
+Selection cut_3_5,CCF_3_5,CCF_3_5,TRUE
+Selection cut_3_10,CCF_3_10,CCF_3_10,TRUE
+Selection cut_3_15,CCF_3_15,CCF_3_15,TRUE
+Selection cut_3_20,CCF_3_20,CCF_3_20,TRUE
+Selection cut_3_25,CCF_3_25,CCF_3_25,TRUE
+Selection cut_3_30,CCF_3_30,CCF_3_30,TRUE
+Selection cut_3_35,CCF_3_35,CCF_3_35,TRUE
+Selection cut_3_40,CCF_3_40,CCF_3_40,TRUE
+Selection cut_3_45,CCF_3_45,CCF_3_45,TRUE
+,,,
+Selection cut_4_5,CCF_4_5,CCF_4_5,TRUE
+Selection cut_4_10,CCF_4_10,CCF_4_10,TRUE
+Selection cut_4_15,CCF_4_15,CCF_4_15,TRUE
+Selection cut_4_20,CCF_4_20,CCF_4_20,TRUE
+Selection cut_4_25,CCF_4_25,CCF_4_25,TRUE
+Selection cut_4_30,CCF_4_30,CCF_4_30,TRUE
+Selection cut_4_35,CCF_4_35,CCF_4_35,TRUE
+Selection cut_4_40,CCF_4_40,CCF_4_40,TRUE
+Selection cut_4_45,CCF_4_45,CCF_4_45,TRUE
+,,,
+Selection cut_1,CCF_1,CCF_1,TRUE
+Selection cut_2,CCF_2,CCF_2,TRUE
+Selection cut_3,CCF_3,CCF_3,TRUE
+Selection cut_4,CCF_4,CCF_4,TRUE
+,,,
+Selection cut,CCF,CCF,TRUE
+,,,
+Long rotation harvest 5,BAU_5,LRH5,FALSE
+Long rotation harvest 10,BAU_10,LRH10,FALSE
+Long rotation harvest 15,BAU_15,LRH15,FALSE
+Long rotation harvest 30,BAU_30,LRH30,FALSE
+,,,
+"Long rotation harvest 10 p,"" """"xxx1"""""",,",,,
+"Long rotation harvest 30 p,"" """"xxx2"""" "",,",,,
+,,,
+Long rotation thinning 5,BAUwT_5,LRT5,TRUE
+Long rotation thinning 10,BAUwT_10,LRT10,TRUE
+Long rotation thinning 15,BAUwT_15,LRT15,TRUE
+Long rotation thinning 30,BAUwT_30,LRT30,TRUE
+,,,
+Short rotation harvest 5,BAU_m5,SR5,FALSE
+Short rotation thinning 5,BAUwT_m5,SRT5,TRUE
+,,,
+"Short rotation harvest 30 n,"" """"xxx3"""""",,",,,FALSE
+"Short rotation harvest 10 n,"" """"xxx4"""""",,",,,
+,,,
+Tapio harvest nature scene,BAUwGTR,THNS,FALSE
+Tapio harvest without thinnings 10,BAUwoT_10,THwoT10,FALSE
+Tapio harvest without thinnings -20,BAUwoT_m20,THwoTM20,FALSE
+Tapio harvest without thinnings,BAUwoT,THwoT,FALSE
+Tapio harvest,BAU,TH,FALSE
+Tapio thinning nature,BAUwT_GTR,TTN,TRUE
+Tapio thinning,BAUwT,TT,TRUE
+,,,
+"Tapio harvest without thinnings 30 n,"" """"xxx5"""""",,",,,
+"Tapio harvest without thinnings 10 n,"" """"xxx6"""""",,",,,
+"Tapio harvest without thinnings 10 p,"" """"xxx7"""""",,",,,
+"Tapio harvest without thinnings 30 p,"" """"xxx8"""""",,",,,
