@@ -800,22 +800,28 @@ df.species.means <-
 
 # Make my own gradient scheme:
 
-breaks <- c(levels(df.out$regime))
+#breaks <- c(levels(df.out$regime))
 
 
 pt_details <- function() {
   list(
-   
     ylab(''),
     xlab(''),
+    geom_text(aes(label=regime,
+                  color = regime),
+              hjust=0.5, 
+              vjust=0.5),
     geom_vline(xintercept = 0, color = "grey30", lty = "dashed"), 
     geom_hline(yintercept = 0, color = "grey30", lty = "dashed"),
     geom_point(size = 2.5, shape = 21, color = 'black'), # +
     scale_fill_manual(values = my_cols_RdGn),
+    scale_color_manual(values = my_cols_RdGn),
+    #scale_fill_viridis_d(),
     theme_bw(),
-    theme(axis.title  = element_text(size = 10, face="plain", family = "sans"),
+    theme(plot.title = element_text(size = 9, face = "plain"),
+          axis.title  = element_text(size = 9, face="plain", family = "sans"),
           axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
-          axis.text.y = element_text(face="plain", size = 9, family = "sans"),
+          axis.text.y = element_text(face="plain", size = 8, family = "sans"),
           legend.position = "right",
           strip.background =element_rect(fill="white", 
                                          color = NA))
@@ -823,13 +829,6 @@ pt_details <- function() {
 }
 # Get individual plots for species -------------------------------------
 my_lab_risk = c("Difference in\nwind damage risk [%]")
-# my_cols = c('#d73027',
-#             '#fc8d59',
-#             '#fee090',
-#             '#ffffbf',
-#             '#e0f3f8',
-#             '#91bfdb',
-#             '#4575b4')
 
 my_cols_RdGn <- c(
   '#b10026', # dark red
@@ -845,37 +844,34 @@ my_cols_RdGn <- c(
 
 library(RColorBrewer)
 
-p1 <- 
+(p1 <- 
   df.species.means %>% 
   ggplot(aes(x = p_change_CAPER,
              y = p_change_risk,
              fill = regime)) + 
     ggtitle("a) capercaillie\n") +
     pt_details() +
-  ylab(my_lab_risk)
+  ylab(my_lab_risk))
   
 
 p2 <- df.species.means %>% 
   ggplot(aes(x = p_change_HAZ,
              y = p_change_risk,
-             color = regime,
-             shape = regime)) +
+             fill = regime)) +
   pt_details() +
   ggtitle("b) hasel grouse\n")
 
 p3 <- df.species.means %>% 
   ggplot(aes(x = p_change_THREE,
              y = p_change_risk,
-             color = regime,
-             shape = regime)) +
+             fill = regime)) +
   pt_details() +
   ggtitle("c) three toed\nwoodpacker")
 
 p4 <- df.species.means %>% 
   ggplot(aes(x = p_change_LESSER,
              y = p_change_risk,
-             color = regime,
-             shape = regime)) +
+             fill = regime)) +
   pt_details() +
   ggtitle("d) lesser spotted\nwoodpecker") +
   ylab(my_lab_risk)
@@ -883,30 +879,35 @@ p4 <- df.species.means %>%
 p5 <- df.species.means %>% 
   ggplot(aes(x = p_change_TIT,
              y = p_change_risk,
-             color = regime,
-             shape = regime)) +
+             fill = regime)) +
   pt_details() +
-  ggtitle("e) long tailed\ntit")
+  ggtitle("e) long tailed tit\n")
 
 p6 <- df.species.means %>% 
   ggplot(aes(x = p_change_SQIRR,
              y = p_change_risk,
-             color = regime,
-             shape = regime)) +
+             fill = regime)) +
   pt_details() +
   ggtitle("f) siberian flying\nsquirrel")
 
 
-windows(7,4)
-ggarrange(p1,p2,p3,p4,p5,p6, 
+
+species.plot <- ggarrange(p1,p2,p3,p4,p5,p6, 
           widths = c(1.05,1, 1, 1.05,1,1),
              ncol = 3,nrow = 2,
              common.legend = TRUE,
-          legend = 'right')
+          legend = 'bottom')
   
-  
-
-
+windows(7,4.5)  
+# https://rpkgs.datanovia.com/ggpubr/reference/annotate_figure.html
+annotate_figure(species.plot,
+                bottom = text_grob("Difference in HSI [%]", 
+                                   color = "black",
+                                   hjust = 0.5, 
+                                   #x = -1, 
+                                   y = 4.5,
+                                   face = "plain", size = 9)
+)
   
 
 
