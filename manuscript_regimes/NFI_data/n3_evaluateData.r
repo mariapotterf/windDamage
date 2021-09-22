@@ -682,7 +682,10 @@ df.out %>%
             y = HSI)) + 
    geom_tile(aes(fill = value)) +
   #scale_fill_viridis_c(limits = c(0,0.5), direction = -1) +
-  scale_fill_gradient(low = "yellow", high = "red", na.value = NA) +
+  scale_fill_gradient(low = "white", 
+                      high = "red", 
+                      na.value = NA,
+                      name = "HSI") +
   facet_grid(.~climChange) + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 
@@ -807,10 +810,10 @@ pt_details <- function() {
   list(
     ylab(''),
     xlab(''),
-    geom_text(aes(label=regime,
-                  color = regime),
-              hjust=0.5, 
-              vjust=0.5),
+    #geom_text(aes(label=regime,
+     #             color = regime),
+      #        hjust=0.5, 
+       #       vjust=0.5),
     geom_vline(xintercept = 0, color = "grey30", lty = "dashed"), 
     geom_hline(yintercept = 0, color = "grey30", lty = "dashed"),
     geom_point(size = 2.5, shape = 21, color = 'black'), # +
@@ -824,7 +827,13 @@ pt_details <- function() {
           axis.text.y = element_text(face="plain", size = 8, family = "sans"),
           legend.position = "right",
           strip.background =element_rect(fill="white", 
-                                         color = NA))
+                                         color = NA),
+          panel.grid.major = element_line(size = 0, 
+                                          linetype = 'dotted',
+                                          colour = NA),
+          panel.grid.minor = element_line(size = 0, 
+                                          linetype = 1,
+                                          colour = NA))
     )
 }
 # Get individual plots for species -------------------------------------
@@ -859,14 +868,14 @@ p2 <- df.species.means %>%
              y = p_change_risk,
              fill = regime)) +
   pt_details() +
-  ggtitle("b) hasel grouse\n")
+  ggtitle("b) hazel grouse\n")
 
 p3 <- df.species.means %>% 
   ggplot(aes(x = p_change_THREE,
              y = p_change_risk,
              fill = regime)) +
   pt_details() +
-  ggtitle("c) three toed\nwoodpacker")
+  ggtitle("c) three toed\nwoodpecker")
 
 p4 <- df.species.means %>% 
   ggplot(aes(x = p_change_LESSER,
