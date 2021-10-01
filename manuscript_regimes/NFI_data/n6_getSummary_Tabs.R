@@ -7,8 +7,7 @@
 # Read data and make tables and plots
 rm(list = ls())
 
-
-setwd("C:/MyTemp/myGitLab/windDamage")
+setwd("C:/Users/ge95bag/Documents/git/windDamage")
 
 # Read libraries
 library(dplyr)
@@ -20,7 +19,7 @@ library(ggplot2)
 # Correct order of variables, factors & levels
 # need to have same names of columns?? YES
 # when data are sourced (source()), they are all available in my script
-source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
+source("C:/Users/ge95bag/Documents/git/windDamage/myFunctions.R")
 
 
 
@@ -43,9 +42,9 @@ theme_update(panel.grid.major = element_line(colour = "grey95",  # background gr
 
 
 # Get data ------------------------------------------------------------------------------
-inPath = "C:/MyTemp/2021_WindRisk_biodiversity"
+inPath = "C:/Users/ge95bag/Documents/Projects/2021_WindRisk_biodiversity"
 inFolder = "output/windRisk_csv"
-#outFolder = 'output_CC'
+
 
 # get table for initial conditions: select only one regime and one climate change
 
@@ -127,15 +126,18 @@ df.ls <- lapply(df.ls, function(df) df %>%
 # Merge data together -----------------------------------------------
 df.out <- do.call(rbind, df.ls)
 
-rm(df.ls)
+# Keep only stands that have reasonable values:
+df.out.sub <- df.out %>% 
+  filter(id %in% my_stands)
+
 
 
 # Make table: initial conditions
-(tot_stands = length(unique(df.out$id)))
+(tot_stands = length(unique(df.out.sub$id)))
 
 # Make a summary table
 summary_df <- 
-  df.out %>% 
+  df.out.sub %>% 
   filter(year == 2016 & MAIN_SP != 0) %>% 
   mutate(species = case_when(MAIN_SP == 1 ~ "pine",
                              MAIN_SP == 2 ~ "spruce",
