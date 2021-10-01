@@ -166,6 +166,63 @@ df.out <- df.out %>%
 
 
 
+# Crazy values !!!! 
+# Filter the data ------------------------------------------
+
+# deadwood volume seems incredible high for GTR: check for mean and max values!
+range(df.out$V)
+
+#[1]    0.000 1239.226
+# Max volume is 600 m3/ha
+
+range(df.out$V_total_deadwood)
+# 0.0 191014.6
+# max deadwood volume is for each species 300m3/ha
+
+
+range(df.out$H_dom, na.rm = T)
+# [1]  0.5869817 41.2494774
+
+# which stands are crazy??
+
+# Check V
+df.out %>% 
+  filter(V > 600 | V_total_deadwood > 300 ) %>% 
+  distinct(id) #%>% # regime, 
+  nrow()
+
+
+# Check deadwood
+df.out %>% 
+  filter(V_total_deadwood > 300) %>% 
+  distinct(id) #%>% # regime, 
+  #nrow()
+
+
+# Remove crazy values and try print plots and tables again:
+# Make a copy of the table
+df.all <- df.out
+length(unique(df.all$id))
+
+
+# remove crazy values
+df.out <- df.out %>% 
+  filter(V < 600 ) %>% 
+  filter(V_total_deadwood < 300)
+
+length(unique(df.out$id))
+
+length(unique(df.all$id))
+
+
+# Get histograms
+hist(df.out$V)
+hist(df.out$V_total_deadwood)
+
+
+median(df.out$V_total_deadwood)
+mean(df.out$V_total_deadwood)
+
 
 # Test hypotheses:  --------------------------------------------------------
 
