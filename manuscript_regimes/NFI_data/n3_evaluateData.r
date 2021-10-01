@@ -7,7 +7,7 @@
 rm(list = ls())
 
 
-setwd("C:/MyTemp/myGitLab/windDamage")
+setwd("C:/Users/ge95bag/Documents/git/windDamage")
 
 # Read libraries
 library(dplyr)
@@ -20,7 +20,7 @@ library(ggpubr)
 # Correct order of variables, factors & levels
 # need to have same names of columns?? YES
 # when data are sourced (source()), they are all available in my script
-source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
+source("C:/Users/ge95bag/Documents/git/windDamage/myFunctions.R")
 
 
 
@@ -43,7 +43,7 @@ theme_update(panel.grid.major = element_line(colour = "grey95",  # background gr
 
 
 # Get data ------------------------------------------------------------------------------
-inPath = "C:/MyTemp/2021_WindRisk_biodiversity"
+inPath = "C:/Users/ge95bag/Documents/Projects/2021_WindRisk_biodiversity"
 inFolder = "output/windRisk_csv"
 #outFolder = 'output_CC'
 
@@ -61,16 +61,19 @@ df.ls <- lapply(df.names, function(name, ...) data.table::fread(paste(inPath, in
 
 
 # Sample the specific IDs
-my_ids  <- unique(df.ls[[1]]$id)
-sub_ids <- sample(my_ids, 1500) 
+#my_ids  <- unique(df.ls[[1]]$id)
+#sub_ids <- sample(my_ids, 25000) 
 
 # convert from integer64 to numeric:
-sub_ids <- as.numeric(sub_ids)
+#sub_ids <- as.numeric(sub_ids)
 
 # subset teh same stands from each regime
 #df.ls2 <- list()
-df.ls2 <- lapply(df.ls, function(df) df %>% 
-         filter(id %in% sub_ids))
+#df.ls2 <- lapply(df.ls, function(df) df %>% 
+        # filter(id %in% sub_ids))
+
+
+df.ls2 <- df.ls
 
 # remove unnecessary columns
 cl_keep <- c(
@@ -174,7 +177,7 @@ df.out <- df.out %>%
 
 
 # Define labels:
-lab_manag = c("Final harvest variation")
+lab_manag = c("Regime adaptation")
 
 
 # Investigate skewness of data: should I use mean or median??
@@ -440,7 +443,7 @@ ggarrange(p.risk, p.age, p.HSI, p.DW, p.H_dom, ncol = 1, nrow = 5, common.legend
 # calculate the sum by id and then get a mean by regime for ids
 # as now I have only sum of the subset, not whole Finland!
 # to have a value representative for site!
-windows(7, 3)
+windows(7, 3.5)
 df.out %>% 
   group_by(id, climChange, regime) %>% # modif, #geo_grad,
   summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
@@ -609,6 +612,7 @@ formated_df_main <-
 
 # Make barplots with +- sd for some indicators from teh summary table??? -------
 # log:
+windows(7,3)
 df_summary_main %>% 
   ggplot(aes(x = regime,
              y = mean_sum_V_log,
@@ -625,6 +629,7 @@ df_summary_main %>%
   
 
 # Pulp:
+windows(7,3)
 df_summary_main %>% 
   ggplot(aes(x = regime,
              y = mean_sum_V_pulp,
