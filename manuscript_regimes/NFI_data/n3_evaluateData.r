@@ -212,6 +212,11 @@ df.out <- df.out %>%
 
 length(unique(df.out$id))
 
+# keep the vector of ids: !!!! this goes later in the summary table script!!
+my_stands = unique(df.out$id)
+
+
+# -------------------
 length(unique(df.all$id))
 
 
