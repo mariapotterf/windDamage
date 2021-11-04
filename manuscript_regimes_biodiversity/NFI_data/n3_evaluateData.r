@@ -645,10 +645,10 @@ df.timber <- df.out %>%
             sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
   ungroup() %>% 
   group_by(climChange, regime) %>% 
-  summarise(mean_sum_V_log     = round(mean(sum_V_log, na.rm = T),1),
-            sd_sum_V_log       = round(sd(sum_V_log, na.rm = T),1),
-            mean_sum_V_pulp    = round(mean(sum_V_pulp, na.rm = T),1),
-            sd_sum_V_pulp      = round(sd(sum_V_pulp, na.rm = T), 1)) 
+  summarise(mean_sum_V_log     = round(mean(sum_V_log, na.rm = T),0),
+            sd_sum_V_log       = round(sd(sum_V_log, na.rm = T),0),
+            mean_sum_V_pulp    = round(mean(sum_V_pulp, na.rm = T),0),
+            sd_sum_V_pulp      = round(sd(sum_V_pulp, na.rm = T), 0)) 
   
 
 # Second, get the summary table:
@@ -656,13 +656,14 @@ df.timber <- df.out %>%
 df_summary_main <-
   df.out %>% 
   group_by(climChange, regime) %>% 
-  summarise(windRisk_mean = round(mean(windRisk, na.rm = T)*100, digits = 2),
-            windRisk_sd   = round(sd(windRisk, na.rm = T)*100, digits = 2),
+  summarise(windRisk_mean = round(mean(windRisk, na.rm = T)*100, digits = 1),
+            windRisk_sd   = round(sd(windRisk, na.rm = T)*100, digits = 1),
             HSI_mean      = round(mean(COMBINED_HSI, na.rm = T), digits = 1),
             HSI_sd        = round(sd(COMBINED_HSI, na.rm = T), digits = 1),
             DW_mean       = round(mean(V_total_deadwood, na.rm = T), digits = 1),
             DW_sd         = round(sd(V_total_deadwood, na.rm = T), digits = 1)) %>% 
   left_join(df.timber)
+
 
 # Third, format output table
 formated_df_main <- 
