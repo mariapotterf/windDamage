@@ -6,8 +6,13 @@
 # Read data and make tables and plots
 rm(list = ls())
 
+# get the common location:
+source('myPath.R') 
 
-setwd("C:/Users/ge95bag/Documents/git/windDamage")
+
+setwd(paste(myPath, "r_winddamage", sep = "/"))
+
+#setwd("C:/Users/ge95bag/Documents/git/windDamage")
 
 # Read libraries
 library(dplyr)
@@ -20,7 +25,8 @@ library(ggpubr)
 # Correct order of variables, factors & levels
 # need to have same names of columns?? YES
 # when data are sourced (source()), they are all available in my script
-source("C:/Users/ge95bag/Documents/git/windDamage/myFunctions.R")
+#source("C:/Users/ge95bag/Documents/git/windDamage/myFunctions.R")
+source(paste(myPath, 'r_winddamage', 'myFunctions.R', sep = "/"))
 
 
 
@@ -43,7 +49,7 @@ theme_update(panel.grid.major = element_line(colour = "grey95",  # background gr
 
 
 # Get data ------------------------------------------------------------------------------
-inPath = "C:/Users/ge95bag/Documents/Projects/2021_WindRisk_biodiversity"
+inPath = myPath#"C:/Users/ge95bag/Documents/Projects/2021_WindRisk_biodiversity"
 inFolder = "output/windRisk_csv"
 #outFolder = 'output_CC'
 
@@ -215,6 +221,9 @@ length(unique(df.out$id))
 # keep the vector of ids: !!!! this goes later in the summary table script!!
 my_stands = unique(df.out$id)
 
+
+# Save the vector to read it later on
+#save(my_stands, file = "my_stands.rda")
 
 # -------------------
 length(unique(df.all$id))
