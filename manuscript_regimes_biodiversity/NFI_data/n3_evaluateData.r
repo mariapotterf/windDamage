@@ -1008,9 +1008,133 @@ annotate_figure(species.plot,
 
 
 
+# What is the age at harvest????
+
+# inspect at one stand;
+df.out %>% 
+  filter(id == '101000107' & climChange == "RCP85") %>% 
+  filter(regime == "BAU" | regime == 'noThin') %>% 
+  dplyr::select(year, Age, V_total_deadwood, climChange, regime) %>% 
+  arrange(year) %>% 
+  ggplot(aes(x = year, 
+             y = V_total_deadwood,
+             color = regime)) +
+  geom_line()
+
+# Try another random point:
+df.out %>% 
+  filter(id == '500102306' & climChange == "RCP85") %>% 
+  filter(regime == "BAU" | regime == 'noThin' | regime == 'ext_30') %>% 
+  dplyr::select(year, Age, V_total_deadwood, climChange, regime) %>% 
+  arrange(year) %>% 
+  ggplot(aes(x = year, 
+             y = Age,
+             color = regime)) +
+  geom_line() +
+  facet_grid(.~regime)
+
+windows()
+df.out %>% 
+  filter(id == '500102306' & climChange == "RCP85") %>% 
+  filter(regime == "BAU" | regime == 'noThin' | regime == 'ext_30') %>% 
+  dplyr::select(year, Age, V_total_deadwood, climChange, regime) %>% 
+  arrange(year) %>% 
+  ggplot(aes(x = year, 
+             y = V_total_deadwood,
+             color = regime)) +
+  geom_line() +
+  facet_grid(.~regime)
 
 
+# volume
+df.out %>% 
+  filter(id == '500102306' & climChange == "RCP85") %>% 
+  filter(regime == "BAU" | regime == 'noThin' | regime == 'ext_30') %>% 
+  dplyr::select(year, Age, V_total_deadwood, climChange, regime, V) %>% 
+  arrange(year) %>% 
+  ggplot(aes(x = year, 
+             y = V,
+             color = regime)) +
+  geom_line() +
+  facet_grid(.~regime)
+
+
+
+# Try for another stand id: 101000407
+my_id = '101000407'
+
+windows()
+df.out %>% 
+  filter(id == my_id & climChange == "RCP85") %>% 
+  filter(regime == "BAU" | regime == 'noThin' | regime == 'ext_30') %>% 
+  dplyr::select(year, Age, V_total_deadwood, climChange, regime) %>% 
+  arrange(year) %>% 
+  ggplot(aes(x = year, 
+             y = Age,
+             color = regime)) +
+  geom_line() +
+  facet_grid(.~regime)
+
+windows()
+df.out %>% 
+  filter(id == my_id & climChange == "RCP85") %>% 
+  filter(regime == "BAU" | regime == 'noThin' | regime == 'ext_30') %>% 
+  dplyr::select(year, Age, V_total_deadwood, climChange, regime) %>% 
+  arrange(year) %>% 
+  ggplot(aes(x = year, 
+             y = V_total_deadwood,
+             color = regime)) +
+  geom_line() +
+  facet_grid(.~regime)
+
+
+# volume
+df.out %>% 
+  filter(id == my_id & climChange == "RCP85") %>% 
+  filter(regime == "BAU" | regime == 'noThin' | regime == 'ext_30') %>% 
+  dplyr::select(year, Age, V_total_deadwood, climChange, regime, V) %>% 
+  arrange(year) %>% 
+  ggplot(aes(x = year, 
+             y = V,
+             color = regime)) +
+  geom_line() +
+  facet_grid(.~regime)
+
+
+
+
+
+
+
+
+
+# Why no thinning has little DW volume?  --------
+
+# maybe it changes over time??
+windows()
+df.out %>%
+  filter(regime == 'noThin' | regime == 'BAU' ) %>%  # | regime == 'ext_30'
+  group_by(year, regime,climChange) %>% 
+  summarize(mean_dw = mean(V_total_deadwood, na.rm = T),
+            sum_dw = sum(V_total_deadwood, na.rm = T)) %>% 
+  ggplot(aes(x = year, y = mean_dw, color = regime)) +
+  geom_line() +
+  facet_grid(.~climChange)
   
+# very little difference in DW volume, why??
+
+
+# check the age differences between stands?
+df.out %>%
+  filter(regime == 'noThin' | regime == 'BAU' | regime == 'ext_30') %>% 
+  group_by(year, regime,climChange) %>% 
+  summarize(mean_age = mean(Age, na.rm = T)) %>% 
+  ggplot(aes(x = year, y = mean_age, color = regime)) +
+  geom_line() +
+  facet_grid(.~climChange)
+
+
+
   
   
 
