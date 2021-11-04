@@ -1,0 +1,557 @@
+---
+title: "Interpreting wind damage - How management impacts standing timber at risk of wind felling"
+subtitle: "Supplementary Material"
+author: "Mária Potterf, Kyle Eyvindson, Clemens Blattert, Daniel Burgas, Mikko Mönkkönen"
+
+
+date: "April 25, 2021"
+output:
+  word_document:
+   
+header-includes:
+  - \renewcommand{\figurename}{Figure S}
+  - \makeatletter
+  - \def\fnum@figure{\figurename\thefigure}
+  - \makeatother
+
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+
+# Read libraries ----
+require("knitr")
+
+knitr::opts_chunk$set(echo = TRUE)
+
+knitr::opts_knit$set(root.dir = "C:/MyTemp/myGitLab/windDamage/output/even_flow")
+
+```
+
+
+```{r read-libs, eval = T, echo = F, warning = F, message = F, include = F }
+
+
+library(data.table)
+library(dplyr)
+library(raster)
+library(ggplot2)
+library(sf)
+library(stringr)
+library(gridExtra)
+library(tidyr)
+library(ggpubr)
+library(broom)
+#library(RColorBrewer)
+```
+
+```{r set-theme, eval = T, echo = F, warning = F, message = F, include = F }
+
+# Set themes ----
+theme_set(theme_classic())
+theme_update(panel.grid.major = element_line(colour = "grey95",
+                                             size = 0.1,
+                                             linetype = 2),
+             strip.background = element_rect(color="grey95", 
+                                             fill="grey95",
+                                             size=0.1, 
+                                             linetype="solid"))
+
+# Define own palette, color blind
+cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+```
+
+
+```{r read-data, eval = T, echo = F, warning = F, message = F, include = F }
+
+
+# Read input data ----------------------------------------------------
+
+# includes optimal scenario, raster data, windRisk
+df <- fread("C:/MyTemp/myGitLab/windDamage/output/even_flow/finalFoPlotting.csv")
+
+source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
+
+# change windRisk to probabilities: multiply by 100%
+df$windRisk = df$windRisk*100
+
+
+```
+
+```{r hist-Suvanto-values, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 5, fig.height = 2.7, fig.cap ="Wind damage probabilities (%) for forest stands located in the watershed (number 14.358) from original Suvanto's raster and from simulated data in 2016."}
+
+# Read extracted  raster Suvanto data to get histogram
+# subset my data for 2016
+# merge data in one dataframe to create a plot
+
+library(raster)
+
+suvanto_risk <- raster("C:/MyTemp/mapWindRisk/tuuliSuvanto/extract_pred_N4.tif")
+
+suvanto_df <- as.data.frame(suvanto_risk, na.rm = T)
+suvanto_df$Source = "Suvanto"  # add new column
+colnames(suvanto_df) <- c("windRisk", "Source")
+suvanto_df$windRisk = suvanto_df$windRisk*100 
+
+
+# Subset simulated data for 2016
+df_risk <- df %>% 
+  filter(year == 2016) %>% 
+  dplyr::select(windRisk) %>% 
+  mutate(Source = "Simulated")
+
+
+#Merge data together
+df_comp <- rbind(suvanto_df,
+                 df_risk  )
+
+# make a plot
+ggplot(df_comp, aes(x = Source,
+                    y = windRisk,
+                    fill = Source,
+                    group = Source)) + 
+  geom_boxplot(alpha = .5, 
+               outlier.shape = 16,
+               outlier.alpha = 0.3,
+               outlier.size = 0.7) +
+  scale_fill_manual(values = cbp1) +
+  stat_summary(geom = "point", color = "red") + # mean +- se 
+  ylab("Wind damage probability (%)") + 
+  labs(fill = "Data source") +
+  xlab("") + 
+  ylim(0, 10)
+
+```
+
+
+
+```{r plot-total-V, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 3, fig.cap = "Mean total stand timber volume (m3/ha) for landscapes under RF, CCF and ALL scenarios over A) harvest intensity gradient (NPI, net present income) and B) over time for actively managed stands and set asides."}
+
+
+
+#### Total volume at risk ---------------
+p.mean.V.line.npi <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  summarize(my_y = mean(V, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,350) +
+  xlab("Net present income\n(k€/ha)") + #
+  ylab("Total stand volume\n(mean, m^3)") +
+  plot_line_details()
+
+
+
+p.mean.V.line.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  summarize(my_y = mean(V, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,350) +
+  xlab("Time\n") + #
+  ylab("Total stand volume\n(mean, m^3)") +
+  plot_line_details()
+
+
+# Plot by managed/unmanaged stands 
+#windows(width = 7, height=6)
+ggarrange(p.mean.V.line.npi, 
+          p.mean.V.line.time,
+          ncol = 2, nrow = 1,
+          widths = c(1, 1),
+          common.legend = TRUE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          vjust = 3,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+
+
+```
+
+
+
+```{r plot-dynamic-vars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 9.2, fig.cap = "Dynamic wind damage risk predictors: A,B) proportion of stands dominated by Norway spruce (%), C,D) tree height, E,F) years since thinning (count), and G,H) mean heigt differences between neighboring stands averaged over harvest intensity gradient (NPI, Net present income, right column) and time (right column) for RF, CCF and ALL scenarios for actively managed stands and for set asides. Thinning is missing from Set aside stands (E,F). "}
+
+# Plot explanatory variables # ---------------------------------------------
+
+# Tree species
+# Tree height
+# Time since thinning
+# open-neighbour
+## Tree species -------------------------
+# different number of stands by combination
+# ranges from 29400 to 29280 - caulculate the % from the 29400 stands
+tot.stand.n = 1470*20
+
+
+# Spruce rate: Make plots for npi and time----------------------------
+
+p.spruce.ratio.npi <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  filter(species == "spruce") %>% 
+  tally() %>%
+  mutate(spruce_prop = n/tot.stand.n*100)  %>%  # get the proportion of spruce from all stands over 20 years 
+  ggplot(aes(y = spruce_prop, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  xlab("NPI (k€/ha)") + #
+  ylab("Spruce proportion\n(%)") +
+  ylim(0,50) +
+  plot_line_details()
+
+# to calulate how many landscapes I have over time:
+p.spruce.ratio.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% #, species
+  filter(species == "spruce") %>% 
+  tally() %>%
+  mutate(spruce_prop = n/tot.stand.n*100)  %>%  # get the proportion of spruce from all stands over 20 years 
+  ggplot(aes(y = spruce_prop, 
+             x = year, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  ylim(0,50) +
+  xlab("Time") + #
+  ylab("Spruce proportion\n(%)") +
+  plot_line_details()
+  
+ 
+
+## H Dom ---------------------
+p.mean.H_dom.npi <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  #summarize(s_area = sum(area)) %>% 
+  summarize(my_y = weighted.mean(H_dom,  area, na.rm = T))  %>% 
+ # summarize(my_y = mean(H_dom))  %>%
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  ylim(0,300) +
+  ggtitle("") +
+  xlab("NPI (k€/ha)") + #
+  ylab("Tree height\n(w.mean, dm)") +
+  plot_line_details()
+
+
+
+p.mean.H_dom.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  #summarize(my_y = mean(H_dom ))  %>%
+  summarize(my_y = weighted.mean(H_dom,  area, na.rm = T))  %>% 
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  ylim(0,300) +
+  ggtitle("") +
+  xlab("Time ") + #
+  ylab("Tree height\n(w. mean, dm)") +
+  plot_line_details()
+
+
+
+## Time since thinning ------------------------
+# get the difference by landscape???
+# replace NA by 0?
+# get mean landscape differences by NPI, by time
+# how to calculate the time since thinning? for NPi, for time??
+# calculate weighted mean??
+# get the sum of area and then calculate? yes, seems working and has the same results are using n
+
+
+p.mean.thin.npi <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management,
+           difference) %>% 
+  summarize(s_area = sum(area)) %>% 
+  summarize(my_y = weighted.mean(difference,  s_area, na.rm = T))  %>% 
+ # tally() %>%
+ # summarize(my_y = weighted.mean(difference, n, na.rm = T)) %>% 
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  ylim(0,30) +
+  xlab("NPI (k€/ha)") + #
+  ylab("Years since thinning\n(weigh. mean)") +
+  plot_line_details()
+
+
+# Mean thinning over time
+p.mean.thin.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management,
+           difference) %>% 
+  summarize(s_area = sum(area)) %>% 
+  summarize(my_y = weighted.mean(difference,  s_area, na.rm = T))  %>% 
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,
+             color = scenSimpl2,
+             linetype = scenSimpl2,
+             group = scenSimpl2,
+             fill = scenSimpl2)) +
+  ylim(0,30) +
+  xlab("Time ") + #
+  ylab("Years since thinning\n(weigh. mean)") +
+  plot_line_details()
+
+
+
+p.mean.H_diff.line.npi <-
+  df %>% 
+  group_by(scenSimpl2, 
+           NPI, 
+           Management) %>% 
+  #summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% # there are NA if V and V_strat_max = 0
+  summarize(my_y = weighted.mean(mean_H_diff,  area, na.rm = T))  %>% 
+  ggplot(aes(y = my_y, 
+             x = NPI, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,10) +
+  xlab("NPI (k€/ha)") + #
+  ylab("Height difference\nneighbors (mean, m)") +
+  plot_line_details()
+
+
+
+p.mean.H_diff.line.time <-
+  df %>% 
+  group_by(scenSimpl2, 
+           year, 
+           Management) %>% 
+  #summarize(my_y = mean(mean_H_diff, na.rm =T ))  %>% 
+  summarize(my_y = weighted.mean(mean_H_diff,  area, na.rm = T))  %>% 
+  ggplot(aes(y = my_y, 
+             x = year, 
+             shape = scenSimpl2,     
+             color = scenSimpl2,     
+             linetype = scenSimpl2,  
+             group = scenSimpl2,     
+             fill = scenSimpl2 )) +  
+  ylim(0,10) +
+  xlab("Time") + #
+  ylab("Height difference\nneighbors(mean, m)") +
+  plot_line_details()
+
+### Plot all predictors together --------------------------------------------
+
+ggarrange(p.spruce.ratio.npi, p.spruce.ratio.time,
+          p.mean.H_dom.npi,   p.mean.H_dom.time,
+          p.mean.thin.npi,    p.mean.thin.time,
+         # p.mean.open.edge.npi, p.mean.open.edge.time,
+          p.mean.H_diff.line.npi, p.mean.H_diff.line.time, 
+          ncol = 2, nrow = 4,
+          #widths = c(1, 1),
+          common.legend = TRUE,
+          align = c("hv"),
+          legend="bottom",
+          labels= "AUTO",
+          hjust = -5,
+          vjust = 3,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+
+```
+
+
+```{r  plot-SA-chars, eval = T, echo = F, warning = F, message = F, include = T, fig.width = 7, fig.height = 4, fig.cap = "Initial conditions of the stands selected as set asides at minimal (min) and maximal (max) harvest intensity gradient (NPI, Net present income) at the beginning (2016, top row) and end of the simulation period (2111)  for A) tree height (cm), B) top stratum volume (m3/ha) and C) age  (years). Note different scale in y axis."}
+# plot V, tree height, age
+
+df_sub <- df %>% 
+  filter(year == 2016 & Management == "Set Aside") %>% 
+  filter(scenNumb == 1 | scenNumb == 20 ) %>%
+  mutate(fc_scenNumb = factor(scenNumb, 
+                              labels = c('Min', 'Max')))  # %>%
+
+
+
+# Make plots
+p.1<-df_sub %>% 
+  ggplot(aes(y = H_dom,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Tree height (dm)") + 
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
+
+p.2<-df_sub %>% 
+  ggplot(aes(y = V_strat_max,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Top stratum volume\n(m3/ha)") +
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
+
+
+p.3<-df_sub %>% 
+  ggplot(aes(y = Age,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Age") +
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
+
+
+# ggarrange(p.1, p.2, p.3, 
+#           ncol = 3, nrow = 1,
+#           widths = c(1, 1),
+#           common.legend = FALSE,
+#           align = c("hv"),
+#           legend = NULL,
+#           labels= "AUTO",
+#           hjust = -2,
+#           vjust = 3, #3,
+#           font.label = list(size = 10, 
+#                             face = "bold", color ="black"))
+# 
+
+
+
+# get plot at the end of  simulation time
+# --------------------------------------------------------
+
+df_end <- df %>% 
+  filter(year == 2111 & Management == "Set Aside") %>% 
+  filter(scenNumb == 1 | scenNumb == 20 ) %>%
+  mutate(fc_scenNumb = factor(scenNumb, 
+                              labels = c('Min', 'Max')))  # %>%
+
+
+
+# Make plots
+p.end.1<-df_end %>% 
+  ggplot(aes(y = H_dom,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Tree height (dm)") + 
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
+
+p.end.2<-df_end %>% 
+  ggplot(aes(y = V_strat_max,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Top stratum volume\n(m3/ha)") +
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
+
+
+p.end.3<-df_end %>% 
+  ggplot(aes(y = Age,
+             x = fc_scenNumb,
+             group = fc_scenNumb,
+             fill = fc_scenNumb)) +
+ geom_boxplot(alpha = .5, 
+               outlier.shape = NA) + 
+   scale_fill_manual(values = cbp1) +
+  stat_summary(fun.data=mean_sdl, geom="point", color="red") +
+  ylab("Age") +
+  xlab("NPI (k€/ha)") +
+    theme(legend.position = "none")
+
+
+ggarrange(p.1, p.2, p.3,
+          p.end.1, p.end.2, p.end.3, 
+          ncol = 3, nrow = 2,
+          widths = c(1, 1),
+          common.legend = FALSE,
+          align = c("hv"),
+          legend = NULL,
+          labels= "AUTO",
+          hjust = -2,
+          vjust = 1, #3,
+          font.label = list(size = 10, 
+                            face = "bold", color ="black"))
+
+
+
+
+
+
+```
