@@ -679,6 +679,21 @@ formated_df_main <-
 
 
 
+# -----------------------------------------------------------------------------
+# Get total volume harvested over Finland given scenario and cliimate change
+df.out %>% 
+  group_by(climChange, regime) %>% # modif, #geo_grad,
+  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T),
+            sum_V = sum_V_pulp + sum_V_pulp) %>% 
+  ggplot(aes(y = sum_V/1000000,
+             x = regime,
+             group = climChange,
+             color = climChange)) +
+  geom_line()
+
+
+
 
 
 
@@ -1003,12 +1018,12 @@ annotate_figure(species.plot,
 
 
 
-# Evaluate changes in mean age over landscape
+# Evaluate changes in mean age over landscape ---
 
 
 
 
-# What is the age at harvest????
+# What is the age at harvest???? ---------------------------------------------
 
 # inspect at one stand;
 df.out %>% 
