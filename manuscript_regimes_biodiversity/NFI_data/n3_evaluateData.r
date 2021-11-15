@@ -134,6 +134,7 @@ df.ls2 <- lapply(df.ls2, function(df) df %>%
 # Merge data together -----------------------------------------------
 df.out <- do.call(rbind, df.ls2)
 
+
 rm(df.ls)
 
 # Classify climate change
@@ -192,11 +193,13 @@ range(df.out$H_dom, na.rm = T)
 # which stands are crazy??
 
 # Check V
-df.out %>% 
+df.all %>% 
   filter(V > 600 | V_total_deadwood > 300 ) %>% 
   distinct(id) #%>% # regime, 
   nrow()
 
+  
+df.all %>% nrow()
 
 # Check deadwood
 df.out %>% 
@@ -210,6 +213,9 @@ df.out %>%
 df.all <- df.out
 length(unique(df.all$id))
 
+# Get ids of all stands
+all_id = unique(df.all$id)
+
 
 # remove crazy values
 df.out <- df.out %>% 
@@ -220,7 +226,7 @@ length(unique(df.out$id))
 
 # keep the vector of ids: !!!! this goes later in the summary table script!!
 my_stands = unique(df.out$id)
-
+removed_stands = setdiff(my_stands, all_id)
 
 # Save the vector to read it later on
 #save(my_stands, file = "my_stands.rda")
