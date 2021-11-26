@@ -34,13 +34,13 @@ theme_update(panel.grid.major = element_line(colour = "grey95",
                                              size=0.1, 
                                              linetype="solid"))
 
-source("C:/MyTemp/myGitLab/windDamage/myFunctions.R")
+source("C:/Users/ge45lep/Documents/2021_windRisk/r_winddamage/myFunctions.R")
 
 
 # Set wd ------------------------------------------------------------------
 
-setwd("C:/MyTemp/myGitLab/windDamage/output/even_flow")
-
+#setwd("C:/MyTemp/myGitLab/windDamage/output/even_flow")
+setwd('C:/Users/ge45lep/Documents/2021_windRisk/r_winddamage/output/even_flow')
 # Read input data ----------------------------------------------------
 
 # includes optimal scenario, raster data, windRisk
