@@ -109,18 +109,23 @@ cl_keep <- c(
   "SIBERIAN_FLYING_SQUIRREL",
   "COMBINED_HSI",
    "name",
-  # "cell"
+  "cell",
   "id",
   #"avgTemp"
   #"windSpeed"
   "regime",
   "adapt",
   "magnit" ,
-  #[35] "THIN2"                     "THIN_filled_lagged"
-  #[37] "difference"
+  #"THIN2"                     "THIN_filled_lagged"
+  #"difference"
   "since_thin",
   "windRisk"
 )
+
+
+# Cells less then 4-16 are in the south
+
+
 
 # check if I have the same stands all over??
 # lapply(df.ls2, function(df) length(unique(df$id))) # the final number varies between regimes
@@ -173,6 +178,12 @@ df.out <- df.out %>%
 
 
 
+# Check if I have all regimes and all CC scenario for each id?
+df.out %>% 
+  filter(id == '2800601003' ) %>% 
+  distinct(climChange)
+
+
 # Crazy values !!!! 
 # Filter the data ------------------------------------------
 
@@ -210,12 +221,6 @@ df.out %>%
 
 # Remove crazy values and try print plots and tables again:
 # Make a copy of the table
-df.all <- df.out
-length(unique(df.all$id))
-
-# Get ids of all stands
-all_id = unique(df.all$id)
-
 
 # remove crazy values
 df.out <- df.out %>% 
@@ -225,14 +230,14 @@ df.out <- df.out %>%
 length(unique(df.out$id))
 
 # keep the vector of ids: !!!! this goes later in the summary table script!!
-my_stands = unique(df.out$id)
-removed_stands = setdiff(my_stands, all_id)
+#my_stands = unique(df.out$id)
+#removed_stands = setdiff(my_stands, all_id)
 
 # Save the vector to read it later on
 #save(my_stands, file = "my_stands.rda")
 
 # -------------------
-length(unique(df.all$id))
+#length(unique(df.all$id))
 
 
 # Get histograms
@@ -242,6 +247,133 @@ hist(df.out$V_total_deadwood)
 
 median(df.out$V_total_deadwood)
 mean(df.out$V_total_deadwood)
+
+
+# Why no thinning has low effects? -----------------------------------------
+
+# select stand in souths: cell 11 = n4 is Jyvaskyla: id:1101000002
+df.out %>% 
+  filter(cell == 'n4' & year == 2016) %>% 
+  filter(regime == "BAU" | regime == "noThin") %>% 
+  filter(Age > 100) %>% 
+  distinct(id)
+
+
+# Check stand 1101000002
+df.out %>% 
+  filter(id == '1100004405') %>% #   '1100105001') %>% 
+  filter(regime == "BAU" | regime == "noThin") %>%
+  select()
+  ggplot(aes(x = year, 
+             y = V_total_deadwood, #V, #Age, #V,#windRisk, #,
+             color = regime)) +
+  geom_line() +
+  facet_grid(.~climChange)
+
+
+# maybe because stands are very young? check oit the development in old
+# stands:
+# Select stands that are old in 2016:
+df.out %>% 
+  filter(year == 2016 & Age > 200)  %>%
+  distinct(id)
+
+# stands over 200 years: 3100000303
+
+df.out %>% 
+  filter(id == '3100000303') %>% 
+ # distinct(regime) #   '1100105001') %>% 
+  filter(regime == "BAU" | regime == "noThin") %>% 
+  ggplot(aes(x = year, 
+             y =  Age,#V, #V_total_deadwood, #V, #Age, #V,#windRisk, #,
+             color = regime)) +
+  geom_line() +
+  facet_grid(.~climChange)
+
+
+
+
+
+  summarize(mean_age = mean(Age, rm.na = T),
+            median_age = median(Age, rm.na = T)) # 52 years!!! is mean!! ### median  = 56, 2016
+
+# the climate change scenarios are missing????? 
+# coulds bem, at some regimes are possible only under climate chage in the north
+# select id of the old stand:
+df.out %>% 
+  filter(year == 2016) %>% 
+  #filter(year == 2021 & (regime == "BAU" | regime == 'noThin')) %>%
+ # filter(Age > 10) %>% 
+  filter(id == '101001201') %>% 
+ # distinct(id) 
+  distinct(climChange) 
+  
+
+# Why the extended rotation does not further increase in wind risk?
+df.out %>% filter(regime == 'ext_30') %>% 
+  distinct(id)
+
+# make a plot of wind risk
+df.out %>% 
+  filter(id == 2800601003 & regime == 'ext_30') %>% 
+  ggplot(aes(x = year,
+             y = windRisk,
+             color = climChange)) +
+  geom_line()
+
+# Example ids:                id
+#1:  101000107
+#2:  101000302
+#3:  101000406
+#4:  101000407
+#5:  101001201
+# ---           
+# 11144: 2800004307  # only RCP85
+# 11145: 2800501303
+# 11146: 2800501306
+# 11147: 2800501307
+# 11148: 2800601003
+
+
+# 2800501303
+# some stands are simulated inly in RCP
+# how to get only stands that have all: all regimes simulated, alle ccf scenarios???, all years???
+
+dd1 <- data.frame(id = rep(1,6),
+                 year = rep(c(1,2), 3),
+                 rgm = rep(c('a','b', 'd'), each = 2))
+
+dd2 <- data.frame(id = rep(2,4),
+                  year = rep(c(1,2), 2 ),
+                  rgm = rep(c('a','b'), each = 2))
+
+dd3 <- data.frame(id = rep(3,6),
+                  year = rep(c(1,2), 3 ),
+                  rgm = rep(c('a','b', 'd'), each = 2))
+
+dd <- rbind(dd1, dd2, dd3)
+
+(dd)
+
+
+# check how many ids have all groups?
+# https://stackoverflow.com/questions/65110401/r-dplyr-filter-common-values-by-group
+unique_id <- 
+  df.out %>% 
+  group_by(id) %>% 
+  filter(n_distinct(regime) == n_distinct(df.out$regime)) %>% 
+  pull()
+
+
+
+df.out %>% 
+  filter(id == '2800501303'& (regime == "BAU" | regime == 'noThin') ) %>% 
+  ggplot(aes(x = year,
+             y = V_total_deadwood,
+             color = regime)) +
+  geom_line() + 
+  facet_grid(.~climChange)
+
 
 
 # Test hypotheses:  --------------------------------------------------------
