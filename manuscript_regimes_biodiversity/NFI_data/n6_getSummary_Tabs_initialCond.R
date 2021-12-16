@@ -124,7 +124,7 @@ cl_keep <- c(
 
 # keep only needed columns
 df.ls <- lapply(df.ls, function(df) df %>% 
-                   dplyr::select(cl_keep))
+                   dplyr::select(all_of(cl_keep)))
 
 
 # Merge data together -----------------------------------------------
