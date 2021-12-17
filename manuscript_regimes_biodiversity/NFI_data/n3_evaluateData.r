@@ -249,14 +249,96 @@ median(df.out$V_total_deadwood)
 mean(df.out$V_total_deadwood)
 
 
-# Why no thinning has low effects? -----------------------------------------
+
+
+# Why no thinning has low effects? ---------------------------------------------
+# Dies it depends on the initial age of the stands???
+# test for old, young and medium age in 2016
+# old        = no effect
+# young      = little effect, theye is slightly more deadwood in o thinned stands than in thinned stands
+# medium age = 
+
+
+
+# Check deadwood volume between BAu and noThin for young stands in 2016?? e.g. 1101306006 (<10)
+df.out %>% 
+  filter(cell == 'n4' & climChange == "REF" & id == 1101306006) %>%  # & year == 2016
+  filter(regime == "BAU" | regime == "noThin") %>% 
+  #filter(Age < 10) %>%
+  #distinct(id)
+  dplyr::select(id, year, Age, V_total_deadwood, regime, climChange) %>% 
+  arrange(year) %>% 
+  print(n = 40)
+
+  
+
+# Check deadwood volume between BAu and noThin for mediaum age stands?  (~30) in 2016?? e.g. 1101000109
+df.out %>% 
+  filter(cell == 'n4' & climChange == "REF" & id == 1101000109) %>%  # & year == 2016 1101000010 1101000100  1101306009
+  #filter(cell == 'n4' & climChange == "REF" & year == 2016) %>%  # & 
+  filter(regime == "BAU" | regime == "noThin") %>% 
+  #filter(Age > 30 &Age < 45) %>%
+  #distinct(id) 
+  dplyr::select(id, year, Age, V_total_deadwood, regime, climChange) %>% 
+  arrange(year) %>% 
+  print(n = 40)  %>% 
+  ggplot(aes(x = year, 
+                            y =  V_total_deadwood,#V, #V_total_deadwood, #V, #Age, #V,#windRisk, #,
+                            color = regime)) +
+  geom_line() +
+  facet_grid(.~climChange)
+
+
+
+# 
+
+# Distribution of deadwood by regimes and CC ------------------------------
+
+df.out %>% 
+  filter(year >2070 & V_total_deadwood < 100) %>%  # keep it towards the of century
+  ggplot(aes(y = V_total_deadwood,
+             x = regime,
+             fill = climChange)) +
+  geom_boxplot(outlier.shape = NA)
+  
+
+# The deadwood volume seems very height: BAU is good for deadwood?
+# get statistics for BAu in 2016 by cells (e.g. spatial distribution over finland)
+df.out %>% 
+  filter((regime == "short_30" |regime == "BAU" | regime == 'noThin') & (year == 2016 | year == 2111) & climChange == 'REF') %>%  # keep it towards the of century
+  group_by(cell, year, regime) %>% 
+  summarise(#mean_V = mean(V_total_deadwood, na.rm = T),
+            median_DW = median(V_total_deadwood, na.rm = T)) %>% 
+  ggplot(aes(x = cell,
+             y = median_DW,
+             color = interaction(factor(year), regime),
+             group = interaction(factor(year), regime))) + 
+             #group = factor(regime))) + 
+  geom_point() +
+  geom_line() #+
+  #facet_grid(regime~.)
+  #print(n = 40)
+
+
+
+
 
 # select stand in souths: cell 11 = n4 is Jyvaskyla: id:1101000002
 df.out %>% 
-  filter(cell == 'n4' & year == 2016) %>% 
+  filter(cell == 'n4'& id == 1101000002 & climChange == "REF" ) %>%  # & year == 2016
   filter(regime == "BAU" | regime == "noThin") %>% 
-  filter(Age > 100) %>% 
-  distinct(id)
+  #filter(Age > 90) %>%
+  dplyr::select(id, year, Age, V,  V_total_deadwood, regime, climChange) %>% 
+  arrange(year) %>% 
+  print(n = 40) %>% 
+  ggplot(aes(x = year, 
+             y =  V_total_deadwood,#V, #V_total_deadwood, #V, #Age, #V,#windRisk, #,
+             color = regime)) +
+  geom_line() +
+  facet_grid(.~climChange)
+
+
+  #distinct(climChange)
 
 
 # Check stand 1101000002
