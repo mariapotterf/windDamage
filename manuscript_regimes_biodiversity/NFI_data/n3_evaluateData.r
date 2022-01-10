@@ -599,7 +599,7 @@ library(viridis)
 
 
 # wind risk
-windows(height = 3, width = 7)
+#windows(height = 3, width = 7)
 p.risk <- df.out %>% 
   group_by(year, regime, climChange) %>% 
   summarize(mean_windRisk = mean(windRisk, na.rm = T)) %>% 
@@ -607,7 +607,7 @@ p.risk <- df.out %>%
              y = mean_windRisk*100,
              col = regime)) +
   geom_line(size = 1.2) +
-  ylim(0,7) +
+  ylim(0,10) +
   ylab("Wind damage risk [%]") +
   facet_grid(.~climChange) +
   viridis::scale_color_viridis(discrete = TRUE) +
@@ -618,7 +618,7 @@ p.risk <- df.out %>%
 
 
 # Age over landscape
-windows(height = 3, width = 7)
+#windows(height = 3, width = 7)
 p.age <- df.out %>% 
   group_by(year, regime, climChange) %>% 
   summarize(my_mean = mean(Age, na.rm = T)) %>% 
@@ -626,7 +626,7 @@ p.age <- df.out %>%
              y = my_mean,
              col = regime)) +
   geom_line(size = 1.2) +
-  ylim(0,130) +
+  ylim(20,130) +
   facet_grid(.~climChange) +
   viridis::scale_color_viridis(discrete = TRUE) +
   theme_bw() +
@@ -637,7 +637,7 @@ p.age <- df.out %>%
 
 
 # Combined HSI
-windows(height = 3, width = 7)
+#windows(height = 3, width = 7)
 p.HSI <- df.out %>% 
   group_by(year, regime, climChange) %>% 
   summarize(my_mean = mean(COMBINED_HSI, na.rm = T)) %>% 
@@ -656,7 +656,7 @@ p.HSI <- df.out %>%
 
 
 # Deadwood
-windows(height = 3, width = 7)
+#windows(height = 3, width = 7)
 p.DW <- df.out %>% 
   group_by(year, regime, climChange) %>% 
   summarize(my_mean = mean(V_total_deadwood, na.rm = T)) %>% 
@@ -674,7 +674,7 @@ p.DW <- df.out %>%
 
 
 # H_dom
-windows(height = 3, width = 7)
+#windows(height = 3, width = 7)
 p.H_dom <- df.out %>% 
   group_by(year, regime, climChange) %>% 
   summarize(my_mean = mean(H_dom, na.rm = T)) %>% 
@@ -1108,9 +1108,10 @@ pt_details <- function() {
      #             color = regime),
       #        hjust=0.5, 
        #       vjust=0.5),
-    geom_vline(xintercept = 0, color = "grey30", lty = "dashed"), 
-    geom_hline(yintercept = 0, color = "grey30", lty = "dashed"),
-    geom_point(size = 2.5, shape = 21, color = 'black'), # +
+    geom_vline(xintercept = 0, color = "grey70", lty = "dashed"), 
+    geom_hline(yintercept = 0, color = "grey70", lty = "dashed"),
+    #geom_point(size = 2.5, shape = 19), # + 'black', shape 21
+    geom_point(size = 3, shape = 21, color = 'grey'), # + 'black', shape 21
     scale_fill_manual(values = my_cols_RdGn),
     scale_color_manual(values = my_cols_RdGn),
     #scale_fill_viridis_d(),
@@ -1147,14 +1148,14 @@ my_cols_RdGn <- c(
 
 library(RColorBrewer)
 
-(p1 <- 
+p1 <- 
   df.species.means %>% 
   ggplot(aes(x = p_change_CAPER,
              y = p_change_risk,
              fill = regime)) + 
     ggtitle("a) capercaillie\n") +
     pt_details() +
-  ylab(my_lab_risk))
+  ylab(my_lab_risk)
   
 
 p2 <- df.species.means %>% 
@@ -1214,7 +1215,28 @@ annotate_figure(species.plot,
   
 
 
+# Calculate total sum of harvested timbe given scenarios 
 
+
+
+df.vol <- df.out %>% 
+  dplyr::select(id, regime, climChange, Harvested_V_log, Harvested_V_pulp) %>% 
+  group_by(id, regime, climChange) %>% 
+  summarize(sum_harv_V = sum(Harvested_V_log, na.rm = T) + sum(Harvested_V_pulp, na.rm = T)) #%>% 
+  
+
+# how much was harvested at average from each id? 
+df.vol %>%  
+  group_by(regime, climChange) %>% 
+  summarize(sum_harv_V_tot = mean(sum_harv_V)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = regime,
+             y = sum_harv_V_tot,
+             group = climChange,
+             color = climChange)) +
+  geom_line() +
+  geom_point() +
+  ylab('Harvested m3 [mean]')
 
 
 
