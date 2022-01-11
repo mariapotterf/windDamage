@@ -178,6 +178,16 @@ df.out <- df.out %>%
 
 
 
+# Classiify into short and long term effects; (short term: 30 years, until 2046)
+df.out <- df.out %>% 
+  mutate(timeEffect = case_when(
+    year > 2046  ~ 'long-term',
+    year <= 2046 ~ 'short-term'
+  ))
+
+unique(df.out$timeEffect)
+
+
 # Crazy values !!!! 
 # Filter the data ------------------------------------------
 
@@ -196,15 +206,6 @@ range(df.out$H_dom, na.rm = T)
 # [1]  0.5869817 41.2494774
 
 # which stands are crazy??
-
-# Check V
-df.all %>% 
-  filter(V > 600 | V_total_deadwood > 300 ) %>% 
-  distinct(id) #%>% # regime, 
-  nrow()
-
-  
-df.all %>% nrow()
 
 # Check deadwood
 df.out %>% 
@@ -287,7 +288,7 @@ df.out %>%
 
 # 
 
-# Distribution of deadwood by regimes and CC ------------------------------
+# Distribution of deadwood by regimes and CC ------LONG!!!----------------
 
 df.out %>% 
   filter(year >2070 & V_total_deadwood < 100) %>%  # keep it towards the of century
@@ -1217,27 +1218,66 @@ annotate_figure(species.plot,
 
 # Calculate total sum of harvested timbe given scenarios 
 
-
-
-df.vol <- df.out %>% 
-  dplyr::select(id, regime, climChange, Harvested_V_log, Harvested_V_pulp) %>% 
+df.vol <- 
+  df.out %>% 
+    filter_at(vars(Harvested_V_log, Harvested_V_pulp), all_vars(!is.na(.))) %>%  # remove rows with NA in harvested volume
+  dplyr::select(id, regime, climChange, Harvested_V_log, Harvested_V_pulp) %>%
   group_by(id, regime, climChange) %>% 
-  summarize(sum_harv_V = sum(Harvested_V_log, na.rm = T) + sum(Harvested_V_pulp, na.rm = T)) #%>% 
+  summarize(sum_harv_V_log  = sum(Harvested_V_log, na.rm = T),
+            sum_harv_V_pulp = sum(Harvested_V_pulp, na.rm = T),
+            sum_harv_V = sum_harv_V_log + sum_harv_V_pulp) #%>% 
   
 
 # how much was harvested at average from each id? 
-df.vol %>%  
+df.vol2 <- df.vol %>%  
   group_by(regime, climChange) %>% 
-  summarize(sum_harv_V_tot = mean(sum_harv_V)) %>% 
-  ungroup() %>% 
-  ggplot(aes(x = regime,
-             y = sum_harv_V_tot,
-             group = climChange,
-             color = climChange)) +
-  geom_line() +
-  geom_point() +
-  ylab('Harvested m3 [mean]')
+  summarize(totalV_mean    = mean(sum_harv_V),
+            totV_log_mean  = mean(sum_harv_V_log),
+            totV_pulp_mean = mean(sum_harv_V_pulp)) %>%
+  gather(harv_type, 
+         value, 
+         totalV_mean:totV_pulp_mean, factor_key=TRUE)# %>%
 
+
+# Make an area plot, stacked log and pulp volume 
+df.vol2 %>% 
+  filter(harv_type != 'totalV_mean') %>% 
+  ggplot(aes(x = regime,
+             y = value,
+             fill = factor(harv_type))) +
+  geom_area() +
+  facet_grid(.~climChange) 
+
+  
+  
+  
+# stacked area chart
+windows(width = 7, height = 2.5)
+df.vol2 %>% 
+    filter(harv_type != 'totalV_mean') %>%
+  ggplot(aes(x=regime, 
+                      y=value, 
+                      fill=harv_type)) + 
+    geom_area(aes(color = harv_type, 
+                  group = harv_type)) +
+    scale_fill_discrete(name = "Timber type", labels = c("log", "pulp")) +
+    scale_color_discrete(name = "Timber type", labels = c("log", "pulp")) +
+    facet_grid(.~climChange) +
+  
+    ylab('Harvested timber volume [m3/ha]') +
+  #theme_classic() +
+    theme(text = element_text(size=8, 
+                              face="plain"),
+          axis.text.x = element_text(angle = 90, 
+                               vjust = 0.5, 
+                               #hjust = -0.5,
+                               face="plain", 
+                               size = 8, 
+                               family = "sans"),
+          panel.background = element_rect(fill = "white", colour = "black"),
+          panel.border = element_rect(linetype = "solid", fill = NA))
+
+  
 
 
 
