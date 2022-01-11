@@ -86,9 +86,9 @@ cl_keep <- c(
   "year",
   "branching_group",
   "Age",
-  "PV",
-  "cash_flow",
-  "BA",
+  #"PV",
+  #"cash_flow",
+  #"BA",
   "V",
   "Harvested_V_log" ,
   "Harvested_V_pulp",
@@ -100,7 +100,7 @@ cl_keep <- c(
   # "PEAT"
     "H_dom" ,
   # "D_gm"
-  # "MAIN_SP"
+  "MAIN_SP",
   "CAPERCAILLIE",
   "HAZEL_GROUSE" ,
   "THREE_TOED_WOODPECKER",
@@ -178,14 +178,42 @@ df.out <- df.out %>%
 
 
 
-# Classiify into short and long term effects; (short term: 30 years, until 2046)
+# Classify into short and long term effects; (short term: 30 years, until 2046)
 df.out <- df.out %>% 
   mutate(timeEffect = case_when(
-    year > 2046  ~ 'long-term',
+    year  > 2046 ~ 'long-term',
     year <= 2046 ~ 'short-term'
   ))
 
 unique(df.out$timeEffect)
+
+
+# Get boxtplot of the values for regimes, climate change and long-vs short term
+# I have the same values for the short term: sensitivity to extreme values: 
+# how to keep only stands that have all regimes and all climate change scenarios???
+
+
+
+
+df.out %>% 
+  #sample_n(500000) %>% 
+  group_by(regime, climChange, timeEffect) %>% 
+  summarize(DW_mean = mean(V_total_deadwood, na.rm = T)) %>% 
+filter(timeEffect == 'short-term')
+  ggplot(aes(x = regime,
+             y = DW_mean,
+             color = climChange,
+             group = climChange)) +
+  geom_line() + 
+  geom_point() +
+  #ylim(0,30)+
+  facet_grid(.~timeEffect, scales = 'free') +
+  viridis::scale_color_viridis(discrete = TRUE)# +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  #scale_fill_manual(values = my_cols_RdGn)+
+  #scale_color_manual(values = my_cols_RdGn)
+
+
 
 
 # Crazy values !!!! 
@@ -1263,9 +1291,7 @@ df.vol2 %>%
     scale_fill_discrete(name = "Timber type", labels = c("log", "pulp")) +
     scale_color_discrete(name = "Timber type", labels = c("log", "pulp")) +
     facet_grid(.~climChange) +
-  
     ylab('Harvested timber volume [m3/ha]') +
-  #theme_classic() +
     theme(text = element_text(size=8, 
                               face="plain"),
           axis.text.x = element_text(angle = 90, 
