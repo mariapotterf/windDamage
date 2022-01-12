@@ -51,7 +51,8 @@ theme_update(panel.grid.major = element_line(colour = "grey95",  # background gr
 # Get data ------------------------------------------------------------------------------
 inPath = myPath#"C:/Users/ge95bag/Documents/Projects/2021_WindRisk_biodiversity"
 inFolder = "output/windRisk_csv"
-#outFolder = 'output_CC'
+outFolder = 'output/plotting'
+outName = 'df_filt.csv'
 
 
 # Select only regimes of interest:   pattern="xx1|xxx2", 3 CC
@@ -188,39 +189,67 @@ df.out <- df.out %>%
 unique(df.out$timeEffect)
 
 
+
+# ------------------------------------------------------
+#                  Data filtering
+# ------------------------------------------------------
+
+
+# FILTER 1 :  # Filter first all ids that have unrealistic values
+
+# deadwood volume seems incredible high for GTR: check for median and max values!
+range(df.out$V)
+
+#[1]    0.000 1239.226
+# Max volume is 600 m3/ha
+
+range(df.out$V_total_deadwood)
+# 0.0 191014.6
+# max deadwood volume is for each species 300m3/ha
+
+
+range(df.out$H_dom, na.rm = T)
+# [1]  0.5869817 41.2494774
+
+# which stands are crazy??
+
+# Check deadwood
+crazyID_DW <- df.out %>% 
+  filter(V_total_deadwood > 400) %>% 
+  distinct(id) %>% # regime,
+  pull()
+
+# Crazy volume
+crazyID_V<- df.out %>% 
+  filter(V > 800) %>% 
+  distinct(id) %>% # regime,
+  pull()
+
+# Union two vectors, keep all unique values
+(crazy_union = union(crazyID_DW, crazyID_V))
+
+
+# remove the crazy id from the table
+df.out2 <- df.out %>% 
+  filter(!(id %in% crazy_union))
+
+
+length(unique(df.out$id))
+length(unique(df.out2$id))
+
+# -----------
+# Filter 2
+# -----------
+
 # Keep only stands that have all regimes and all climate change scenarios???
 
+# example" 
 # I can split the data by the cell indicator, and then try this:
-n1 <- df.out %>% 
+n1 <- df.out2 %>% 
   filter(cell == 'k3')  # k4 has only 47000 rows 'n4'
 
 # need to filter first by regime, then by climate change
 length(unique(n1$id))
-
-
-# make a function to filter the values
-group_filter <- function(df, ...) {
-  df2 <- df %>%
-    group_by(id) %>%
-    filter(n_distinct(regime) == n_distinct(n1$regime))
-  
-  df3 <- df2 %>%
-    group_by(id) %>%
-    filter(n_distinct(climChange) == n_distinct(n2$climChange))
-  
-  return(df3)
-}
-
-
-nn3 <-group_filter(n1)
-
-length(unique(n1$id))
-length(unique(nn3$id))
-#length(unique(n3$id))
-
-
-
-
 n2 <- n1 %>%
   group_by(id) %>%
   filter(n_distinct(regime) == n_distinct(n1$regime))
@@ -229,19 +258,36 @@ n3 <- n2 %>%
   group_by(id) %>%
   filter(n_distinct(climChange) == n_distinct(n2$climChange))
 
+
 length(unique(n1$id))
 length(unique(n2$id))
 length(unique(n3$id))
 
 
+
+
+# make a function to filter the values----------------------------
+group_filter <- function(df, ...) {
+  df2 <- df %>%
+    group_by(id) %>%
+    filter(n_distinct(regime) == n_distinct(df$regime))
+  
+  df3 <- df2 %>%
+    group_by(id) %>%
+    filter(n_distinct(climChange) == n_distinct(df2$climChange))
+  
+  return(df3)
+}
+
+# test function
+nn3 <-group_filter(n1)
+
+
 # Split dataframe in a list of dfs based on cell value; and filter the data by the 
 # consistent id and climChange over regimes
-ls1 <-  df.out %>% 
+ls1 <-  df.out2 %>% 
   group_split(cell)
 
-lapply(ls1, function(df) length(unique(df$id)))
-
-lapply(ls1, function(df) unique(df$cell))
 
 # run the filtering id over the list
 ls2 <- lapply(ls1, group_filter)
@@ -249,12 +295,29 @@ ls2 <- lapply(ls1, group_filter)
 # put filtered items in back in df
 df.filt <- do.call("rbind", ls2)
 
-length(unique(df.filt$id))
-length(unique(df.out$id))
+
+# Investigate if the stands have been filtered
+length(unique(df.filt$id))  # 34062 # filtered for consistency in regime and clim change
+length(unique(df.out2$id))  # 41274  # filtered crazy vlues
+
+
+# Export table
+data.table::fwrite(df.filt, paste(inPath, outFolder, outName, sep = "/"))
 
 
 
+# Check if my new data have a same number of regimes and climate changes scenarios?
+df.filt %>% 
+  group_by(id, regime, climChange) %>% 
+  tally() %>% 
+  filter(n<20)
 
+# seems to be correctly filtered! each id has 20 alternatives! 
+
+
+
+# rename the table to keep the calculations going
+df.out <- df.filt
 
 df.out %>% 
   #sample_n(500000) %>% 
@@ -277,52 +340,6 @@ filter(timeEffect == 'short-term')
 
 
 
-# Crazy values !!!! 
-# Filter the data ------------------------------------------
-
-# deadwood volume seems incredible high for GTR: check for median and max values!
-range(df.out$V)
-
-#[1]    0.000 1239.226
-# Max volume is 600 m3/ha
-
-range(df.out$V_total_deadwood)
-# 0.0 191014.6
-# max deadwood volume is for each species 300m3/ha
-
-
-range(df.out$H_dom, na.rm = T)
-# [1]  0.5869817 41.2494774
-
-# which stands are crazy??
-
-# Check deadwood
-df.out %>% 
-  filter(V_total_deadwood > 300) %>% 
-  distinct(id) #%>% # regime, 
-  #nrow()
-
-
-# Remove crazy values and try print plots and tables again:
-# Make a copy of the table
-
-# remove crazy values;
-# removal should be make for specific id and regimes??? or of just to remove the unrealistic one? 
-df.out <- df.out %>% 
-  filter(V < 600 ) %>% 
-  filter(V_total_deadwood < 300)
-
-length(unique(df.out$id))
-
-# keep the vector of ids: !!!! this goes later in the summary table script!!
-#my_stands = unique(df.out$id)
-#removed_stands = setdiff(my_stands, all_id)
-
-# Save the vector to read it later on
-#save(my_stands, file = "my_stands.rda")
-
-# -------------------
-#length(unique(df.all$id))
 
 
 # Get histograms
@@ -334,6 +351,17 @@ median(df.out$V)  # 134 m3/ha
 median(df.out$V_total_deadwood) # 13 m3/ha
 
 
+
+# see which stands have very high deadwood??
+df.filt %>% 
+  filter(V_total_deadwood> 600) %>% 
+  distinct(regime, climChange)
+
+# 401104404 and 401203000 for BAU 
+
+df.filt %>% 
+  filter(id == '401203000' & regime == 'BAU' & climChange == 'REF') %>% 
+  dplyr::select(id, year, V_total_deadwood, V, H_dom, climChange)
 
 
 # Why no thinning has low effects? ---------------------------------------------
