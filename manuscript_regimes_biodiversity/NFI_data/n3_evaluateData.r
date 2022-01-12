@@ -188,9 +188,70 @@ df.out <- df.out %>%
 unique(df.out$timeEffect)
 
 
-# Get boxtplot of the values for regimes, climate change and long-vs short term
-# I have the same values for the short term: sensitivity to extreme values: 
-# how to keep only stands that have all regimes and all climate change scenarios???
+# Keep only stands that have all regimes and all climate change scenarios???
+
+# I can split the data by the cell indicator, and then try this:
+n1 <- df.out %>% 
+  filter(cell == 'k3')  # k4 has only 47000 rows 'n4'
+
+# need to filter first by regime, then by climate change
+length(unique(n1$id))
+
+
+# make a function to filter the values
+group_filter <- function(df, ...) {
+  df2 <- df %>%
+    group_by(id) %>%
+    filter(n_distinct(regime) == n_distinct(n1$regime))
+  
+  df3 <- df2 %>%
+    group_by(id) %>%
+    filter(n_distinct(climChange) == n_distinct(n2$climChange))
+  
+  return(df3)
+}
+
+
+nn3 <-group_filter(n1)
+
+length(unique(n1$id))
+length(unique(nn3$id))
+#length(unique(n3$id))
+
+
+
+
+n2 <- n1 %>%
+  group_by(id) %>%
+  filter(n_distinct(regime) == n_distinct(n1$regime))
+
+n3 <- n2 %>%
+  group_by(id) %>%
+  filter(n_distinct(climChange) == n_distinct(n2$climChange))
+
+length(unique(n1$id))
+length(unique(n2$id))
+length(unique(n3$id))
+
+
+# Split dataframe in a list of dfs based on cell value; and filter the data by the 
+# consistent id and climChange over regimes
+ls1 <-  df.out %>% 
+  group_split(cell)
+
+lapply(ls1, function(df) length(unique(df$id)))
+
+lapply(ls1, function(df) unique(df$cell))
+
+# run the filtering id over the list
+ls2 <- lapply(ls1, group_filter)
+
+# put filtered items in back in df
+df.filt <- do.call("rbind", ls2)
+
+length(unique(df.filt$id))
+length(unique(df.out$id))
+
 
 
 
