@@ -44,9 +44,9 @@ theme_update(panel.grid.major = element_line(colour = "grey95",  # background gr
 
 
 # Get data & final table ------------------------------------------------------------------------------
-inPath = myPath
+inPath   = myPath
 inFolder = "output/plotting"
-inName = 'df_filt.csv'
+inName   = 'df_filt.csv'
 
 # Input table
 df.out <- data.table::fread(paste(inPath, inFolder, inName,  sep = "/"),  # 
@@ -58,7 +58,7 @@ df.out <- data.table::fread(paste(inPath, inFolder, inName,  sep = "/"),  #
 
 # Order factors levels ----------------------------------------------------
 
-# ClimChange
+# Climate change
 df.out$climChange <-factor(df.out$climChange, 
                            levels = c("REF", "RCP45", "RCP85"))
 
@@ -68,7 +68,7 @@ df.out <- df.out %>%
                          levels = c("short_30", "short_10","BAU", "noThin", "ext_10", "ext_30", "GTR", "CCF")))
 
 
-# ClimChange
+# time effect
 df.out$timeEffect <-factor(df.out$timeEffect, 
                            levels = c("short-term", 'long-term'))
 
@@ -77,24 +77,29 @@ df.out$timeEffect <-factor(df.out$timeEffect,
 
 # Create plots  ----------------------------------------------------------------------------------------
 
+# Define labels:
+lab_manag = c("Regime adaptation")
+
 
 # Plots for averaged deadwood and volume over short vs long-term
 
 p.DW <- df.out %>% 
-  #sample_n(500000) %>% 
   group_by(regime, climChange, timeEffect) %>% 
   summarize(DW_mean = mean(V_total_deadwood, na.rm = T)) %>% 
-  #filter(timeEffect == 'short-term') %>% 
   ggplot(aes(x = regime,
              y = DW_mean,
              color = climChange,
              group = climChange)) +
   geom_line() + 
   geom_point() +
-  #ylim(0,30)+
-  facet_grid(.~timeEffect, scales = 'free') +
+  ylim(0,40)+
+  ylab("Deadwood volume \n [m3/ha]") +
+  xlab(lab_manag) + 
+  facet_grid(.~timeEffect, scales = 'free') + # scales="free"
   viridis::scale_color_viridis(discrete = TRUE) +
-theme(axis.text.x = element_text(angle = 90, 
+theme( axis.title  = element_text(size = 9, face="plain", family = "sans"),
+        axis.text   = element_text(size=8),
+       axis.text.x = element_text(angle = 90, 
                                  vjust = 0.5, 
                                  hjust=1))
 
@@ -103,30 +108,31 @@ p.V <- df.out %>%
   #sample_n(500000) %>% 
   group_by(regime, climChange, timeEffect) %>% 
   summarize(V_mean = mean(V, na.rm = T)) %>% 
-  #filter(timeEffect == 'short-term') %>% 
   ggplot(aes(x = regime,
              y = V_mean,
              color = climChange,
              group = climChange)) +
   geom_line() + 
   geom_point() +
-  #ylim(0,30)+
+  ylab("Volume \n[m3/ha]") +
+  xlab(lab_manag) + 
   facet_grid(.~timeEffect, scales = 'free') +
   viridis::scale_color_viridis(discrete = TRUE) +
-  theme(axis.text.x = element_text(angle = 90, 
+  theme( axis.title  = element_text(size = 9, face="plain", family = "sans"),
+         axis.text   = element_text(size = 8),
+         axis.text.x = element_text(angle = 90, 
                                    vjust = 0.5, 
                                    hjust=1))
 
 
 
-windows(width = 4, height = 4)
+windows(width = 7,height = 2.4)
 ggarrange(p.V, p.DW, 
-          ncol = 1, 
-          nrow = 2, 
+          ncol = 2, 
+          nrow = 1, 
+          labels = "auto",
           common.legend = T, 
           legend = 'bottom' )
-
-
 
 
 
@@ -135,12 +141,23 @@ ggarrange(p.V, p.DW,
 
 
 # Get histograms
+windows()
 hist(df.out$V)
 hist(df.out$V_total_deadwood)
 
-median(df.out$V)  # 134 m3/ha
+median(df.out$V)  # 131 m3/ha
 median(df.out$V_total_deadwood) # 13 m3/ha
 
+
+# Importance of the year! chenck DW in 2016!
+df.out %>% 
+  filter(year == 2016) %>% 
+  summarize(mean_V = mean(V, na.rm = T),
+            mean_DW = mean(V_total_deadwood, na.rm = T ))
+
+
+#mean_V  mean_DW
+#1 114.995 3.648799
 
 # Why no thinning has low effects? ---------------------------------------------
 
@@ -280,8 +297,6 @@ df.out %>%
 # biodindicator
 
 
-# Define labels:
-lab_manag = c("Regime adaptation")
 
 
 # Make several histograms at once: reshape the data from wide to long:
@@ -300,14 +315,6 @@ df.ind <-
   # "V_total_deadwood" removed as has a different scale than 0-1 HSI
   pivot_longer(everything(vars = NULL),
                names_to = "indicator", values_to = "HSI") #%>%
-
-# Make a histogram for all indicators
-df.ind %>% 
-  ggplot(aes(y = HSI,
-             x = indicator)) + 
-  geom_violin()
-# geom_histogram(binwidth = 30) + 
-facet_wrap(.~indicator)
 
 
 
@@ -692,7 +699,7 @@ formated_df_main <-
 
 
 # -----------------------------------------------------------------------------
-# Get total volume harvested over Finland given scenario and climate change
+# Get mean stand-level total volume harvested over Finland given scenario and climate change
 df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
   summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
@@ -1000,7 +1007,7 @@ annotate_figure(species.plot,
 
 
 
-# Calculate total sum of harvested timbe given scenarios --------------
+# Calculate total sum of harvested timber given scenarios --------------
 
 df.vol <- 
   df.out %>% 
