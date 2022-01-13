@@ -119,8 +119,12 @@ p.V <- df.out %>%
 
 
 
-windows(width = 8, height = 4)
-ggarrange(p.V, p.DW, ncol = 1, nrow = 2, common.legend = T, legend = 'bottom' )
+windows(width = 4, height = 4)
+ggarrange(p.V, p.DW, 
+          ncol = 1, 
+          nrow = 2, 
+          common.legend = T, 
+          legend = 'bottom' )
 
 
 
