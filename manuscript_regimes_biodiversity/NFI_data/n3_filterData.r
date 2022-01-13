@@ -27,15 +27,11 @@ library(ggpubr)
 source(paste(myPath, 'r_winddamage', 'myFunctions.R', sep = "/"))
 
 
-
-
-
-
 # Get data ------------------------------------------------------------------------------
-inPath = myPath#"C:/Users/ge95bag/Documents/Projects/2021_WindRisk_biodiversity"
-inFolder = "output/windRisk_csv"
+inPath    = myPath#"C:/Users/ge95bag/Documents/Projects/2021_WindRisk_biodiversity"
+inFolder  = "output/windRisk_csv"
 outFolder = 'output/plotting'
-outName = 'df_filt.csv'
+outName   = 'df_filt.csv'
 
 
 # Select only regimes of interest:   pattern="xx1|xxx2", 3 CC
@@ -106,9 +102,24 @@ df.ls2 <- lapply(df.ls2, function(df) df %>%
 df.out <- do.call(rbind, df.ls2)
 
 
+
+# Get summary stats for V and deadwood volume before filetring ------------
+
+
+summary(df.out$V, na.rm = T)
+
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.00   41.87  134.80  146.51  211.40 1239.23 
+
+summary(df.out$V_total_deadwood , na.rm = T)
+
+#Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+#0.00      7.47     13.03     17.83     23.25 191014.61 
+
+
 rm(df.ls)
 
-# Classify climate change
+# Classify climate change ------------------------------------------------
 df.out <- df.out %>% 
   mutate(climChange = case_when(
     grepl("RCP0", name)  ~ "REF",
@@ -116,7 +127,7 @@ df.out <- df.out %>%
     grepl("RCP85", name) ~ "RCP85"))
 
 
-# Correct regimes names
+# Correct regimes names --------------------------------------------------
 df.out <- df.out %>%
   mutate(regime = case_when(
     branching_group == 'Tapio harvest'                    ~ 'BAU', 
@@ -129,7 +140,7 @@ df.out <- df.out %>%
     branching_group == 'Selection cut'                    ~ 'CCF'))
 
 
-# Change order of change time---------------------------------------
+# Change order of change time---------------------------------------------
 df.out$climChange <-factor(df.out$climChange, 
                             levels = c("REF", "RCP45", "RCP85"))
 
@@ -139,7 +150,14 @@ df.out$climChange <-factor(df.out$climChange,
 # ordered in terms of timing of final cut
 df.out <- df.out %>% 
   mutate(regime = factor(regime, 
-                         levels = c("short_30", "short_10","BAU", "noThin", "ext_10", "ext_30", "GTR", "CCF")))
+                         levels = c("short_30", 
+                                    "short_10",
+                                    "BAU", 
+                                    "noThin", 
+                                    "ext_10", 
+                                    "ext_30", 
+                                    "GTR", 
+                                    "CCF")))
 
 
 
@@ -150,8 +168,6 @@ df.out <- df.out %>%
     year  > 2046 ~ 'long-term',
     year <= 2046 ~ 'short-term'
   ))
-
-unique(df.out$timeEffect)
 
 
 
@@ -185,13 +201,13 @@ range(df.out$H_dom, na.rm = T)
 
 # Check deadwood
 crazyID_DW <- df.out %>% 
-  filter(V_total_deadwood > 400) %>% 
+  filter(V_total_deadwood > 300) %>% 
   distinct(id) %>% # regime,
   pull()
 
 # Crazy volume
 crazyID_V<- df.out %>% 
-  filter(V > 800) %>% 
+  filter(V > 700) %>% 
   distinct(id) %>% # regime,
   pull()
 
@@ -205,10 +221,62 @@ df.out2 <- df.out %>%
 
 
 
-# Filter 2 --------------------------
-# -----------
+# was filtering sussesfull? need to change my quantiles!
+# Yes, changes
+summary(df.out2$V, na.rm = T)
 
-# Keep only stands that have all regimes and all climate change scenarios???
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#0.00   41.64  132.32  142.55  205.70  800.00 
+
+summary(df.out2$V_total_deadwood , na.rm = T)
+
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#0.000   7.394  12.932  17.034  23.027 396.942 
+
+
+# Which stands still have weird numbers??
+df.out2 %>% 
+  filter(V_total_deadwood > 250) %>%
+  distinct(id, regime, climChange) %>% 
+  
+# example: 
+  # 2200506200      BAU        REF
+#  181: 1100302400 short_10      RCP85
+#182: 2200506200 short_10      RCP85
+
+df.out2 %>% 
+  filter(id == '2200506200' & regime == "BAU" & climChange == "REF" ) %>%
+  select(id, year, Age, V_total_deadwood, V, H_dom)
+
+# Some stands have higher deadwood volume that maximal volume:   e.g. 2200506200      BAU        REF
+# maybe I can filter all stands that have max deadwood volume larger then max V??
+
+# Filter V vs DW volume
+
+crazy_id2 <- 
+  df.out2 %>% 
+  group_by(id, regime, climChange) %>% 
+  summarize(max_DW = max(V_total_deadwood, na.rm = T),
+            max_V  = max(V, na.rm = T)) %>% 
+  mutate(diff_V_DW = max_V - max_DW) %>% 
+  filter(diff_V_DW < 0) %>% 
+    ungroup() %>% 
+  distinct(id) %>% 
+  pull()
+
+
+# Fiulter values:
+# remove the crazy id from the table
+df.out2 <- df.out2 %>% 
+  filter(!(id %in% crazy_id2))
+
+
+summary(df.out2$V)
+summary(df.out2$V_total_deadwood)
+
+
+
+# Filter 2 : Keep only stands that have all regimes and all climate change scenarios???
 
 # example" 
 # I can split the data by the cell indicator, and then try this:
