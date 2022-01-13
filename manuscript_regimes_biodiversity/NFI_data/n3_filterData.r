@@ -201,7 +201,7 @@ range(df.out$H_dom, na.rm = T)
 
 # Check deadwood
 crazyID_DW <- df.out %>% 
-  filter(V_total_deadwood > 300) %>% 
+  filter(V_total_deadwood > 100) %>% 
   distinct(id) %>% # regime,
   pull()
 
@@ -234,15 +234,15 @@ summary(df.out2$V_total_deadwood , na.rm = T)
 #0.000   7.394  12.932  17.034  23.027 396.942 
 
 
-# Which stands still have weird numbers??
+# Which stands still have weird numbers??---------------------------
 df.out2 %>% 
   filter(V_total_deadwood > 250) %>%
   distinct(id, regime, climChange) %>% 
   
 # example: 
-  # 2200506200      BAU        REF
+#       2200506200      BAU        REF
 #  181: 1100302400 short_10      RCP85
-#182: 2200506200 short_10      RCP85
+#  182: 2200506200 short_10      RCP85
 
 df.out2 %>% 
   filter(id == '2200506200' & regime == "BAU" & climChange == "REF" ) %>%
@@ -251,7 +251,8 @@ df.out2 %>%
 # Some stands have higher deadwood volume that maximal volume:   e.g. 2200506200      BAU        REF
 # maybe I can filter all stands that have max deadwood volume larger then max V??
 
-# Filter V vs DW volume
+# Filter V vs DW volume ------------------------------------------------
+# remove the stands that have more DW than total volume
 
 crazy_id2 <- 
   df.out2 %>% 
@@ -265,7 +266,7 @@ crazy_id2 <-
   pull()
 
 
-# Fiulter values:
+# Filter values:
 # remove the crazy id from the table
 df.out2 <- df.out2 %>% 
   filter(!(id %in% crazy_id2))
@@ -274,11 +275,16 @@ df.out2 <- df.out2 %>%
 summary(df.out2$V)
 summary(df.out2$V_total_deadwood)
 
+df.out2 %>% 
+  group_by(regime, climChange, timeEffect) %>% 
+  summarise_at(c("V", "V_total_deadwood"), mean, na.rm = TRUE) %>% 
+  print(n = 50)
+
 
 
 # Filter 2 : Keep only stands that have all regimes and all climate change scenarios???
 
-# example" 
+# example: ------------------------------ 
 # I can split the data by the cell indicator, and then try this:
 n1 <- df.out2 %>% 
   filter(cell == 'k3')  # k4 has only 47000 rows 'n4'
@@ -301,6 +307,7 @@ length(unique(n3$id))
 
  
 
+
 # make a function to filter the values----------------------------
 group_filter <- function(df, ...) {
   df2 <- df %>%
@@ -315,7 +322,7 @@ group_filter <- function(df, ...) {
 }
 
 # test function
-nn3 <-group_filter(n1)
+# nn3 <-group_filter(n1)
 
 
 # Split dataframe in a list of dfs based on cell value; and filter the data by the 
@@ -330,10 +337,17 @@ ls2 <- lapply(ls1, group_filter)
 # put filtered items in back in df
 df.filt <- do.call("rbind", ls2)
 
+# Check if it has affected results:
+df.filt %>% 
+  group_by(regime, climChange, timeEffect) %>% 
+  summarise_at(c("V", "V_total_deadwood"), mean, na.rm = TRUE) %>% 
+  print(n = 50)
+
+
 
 # Investigate if the stands have been filtered
-length(unique(df.filt$id))  # 34062 # filtered for consistency in regime and clim change
-length(unique(df.out2$id))  # 41274  # filtered crazy vlues
+length(unique(df.filt$id))  # 28545  # filtered for consistency in regime and clim change
+length(unique(df.out2$id))  # 35713  # filtered crazy vlues
 
 
 
@@ -349,9 +363,5 @@ df.filt %>%
 
 # Export table
 data.table::fwrite(df.filt, paste(inPath, outFolder, outName, sep = "/"))
-
-
-
-# Remove everything from here down !!!!!
 
 
