@@ -137,6 +137,79 @@ ggarrange(p.V, p.DW,
 
 
 
+
+# Ryan: 
+# Not necessary, but I’d be curious to see what % of stands in the starting conditions 
+# scored 1’s for how many of these species, and how many stands each pair overlapped in. 
+# Might be an interesting little exercise for supplemental to let us see the relative prevalence of these species (or maybe the Monkonnen paper does something like this already)
+
+my_species = c("CAPERCAILLIE",
+               "HAZEL_GROUSE",
+               "THREE_TOED_WOODPECKER",
+               "LESSER_SPOTTED_WOODPECKER", 
+               "LONG_TAILED_TIT",
+               "SIBERIAN_FLYING_SQUIRREL" )
+
+# get proporton of stands scoring >0.8 in short and lon term
+
+# # how many rows are in one year?
+n_rows = df.out %>% 
+  #dplyr::filter(regime == 'short_30') %>%
+  dplyr::filter(year == '2016' ) %>% 
+  nrow()
+
+
+my_cols_RdGn2 <- c(
+  '#b10026', # dark red
+  '#fd8d3c',
+  '#0868ac',  # blue
+  #  '#ffeda0',  # bright red
+  'yellow',
+  '#f7fcb9',
+  '#addd8e',
+  '#41ab5d',
+  '#005a32' # dark green
+)
+
+# make plot: 
+df.out %>% 
+   #dplyr::filter(regime == 'short_30') %>%
+    dplyr::filter(year == '2016' | year == '2111' ) %>% 
+  dplyr::select(#'year',
+    "CAPERCAILLIE",
+    "HAZEL_GROUSE",
+    "THREE_TOED_WOODPECKER",
+    "LESSER_SPOTTED_WOODPECKER",
+    "LONG_TAILED_TIT",
+    "SIBERIAN_FLYING_SQUIRREL",
+    "year",
+    'regime',
+    'climChange')  %>% # ,
+  # "V_total_deadwood" removed as has a different scale than 0-1 HSI
+  pivot_longer(cols = CAPERCAILLIE:SIBERIAN_FLYING_SQUIRREL,
+               names_to = "indicator", values_to = "HSI") %>%
+    filter(HSI > 0.5 ) %>% 
+    group_by(year, regime, climChange, indicator) %>%
+    tally() %>% 
+    mutate(freq = n / n_rows) %>% 
+    ggplot(aes(y = freq,
+               x = indicator,
+               color = regime,
+               fill = regime,
+               shape = indicator)) +
+  geom_jitter(size = 2.5, shape = 21, color = 'grey', 
+              #alpha = 0.9, 
+              width = 0.2, height = 0.0) + # + 'black', shape 21
+  scale_fill_manual(values  = my_cols_RdGn2) + 
+  scale_color_manual(values = my_cols_RdGn2) +
+  facet_grid(year~climChange) +
+    theme( axis.title  = element_text(size = 9, face="plain", family = "sans"),
+           axis.text   = element_text(size = 8),
+           axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  
+  #  mutate(freq = n / sum(n))
+
+
 # Explore the data basic statistics --------------------------------------------------------
 
 
@@ -364,14 +437,14 @@ df.ind <-
 windows(height = 3.5, width=7)
 df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
-  summarise(windRisk_mean = mean(windRisk, na.rm = T),
+  summarise(V_mean = mean(V, na.rm = T),
             HSI_mean = mean(COMBINED_HSI, na.rm = T),
             HSI_mean = mean(COMBINED_HSI, na.rm = T),
             DW_mean = mean(V_total_deadwood, na.rm = T),) %>% 
   mutate(BAU_HSI          = HSI_mean[match('BAU', regime)],
          perc_change_HSI  = HSI_mean/BAU_HSI * 100 - 100,
-         BAU_risk         = windRisk_mean[match('BAU', regime)],
-         perc_change_risk = windRisk_mean/BAU_risk * 100 - 100,
+         BAU_risk         = V_mean[match('BAU', regime)],
+         perc_change_risk = V_mean/BAU_risk * 100 - 100,
          BAU_DW           = DW_mean[match('BAU', regime)],
          perc_change_DW   = DW_mean/BAU_DW * 100 - 100) %>%
   dplyr::select(c(climChange, 
@@ -401,7 +474,7 @@ df.out %>%
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         #legend.position = 'bottom',
-        legend.position = c(.21, .22), # legend position within the plot, x, y
+        legend.position = c(.88, .22), # legend position within the plot, x, y
         legend.title = element_text(size=10),
         legend.text  = element_text(size=8),
         legend.background = element_rect(fill = "white", color = "black"),
@@ -423,9 +496,9 @@ library(viridis)
 #windows(height = 3, width = 7)
 p.risk <- df.out %>% 
   group_by(year, regime, climChange) %>% 
-  summarize(mean_windRisk = mean(windRisk, na.rm = T)) %>% 
+  summarize(mean_V = mean(V, na.rm = T)) %>% 
   ggplot(aes(x = year,
-             y = mean_windRisk*100,
+             y = mean_V*100,
              col = regime)) +
   geom_line(size = 1.2) +
   ylim(0,10) +
@@ -582,7 +655,7 @@ df.out %>%
 df.ind.diff <-  
 df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
-  summarise(mean_risk    = mean(windRisk, na.rm = T),
+  summarise(mean_risk    = mean(V, na.rm = T),
             mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
             mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
             mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
@@ -675,8 +748,8 @@ df.timber <- df.out %>%
 df_summary_main <-
   df.out %>% 
   group_by(climChange, regime) %>% 
-  summarise(windRisk_mean = round(mean(windRisk, na.rm = T)*100, digits = 1),
-            windRisk_sd   = round(sd(windRisk, na.rm = T)*100, digits = 1),
+  summarise(V_mean = round(mean(V, na.rm = T)*100, digits = 1),
+            V_sd   = round(sd(V, na.rm = T)*100, digits = 1),
             HSI_mean      = round(mean(COMBINED_HSI, na.rm = T), digits = 1),
             HSI_sd        = round(sd(COMBINED_HSI, na.rm = T), digits = 1),
             DW_mean       = round(mean(V_total_deadwood, na.rm = T), digits = 1),
@@ -687,7 +760,7 @@ df_summary_main <-
 # Third, format output table
 formated_df_main <- 
   df_summary_main %>% 
-  mutate(WindDamage    = stringr::str_glue("{windRisk_mean}±{windRisk_sd}"),
+  mutate(WindDamage    = stringr::str_glue("{V_mean}±{V_sd}"),
          Combined_HSI  = stringr::str_glue("{HSI_mean}±{HSI_sd}"),
          Deadwood      = stringr::str_glue("{DW_mean}±{DW_sd}"),
          Harvested_log = stringr::str_glue("{mean_sum_V_log}±{sd_sum_V_log}"),
@@ -805,7 +878,7 @@ df.out %>%
 df.ind.diff2 <- 
   df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
-  summarise(mean_risk    = mean(windRisk, na.rm = T),
+  summarise(mean_risk    = mean(V, na.rm = T),
             mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
             mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
             mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
@@ -865,7 +938,7 @@ windows(width = 7, height = 3)
 df.species.means <- 
   df.out %>% 
   group_by(regime) %>% # modif, #geo_grad,
-  summarise(mean_risk    = mean(windRisk, na.rm = T),
+  summarise(mean_risk    = mean(V, na.rm = T),
             mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
             mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
             mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
@@ -925,6 +998,7 @@ pt_details <- function() {
 
 # Get individual plots for species -------------------------------------
 my_lab_risk = c("Difference in\nwind damage risk [%]")
+my_lab_V    = c("Difference in\nexposed timber volume [m3/ha]")
 
 my_cols_RdGn <- c(
   '#b10026', # dark red
@@ -947,7 +1021,7 @@ p1 <-
              fill = regime)) + 
   ggtitle("a) capercaillie\n") +
   pt_details() +
-  ylab(my_lab_risk)
+  ylab(my_lab_V)
 
 
 p2 <- df.species.means %>% 
@@ -1069,7 +1143,7 @@ df.vol2 %>%
 df.plot <- 
   df.out %>% 
   group_by(id, climChange, regime) %>% 
-  summarise(mean_risk = mean(windRisk, na.rm = T),
+  summarise(mean_risk = mean(V, na.rm = T),
             mean_HSI  = mean(COMBINED_HSI, na.rm = T))  %>%
   mutate(control_risk = mean_risk[match('BAU', regime)],
          control_HSI  = mean_HSI[ match('BAU', regime)],
@@ -1308,7 +1382,7 @@ df.plot <-
   df.out2 %>% 
   #  filter(mainType != "SA" ) %>% # & climChange == "no"
   group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
-  summarise(median_risk = median(windRisk, na.rm = T),
+  summarise(median_risk = median(V, na.rm = T),
             median_HSI  = median(COMBINED_HSI, na.rm = T)) %>%
   mutate(adaptPaste = paste(adapt, mainType, sep = "_")) %>%
   group_by(geo_grad, climChange) %>% 
@@ -1417,7 +1491,7 @@ df.CAP <-
   df.out %>% 
   filter(mainType != "SA" ) %>% # & climChange == "no"
   group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
-  summarise(median_risk = median(windRisk, na.rm = T),
+  summarise(median_risk = median(V, na.rm = T),
             median_HSI  = median(CAPERCAILLIE, na.rm = T)) %>%
   mutate(adaptPaste = paste(adapt, mainType, sep = "_")) %>%
   group_by(geo_grad, climChange) %>% 
@@ -1487,7 +1561,7 @@ df.HASEL <-
   df.out %>% 
   filter(mainType != "SA" ) %>% # & climChange == "no"
   group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
-  summarise(median_risk = median(windRisk, na.rm = T),
+  summarise(median_risk = median(V, na.rm = T),
             median_HSI  = median(HAZEL_GROUSE, na.rm = T)) %>%
   mutate(adaptPaste = paste(adapt, mainType, sep = "_")) %>%
   group_by(geo_grad, climChange) %>% 
@@ -1558,7 +1632,7 @@ df.woodPeck <-
   df.out %>% 
   filter(mainType != "SA" ) %>% # & climChange == "no"
   group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
-  summarise(median_risk = median(windRisk, na.rm = T),
+  summarise(median_risk = median(V, na.rm = T),
             median_HSI  = median(LESSER_SPOTTED_WOODPECKER, na.rm = T)) %>%
   mutate(adaptPaste = paste(adapt, mainType, sep = "_")) %>%
   group_by(geo_grad, climChange) %>% 
@@ -1655,7 +1729,7 @@ windows(7,2.5)
 df.out %>% 
   filter(year == 2111 & geo_grad == "center") %>% #& geo_grad == "center" 
   filter(mainType != "SA") %>% 
-  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%
+  filter(V < quantile(V, 0.95, na.rm = T))  %>%
   group_by(geo_grad, climChange, mainType, modif) %>% # modif,
   summarise(my_y = median(Age, na.rm = T)) %>%
   ggplot(aes(x= mainType,
@@ -1673,7 +1747,7 @@ ylab("median age") +
 windows(7,2.5)
 df.out %>% 
   filter(mainType != "CCF" & mainType != "SA") %>% 
-  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
+  filter(V < quantile(V, 0.95, na.rm = T))  %>%  
   ggplot() + 
   stat_summary(mapping = aes(x = modif, #change_time, 
                              y = COMBINED_HSI,
