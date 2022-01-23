@@ -165,7 +165,52 @@ df.out %>%
 # test for old, young and medium age in 2016
 # old        = no effect
 # young      = little effect, theye is slightly more deadwood in o thinned stands than in thinned stands
-# medium age = 
+# medium age = little effect
+
+
+# Get boxplot of DW volumes by climChange and regimes
+df.out %>% 
+  filter(regime == 'BAU' | regime == "noThin") %>% 
+  
+  ggplot(aes(y = V_total_deadwood,
+             x = cell,
+             fill = regime)) +
+  geom_boxplot() + 
+  facet_grid(climChange~timeEffect)
+# no differenece, BAU has very high DW
+
+# Ge old stands
+
+df.out %>% 
+  filter(Age > 150 & year == 2016) %>%
+  distinct(id)   # > 90: 3100201305
+
+# > 150: 3100202108
+
+df.out %>% 
+  filter(Age < 30 & year == 2016) %>%
+  distinct(id)   # < 30: 3100000304
+
+
+df.out %>% 
+  filter(id == '3100000304') %>% 
+  filter(regime == 'BAU' | regime == "noThin") %>% 
+  ggplot(aes(y = V_total_deadwood,
+             x = regime,
+             fill = climChange)) +
+  geom_boxplot() 
+
+
+df.out %>% 
+  filter(regime == 'BAU' | regime == "noThin") %>% 
+  group_by(regime, year, climChange) %>% 
+  summarise(DW_mean = mean(V_total_deadwood, na.rm = T)) %>% 
+  ggplot(aes(y = DW_mean,
+             x = regime,
+             color = climChange)) +
+  geom_line()
+
+
 
 
 
@@ -290,6 +335,7 @@ df.out %>%
 
 
 
+
 # Test hypotheses:  --------------------------------------------------------
 
 # select only regimes to test my hypotheses: RF, adaptation, w/wo thinning, CCF
@@ -358,33 +404,105 @@ df.ind <-
 #   
 
 
+# ------------------------------------------------------------------------------
+# Put barplot data together to have the same y labels
+# ------------------------------------------------------------------------------
 
-# Put barplot data together to have the same y labels ------
 
+# Put together wind risk and pulp and log  -------------------------------------
+
+# Get the table, merge with log and pulp estimates
+
+# Table wind risk
+df.risk <- df.out %>% 
+  group_by(climChange, regime) %>% # modif, #geo_grad,
+  summarise(windRisk_mean = mean(windRisk, na.rm = T)) %>% 
+  mutate(BAU_risk         = windRisk_mean[match('BAU', regime)],
+         perc_change_risk = windRisk_mean/BAU_risk * 100 - 100) %>%
+  dplyr::select(c(climChange, 
+                  regime, 
+                  perc_change_risk)) %>% 
+  filter(regime != "BAU")   # remove BAU from teh table
+
+# Table log and pulp
+df.log.pulp <- df.out %>% 
+  group_by(id, climChange, regime) %>% # modif, #geo_grad,
+  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
+  ungroup() %>% 
+  group_by(climChange, regime) %>% 
+  summarise(sum_V_log     = mean(sum_V_log, na.rm = T),
+            sum_V_pulp    = mean(sum_V_pulp, na.rm = T))  %>%
+  mutate(BAU_log          = sum_V_log[match('BAU', regime)],
+         BAU_pulp         = sum_V_pulp[ match('BAU', regime)],
+         perc_change_log  = sum_V_log /BAU_log  * 100 - 100,
+         perc_change_pulp = sum_V_pulp/BAU_pulp * 100 - 100)  %>%
+  filter(regime != "BAU")  %>%    # remove BAU from teh table
+  dplyr::select(c(climChange, regime, 
+                  perc_change_log, 
+                  perc_change_pulp)) #%>%
+  
+
+# Join  tables for wind risk and timber quality, and pivot values --------------------------------------------
 windows(height = 3.5, width=7)
+
+df.risk %>% 
+  left_join(df.log.pulp) %>% 
+  pivot_longer(!c(regime, climChange), #everything(vars = NULL),
+               names_to = "Indicator", 
+               values_to = "perc_ch")  %>%
+ # print(n = 80)
+  mutate(Indicator = factor(Indicator, 
+                            levels = c('perc_change_risk', 'perc_change_log', 'perc_change_pulp' ),
+                            labels = c('Wind damage risk', 'Log timber',      'Pulp timber'))) %>% 
+  ggplot(aes(y=perc_ch, 
+               x=regime,
+               fill = climChange)) + 
+  geom_bar(position="dodge", 
+           stat="identity") +
+  geom_hline(yintercept = 0) +
+  coord_flip() +
+  facet_grid(.~ Indicator, scales = 'free') +
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                    name="Climate change") +
+  ylab("Difference from BAU scenario [%]") +
+  xlab(lab_manag) +
+  theme_bw()  + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        #legend.position = 'bottom',
+        legend.position = c(.2, .3), # legend position within the plot, x, y
+        legend.title = element_text(size=10),
+        legend.text  = element_text(size=8),
+        legend.background = element_rect(fill = "white", color = "black"),
+        legend.box.background = element_rect(colour = "black")) 
+
+
+
+
+
+
+# Plot for Combined HSI and Deadwood volume
+
+windows(height = 3.2, width=6)
 df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
-  summarise(windRisk_mean = mean(windRisk, na.rm = T),
-            HSI_mean = mean(COMBINED_HSI, na.rm = T),
+  summarise(#windRisk_mean = mean(windRisk, na.rm = T),
             HSI_mean = mean(COMBINED_HSI, na.rm = T),
             DW_mean = mean(V_total_deadwood, na.rm = T),) %>% 
   mutate(BAU_HSI          = HSI_mean[match('BAU', regime)],
          perc_change_HSI  = HSI_mean/BAU_HSI * 100 - 100,
-         BAU_risk         = windRisk_mean[match('BAU', regime)],
-         perc_change_risk = windRisk_mean/BAU_risk * 100 - 100,
          BAU_DW           = DW_mean[match('BAU', regime)],
          perc_change_DW   = DW_mean/BAU_DW * 100 - 100) %>%
   dplyr::select(c(climChange, 
                   regime, 
-                  perc_change_risk,
                   perc_change_HSI,
                   perc_change_DW)) %>%
   pivot_longer(!c(regime, climChange), #everything(vars = NULL),
                names_to = "Indicator", 
                values_to = "perc_ch")  %>%
   mutate(Indicator = factor(Indicator, 
-                            levels = c('perc_change_risk', 'perc_change_HSI', 'perc_change_DW' ),
-                            labels = c('Wind damage risk','Combined HSI', 'Deadwood volume'))) %>% 
+                            levels = c('perc_change_HSI', 'perc_change_DW' ),
+                            labels = c('Combined HSI',    'Deadwood volume'))) %>% 
   filter(regime != "BAU")  %>%    # remove BAU from teh table
   ggplot(aes(y=perc_ch, 
              x=regime,
@@ -401,11 +519,70 @@ df.out %>%
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         #legend.position = 'bottom',
-        legend.position = c(.21, .22), # legend position within the plot, x, y
+        legend.position = c(.90, .22), # legend position within the plot, x, y
         legend.title = element_text(size=10),
         legend.text  = element_text(size=8),
         legend.background = element_rect(fill = "white", color = "black"),
         legend.box.background = element_rect(colour = "black")) 
+
+
+
+# ------------------------------------
+# Economic consequences:
+# ------------------------------------
+
+
+# Evaluate sum of harvested timber: -----------------------------------------
+# calculate the sum by id and then get a mean by regime for ids
+# as now I have only sum of the subset, not whole Finland!
+# to have a value representative for site!
+windows(7, 3.5)
+df.out %>% 
+  group_by(id, climChange, regime) %>% # modif, #geo_grad,
+  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
+  ungroup() %>% 
+  group_by(climChange, regime) %>% 
+  summarise(sum_V_log     = mean(sum_V_log, na.rm = T),
+            sum_V_pulp    = mean(sum_V_pulp, na.rm = T))  %>%
+  mutate(BAU_log          = sum_V_log[match('BAU', regime)],
+         BAU_pulp         = sum_V_pulp[ match('BAU', regime)],
+         perc_change_log  = sum_V_log /BAU_log  * 100 - 100,
+         perc_change_pulp = sum_V_pulp/BAU_pulp * 100 - 100)  %>%
+  filter(regime != "BAU")  %>%    # remove BAU from teh table
+  dplyr::select(c(climChange, regime, 
+                  perc_change_log, 
+                  perc_change_pulp)) %>%
+  pivot_longer(!c(regime, climChange), #everything(vars = NULL),
+               names_to = "Timber_quality", 
+               values_to = "perc_V")  %>%
+  
+  # Change the coding of characters to have nice facet names
+  mutate(Timber_quality = recode(Timber_quality,
+                                 "perc_change_log" = "Log", 
+                                 "perc_change_pulp" = "Pulp")) %>% 
+  ggplot(aes(y=perc_V, 
+             x=regime,
+             fill = climChange)) + 
+  geom_bar(position="dodge", 
+           stat="identity") +
+  geom_hline(yintercept = 0) +
+  coord_flip() +
+  facet_grid(.~ Timber_quality) +
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                    name="Climate change") +
+  ylab("Difference in harvested\ntimber volume [%]") +
+  xlab(lab_manag) +
+  theme_bw()  + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        #legend.position = 'bottom',
+        legend.position = c(.86, .70), # legend position within the plot, x, y
+        legend.title = element_text(size=10),
+        legend.text  = element_text(size=8),
+        legend.background = element_rect(fill = "white", color = "black"),
+        legend.box.background = element_rect(colour = "black")) 
+
+
 
 
 
@@ -519,61 +696,6 @@ ggarrange(p.risk, p.age, p.HSI, p.DW, p.H_dom, ncol = 1, nrow = 5, common.legend
 
 
 
-
-# ------------------------------------
-# Economic consequences:
-# ------------------------------------
-
-
-# Evaluate sum of harvested timber: -----------------------------------------
-# calculate the sum by id and then get a mean by regime for ids
-# as now I have only sum of the subset, not whole Finland!
-# to have a value representative for site!
-windows(7, 3.5)
-df.out %>% 
-  group_by(id, climChange, regime) %>% # modif, #geo_grad,
-  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
-            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
-  ungroup() %>% 
-  group_by(climChange, regime) %>% 
-  summarise(sum_V_log     = mean(sum_V_log, na.rm = T),
-            sum_V_pulp    = mean(sum_V_pulp, na.rm = T))  %>%
-  mutate(BAU_log          = sum_V_log[match('BAU', regime)],
-         BAU_pulp         = sum_V_pulp[ match('BAU', regime)],
-         perc_change_log  = sum_V_log /BAU_log  * 100 - 100,
-         perc_change_pulp = sum_V_pulp/BAU_pulp * 100 - 100)  %>%
-  filter(regime != "BAU")  %>%    # remove BAU from teh table
-  dplyr::select(c(climChange, regime, 
-                  perc_change_log, 
-                  perc_change_pulp)) %>%
-  pivot_longer(!c(regime, climChange), #everything(vars = NULL),
-               names_to = "Timber_quality", 
-               values_to = "perc_V")  %>%
-  
-  # Change the coding of characters to have nice facet names
-  mutate(Timber_quality = recode(Timber_quality,
-                                 "perc_change_log" = "Log", 
-                                 "perc_change_pulp" = "Pulp")) %>% 
-  ggplot(aes(y=perc_V, 
-             x=regime,
-             fill = climChange)) + 
-  geom_bar(position="dodge", 
-           stat="identity") +
-  geom_hline(yintercept = 0) +
-  coord_flip() +
-  facet_grid(.~ Timber_quality) +
-  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
-                    name="Climate change") +
-  ylab("Difference in harvested\ntimber volume [%]") +
-  xlab(lab_manag) +
-  theme_bw()  + 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        #legend.position = 'bottom',
-        legend.position = c(.86, .70), # legend position within the plot, x, y
-        legend.title = element_text(size=10),
-        legend.text  = element_text(size=8),
-        legend.background = element_rect(fill = "white", color = "black"),
-        legend.box.background = element_rect(colour = "black")) 
 
 
 
