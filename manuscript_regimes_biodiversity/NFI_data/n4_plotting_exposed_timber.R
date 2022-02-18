@@ -86,12 +86,12 @@ lab_manag = c("Regime adaptation")
 p.DW <- df.out %>% 
   group_by(regime, climChange, timeEffect) %>% 
   summarize(DW_mean = mean(V_total_deadwood, na.rm = T)) %>% 
-  ggplot(aes(x = regime,
-             y = DW_mean,
-             color = climChange,
-             group = climChange)) +
-  geom_line() + 
-  geom_point() +
+  ggplot (aes(x=regime, 
+              y=DW_mean,
+              fill=climChange)) + 
+  geom_bar (stat="identity", position = position_dodge()) + # width = 1
+  #geom_bar(stat='identity') + 
+ # geom_point() +
   ylim(0,40)+
   ylab("Deadwood volume \n [m3/ha]") +
   xlab(lab_manag) + 
@@ -104,16 +104,16 @@ theme( axis.title  = element_text(size = 9, face="plain", family = "sans"),
                                  hjust=1))
 
 # Total stand volume
-p.V <- df.out %>% 
+p.V <- 
+  
+  df.out %>% 
   #sample_n(500000) %>% 
   group_by(regime, climChange, timeEffect) %>% 
   summarize(V_mean = mean(V, na.rm = T)) %>% 
-  ggplot(aes(x = regime,
-             y = V_mean,
-             color = climChange,
-             group = climChange)) +
-  geom_line() + 
-  geom_point() +
+    ggplot (aes(x=regime, 
+                y=V_mean,
+                fill=climChange)) + 
+    geom_bar (stat="identity", position = position_dodge()) + # width = 1
   ylab("Volume \n[m3/ha]") +
   xlab(lab_manag) + 
   facet_grid(.~timeEffect, scales = 'free') +
@@ -596,6 +596,68 @@ ggarrange(p.risk, p.age, p.HSI, p.DW, p.H_dom, ncol = 1, nrow = 5, common.legend
 # ------------------------------------
 # Economic consequences:
 # ------------------------------------
+
+
+# Calculate the differences in harvested timber volume between reference and RCP 85
+df_timb <- df.out %>% 
+  filter(climChange != 'RCP45') %>%   # remove the 'medium' scenario, keep only extremes to calculate the differences
+  group_by(id, climChange, regime) %>% # modif, #geo_grad,
+  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
+  ungroup() %>% 
+  group_by(climChange, regime) %>% 
+  summarise(sum_V_log     = mean(sum_V_log, na.rm = T),
+            sum_V_pulp    = mean(sum_V_pulp, na.rm = T)) # %>%
+  
+
+# Split into towo datasets and tehn merge by columsn
+
+df_timb_ref <- df_timb %>%
+  filter(climChange == 'REF') %>% 
+  rename(REF_V_log  = sum_V_log,
+         REF_V_pulp = sum_V_pulp) %>% 
+  ungroup() %>% 
+  dplyr::select(-climChange)
+
+
+df_timb_rcp85 <- df_timb %>%
+  filter(climChange == 'RCP85') %>% 
+  rename(RCP85_V_log  = sum_V_log,
+         RCP85_V_pulp = sum_V_pulp) %>% 
+  ungroup() %>% 
+  dplyr::select(-climChange)
+
+
+# join by columns and calculate the % change between timber volume between climate change
+df_timb_out <- df_timb_ref %>% 
+  left_join( df_timb_rcp85) %>% 
+  mutate(Vlog_change  = RCP85_V_log - REF_V_log,
+         Vpulp_change = RCP85_V_pulp - REF_V_pulp,
+         Vlog_rate    = RCP85_V_log/REF_V_log*100-100,
+         Vpulp_rate   = RCP85_V_pulp/REF_V_pulp*100-100)
+  
+
+
+ # mutate(comb_name = paste(climChange, regime, sep = '_')) %>% 
+  #ungroup() #%>% 
+ # dplyr::select(-c(climChange, regime)) #%>% 
+  #pivot_longer(cols = comb_name,
+   #            values_from = sum_V_log) # 
+               
+
+#  pivot_wider(names_from = comb_name, 
+              values_from = c(sum_V_log )) # , sum_V_pulp
+
+  
+  
+  
+    mutate(BAU_log          = sum_V_log[match('BAU', regime)],
+         BAU_pulp         = sum_V_pulp[ match('BAU', regime)],
+         perc_change_log  = sum_V_log /BAU_log  * 100 - 100,
+         perc_change_pulp = sum_V_pulp/BAU_pulp * 100 - 100) # %>%
+  
+
+
 
 
 # Evaluate sum of harvested timber: -----------------------------------------
