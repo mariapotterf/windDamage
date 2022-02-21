@@ -404,6 +404,87 @@ df.ind <-
 #   
 
 
+
+# Differences from timber volume
+# ----------------------------------------------------------------------------------
+# Calculate the differences in harvested timber volume between reference and RCP 85:
+# https://www.mathsisfun.com/numbers/percentage-change.html
+
+# percentage change: change is a percent of teh old values: divide by the old values and mulltiply by 100%
+# eg change from 5 to 7:
+# first get teh difference: 7-5 = 2, divide by the old value: 
+# percentage change from 5 to7 is 2/5 = 0.4 = 40%
+
+
+df_timb <- df.out %>% 
+  filter(climChange != 'RCP45') %>%   # remove the 'medium' scenario, keep only extremes to calculate the differences
+  group_by(id, climChange, regime) %>% # modif, #geo_grad,
+  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
+  ungroup() %>% 
+  group_by(climChange, regime) %>% 
+  summarise(sum_V_log     = mean(sum_V_log, na.rm = T),
+            sum_V_pulp    = mean(sum_V_pulp, na.rm = T)) # %>%
+
+
+# Split into two datasets and then merge by columns
+
+df_timb_ref <- df_timb %>%
+  filter(climChange == 'REF') %>% 
+  rename(REF_V_log  = sum_V_log,
+         REF_V_pulp = sum_V_pulp) %>% 
+  ungroup() %>% 
+  dplyr::select(-climChange)
+
+
+df_timb_rcp85 <- df_timb %>%
+  filter(climChange == 'RCP85') %>% 
+  rename(RCP85_V_log  = sum_V_log,
+         RCP85_V_pulp = sum_V_pulp) %>% 
+  ungroup() %>% 
+  dplyr::select(-climChange)
+
+
+# join by columns and calculate the % change between timber volume between climate change
+# Report this into a table??? !!!!
+
+#df_timb_out <- 
+df_timb_ref %>% 
+  left_join( df_timb_rcp85) %>% 
+  select(regime   ,
+         REF_V_log, RCP85_V_log, 
+         REF_V_pulp, RCP85_V_pulp)   %>% 
+  mutate(Vlog_change         = RCP85_V_log  - REF_V_log,
+         Vpulp_change        = RCP85_V_pulp - REF_V_pulp,
+         #Vlog_perc_change    = RCP85_V_log/REF_V_log*100-100,
+         #Vpulp_perc_change   = RCP85_V_pulp/REF_V_pulp*100-100,
+         Vlog_perc_change    = Vlog_change/REF_V_log*100,
+         Vpulp_perc_change   = Vpulp_change/REF_V_pulp*100) %>% 
+  select(regime,
+         REF_V_log, 
+         RCP85_V_log, 
+         Vlog_change, 
+         Vlog_perc_change, 
+         REF_V_pulp, 
+         RCP85_V_pulp,
+         Vpulp_change,
+         Vpulp_perc_change) #%>%
+#spread()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ------------------------------------------------------------------------------
 # Put barplot data together to have the same y labels
 # ------------------------------------------------------------------------------
