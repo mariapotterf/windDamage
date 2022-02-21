@@ -75,8 +75,7 @@ df.out$timeEffect <-factor(df.out$timeEffect,
 
 
 
-# Create plots  ----------------------------------------------------------------------------------------
-
+# Create plots long vs short time  ---------------------------------------------
 # Define labels:
 lab_manag = c("Regime adaptation")
 
@@ -372,25 +371,6 @@ df.out %>%
 
 
 
-# DO NOT RUN Make several histograms at once: reshape the data from wide to long: -------
-# whould I use median or median??? 
-# highly skewed, I should use median!!
-df.ind <- 
-  df.out %>% 
-  dplyr::select(#'year',
-    "CAPERCAILLIE",
-    "HAZEL_GROUSE",
-    "THREE_TOED_WOODPECKER",
-    "LESSER_SPOTTED_WOODPECKER",
-    "LONG_TAILED_TIT",
-    "SIBERIAN_FLYING_SQUIRREL",
-    "COMBINED_HSI")  %>% # ,
-  # "V_total_deadwood" removed as has a different scale than 0-1 HSI
-  pivot_longer(everything(vars = NULL),
-               names_to = "indicator", values_to = "HSI") #%>%
-
-
-
 # change all values to mean!!! 
 
 
@@ -483,69 +463,6 @@ df.out %>%
 
 
 
-
-# ------------------------------------
-# Economic consequences:
-# ------------------------------------
-
-
-
-# Evaluate sum of harvested timber: -----------------------------------------
-# calculate the sum by id and then get a mean by regime for ids
-# as now I have only sum of the subset, not whole Finland!
-# to have a value representative for site!
-
-  
-
-
-
-# Make bar plot of changes in biodiversity indicators given regime and climate change --------
-df.ind.diff <-  
-df.out %>% 
-  group_by(climChange, regime) %>% # modif, #geo_grad,
-  summarise(mean_risk    = mean(V, na.rm = T),
-            mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
-            mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
-            mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
-            mean_LESSER  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T),
-            mean_TIT     = mean(LONG_TAILED_TIT, na.rm = T),
-            mean_SQIRR   = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T),
-            mean_DW      = mean(V_total_deadwood, na.rm = T),
-            mean_HSI     = mean(COMBINED_HSI, na.rm = T)
-  )  %>%
-  
-  mutate(#control_risk    = mean_risk[match('BAU', regime)],
-    control_CAPER   = mean_CAPER[match('BAU', regime)],
-    p_change_CAPER  = mean_CAPER /control_CAPER * 100 - 100,
-    #p_change_risk   = mean_risk/control_risk * 100 - 100,
-    control_HAZ     = mean_HAZ[match('BAU', regime)],
-    p_change_HAZ    = mean_HAZ /control_HAZ * 100 - 100,
-    control_THREE   = mean_THREE[match('BAU', regime)],
-    p_change_THREE  = mean_THREE /control_THREE * 100 - 100,
-    control_LESSER  = mean_LESSER[match('BAU', regime)],
-    p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
-    control_TIT     = mean_TIT[match('BAU', regime)],
-    p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
-    control_SQIRR   = mean_SQIRR[match('BAU', regime)],
-    p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100,
-    control_DW      = mean_DW[match('BAU', regime)],
-    p_change_DW     = mean_DW /control_DW * 100 - 100,
-    control_HSI     = mean_HSI[match('BAU', regime)],
-    p_change_HSI    = mean_HSI /control_HSI * 100 - 100) %>% 
-  # print(n = 40) 
-  filter(regime != "BAU")  %>%    # remove BAU from teh table
-  dplyr::select(c(climChange, regime,
-                  p_change_CAPER, 
-                  p_change_HAZ,
-                  p_change_THREE,
-                  p_change_LESSER, 
-                  p_change_TIT,
-                  p_change_SQIRR,
-                  p_change_DW)) %>%
-  pivot_longer(!c(regime, climChange), #everything(vars = NULL),
-               names_to = "Indicator", 
-               values_to = "perc_ch")  #%>%
-
 # Bar plot for indicators
 #windows()
 df.ind.diff %>% 
@@ -568,40 +485,6 @@ df.ind.diff %>%
 
 
 
-
-
-
-# -----------------------------------------------------------------------------
-# Get mean stand-level total volume harvested over Finland given scenario and climate change
-df.out %>% 
-  group_by(climChange, regime) %>% # modif, #geo_grad,
-  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
-            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T),
-            sum_V = sum_V_pulp + sum_V_pulp) %>% 
-  ggplot(aes(y = sum_V/1000000,
-             x = regime,
-             group = climChange,
-             color = climChange)) +
-  geom_line()
-
-
-
-# Make barplots with +- sd for some indicators from teh summary table??? -------
-# log:
-windows(7,3)
-df_summary_main %>% 
-  ggplot(aes(x = regime,
-             y = mean_sum_V_log,
-             fill = climChange,
-             color = climChange)) + 
-  geom_col(position="dodge2") +
-  geom_errorbar(aes(x=regime, 
-                    ymin=mean_sum_V_log-sd_sum_V_log, 
-                    ymax=mean_sum_V_log+sd_sum_V_log), 
-                width=0.2, colour="grey10", 
-                alpha=0.9, size=0.5,
-                position=position_dodge(.9))# +
-#geom_point() #+
 
 
 # Pulp:
