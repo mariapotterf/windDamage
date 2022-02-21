@@ -345,23 +345,6 @@ df.out %>%
 
 
 
-# Make several histograms at once: reshape the data from wide to long:
-# whould I use median or median??? 
-# highly skewed, I should use median!!
-df.ind <- 
-  df.out %>% 
-  dplyr::select(#'year',
-    "CAPERCAILLIE",
-    "HAZEL_GROUSE",
-    "THREE_TOED_WOODPECKER",
-    "LESSER_SPOTTED_WOODPECKER",
-    "LONG_TAILED_TIT",
-    "SIBERIAN_FLYING_SQUIRREL",
-    "COMBINED_HSI")  %>% # ,
-  # "V_total_deadwood" removed as has a different scale than 0-1 HSI
-  pivot_longer(everything(vars = NULL),
-               names_to = "indicator", values_to = "HSI") #%>%
-
 
 
 # change all values to mean!!! 
@@ -405,7 +388,7 @@ df.ind <-
 
 
 
-# Differences from timber volume
+# Differences in  timber volume REF - RCP85
 # ----------------------------------------------------------------------------------
 # Calculate the differences in harvested timber volume between reference and RCP 85:
 # https://www.mathsisfun.com/numbers/percentage-change.html
@@ -492,32 +475,122 @@ df_timb_ref %>%
 
 # Put together wind risk and pulp and log  -------------------------------------
 
-# Get the table, merge with log and pulp estimates
+# Dummy example 
+
+# How to get error bars? ---------------------------------
+
+dd <- data.frame(id = rep(c(1,2,3), 2),
+                 vol = c(10,5,8,11,10,9),
+                 reg = rep(c('control', 'new'), each = 3))
+
+
+# calculate mean and sd
+sum_dd <- dd %>% 
+  group_by(reg) %>% 
+  summarize(V_mean = mean(vol, na.rm = T),
+            V_sd = sd(vol, na.rm = T)) #
+
+
+sum_dd %>%
+  ggplot(aes(x = reg,
+             y = V_mean)) +
+  geom_bar(stat = 'identity') +
+  geom_errorbar(aes(x=reg,
+                    min=V_mean-V_sd, 
+                    ymax=V_mean+V_sd)) # + 
+
+
+
+# Express the 'b' as percent change from 'a':
+# first count the difference in %
+sum_dd %>% 
+  group_by(reg) %>% 
+  # Calculate % change from a to b value
+  mutate(control_mean   = 7.67,
+         perc_change    = (10-7.67)/7.67 * 100) %>%
+  filter(reg !='control') %>% 
+  ggplot(aes(x = reg,
+             y = perc_change)) +
+  geom_bar(stat = 'identity') #+
+# from which values calculate the error bar??
+  geom_errorbar(aes(x=reg,
+                    min=V_mean-V_sd, 
+                    ymax=V_mean+V_sd)) # +
+  
+  
+# Calculate directly the difference between samples?
+dd %>% 
+  group_by(id, reg) %>% 
+  pivot_wider(names_from=reg, 
+              values_from = vol )
+
+
+dd %>% 
+  mutate(norm_vol = vol/mean(vol[reg == "control"])) #%>% 
+  ggplot(aes(reg, norm_vol)) + 
+  stat_summary(geom = "bar", 
+               fun = mean) +
+  stat_summary(geom = "errorbar", 
+               fun.data = mean_cl_normal, 
+               fun.args = list(mult = 1)) +
+  scale_y_continuous(labels = scales::percent_format())
+  
+  
+  
+
+df.out %>% 
+ # filter(climChange == 'REF') %>% 
+  group_by(id, climChange, regime) %>% # modif, #geo_grad,
+  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
+  ungroup() %>% 
+ # group_by(climChange, regime) %>% 
+  mutate(norm_vol = sum_V_log/mean(sum_V_log[regime == "BAU"])) %>% 
+  ggplot(aes(regime, norm_vol)) + 
+  stat_summary(geom = "bar", 
+               fun = mean) +
+  stat_summary(geom = "errorbar", 
+               fun.data = mean_cl_normal, 
+               fun.args = list(mult = 1)) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  facet_grid(.~climChange)
+
+
+
+
+
+
+
+# Get the table, merge with log and pulp estimates ----------------------
 
 # Table wind risk
-df.risk <- df.out %>% 
+df.risk <- 
+  df.out %>% 
   group_by(climChange, regime) %>% # modif, #geo_grad,
   summarise(windRisk_mean = mean(windRisk, na.rm = T)) %>% 
   mutate(BAU_risk         = windRisk_mean[match('BAU', regime)],
-         perc_change_risk = windRisk_mean/BAU_risk * 100 - 100) %>%
+         perc_change_risk = windRisk_mean/BAU_risk * 100 - 100) # %>%
   dplyr::select(c(climChange, 
                   regime, 
                   perc_change_risk)) %>% 
   filter(regime != "BAU")   # remove BAU from teh table
 
 # Table log and pulp
-df.log.pulp <- df.out %>% 
+#df.log.pulp <- 
+  df.out %>% 
   group_by(id, climChange, regime) %>% # modif, #geo_grad,
   summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
             sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
   ungroup() %>% 
   group_by(climChange, regime) %>% 
-  summarise(sum_V_log     = mean(sum_V_log, na.rm = T),
-            sum_V_pulp    = mean(sum_V_pulp, na.rm = T))  %>%
-  mutate(BAU_log          = sum_V_log[match('BAU', regime)],
-         BAU_pulp         = sum_V_pulp[ match('BAU', regime)],
-         perc_change_log  = sum_V_log /BAU_log  * 100 - 100,
-         perc_change_pulp = sum_V_pulp/BAU_pulp * 100 - 100)  %>%
+  summarise(mean_sum_V_log     = mean(sum_V_log, na.rm = T),
+            mean_sum_V_pulp    = mean(sum_V_pulp, na.rm = T),
+            sd_sum_V_log       = sd(sum_V_log, na.rm = T),
+            sd_sum_V_pulp      = sd(sum_V_pulp, na.rm = T)) #  %>%
+  mutate(BAU_log          = mean_sum_V_log[match('BAU', regime)],
+         BAU_pulp         = mean_sum_V_pulp[match('BAU', regime)],
+         perc_change_log  = mean_sum_V_log /BAU_log  * 100 - 100,
+         perc_change_pulp = mean_sum_V_pulp/BAU_pulp * 100 - 100)  %>%
   filter(regime != "BAU")  %>%    # remove BAU from teh table
   dplyr::select(c(climChange, regime, 
                   perc_change_log, 
@@ -664,116 +737,6 @@ df.out %>%
         legend.box.background = element_rect(colour = "black")) 
 
 
-
-
-
-# Temporal trends over years:   -----------------------------------------
-# try for:
-# a) wind damage risk, 
-# b) age, 
-# c) combined HSI
-# d) deadwood volume
-# e) H_dom
-library(viridis)
-
-
-# wind risk
-#windows(height = 3, width = 7)
-p.risk <- df.out %>% 
-  group_by(year, regime, climChange) %>% 
-  summarize(mean_windRisk = mean(windRisk, na.rm = T)) %>% 
-  ggplot(aes(x = year,
-             y = mean_windRisk*100,
-             col = regime)) +
-  geom_line(size = 1.2) +
-  ylim(0,10) +
-  ylab("Wind damage risk [%]") +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
-
-
-
-# Age over landscape
-#windows(height = 3, width = 7)
-p.age <- df.out %>% 
-  group_by(year, regime, climChange) %>% 
-  summarize(my_mean = mean(Age, na.rm = T)) %>% 
-  ggplot(aes(x = year,
-             y = my_mean,
-             col = regime)) +
-  geom_line(size = 1.2) +
-  ylim(20,130) +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  ylab("Age [years]") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
-
-
-
-# Combined HSI
-#windows(height = 3, width = 7)
-p.HSI <- df.out %>% 
-  group_by(year, regime, climChange) %>% 
-  summarize(my_mean = mean(COMBINED_HSI, na.rm = T)) %>% 
-  ggplot(aes(x = year,
-             y = my_mean,
-             col = regime)) +
-  geom_line(size = 1.2) +
-  ylim(0,1) +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  ylab("COMBINED_HSI ") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
-
-
-
-# Deadwood
-#windows(height = 3, width = 7)
-p.DW <- df.out %>% 
-  group_by(year, regime, climChange) %>% 
-  summarize(my_mean = mean(V_total_deadwood, na.rm = T)) %>% 
-  ggplot(aes(x = year,
-             y = my_mean,
-             col = regime)) +
-  geom_line(size = 1.2) +
-  # ylim(0,1) +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  ylab("Total deadwood [V m3/ha]") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
-
-
-# H_dom
-#windows(height = 3, width = 7)
-p.H_dom <- df.out %>% 
-  group_by(year, regime, climChange) %>% 
-  summarize(my_mean = mean(H_dom, na.rm = T)) %>% 
-  ggplot(aes(x = year,
-             y = my_mean,
-             col = regime)) +
-  geom_line(size = 1.2) +
-  # ylim(0,1) +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  ylab("Dominant tree height [m]") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
-
-
-
-# print all at one page ----------------------------------
-windows(width = 8, height = 15)
-ggarrange(p.risk, p.age, p.HSI, p.DW, p.H_dom, ncol = 1, nrow = 5, common.legend = T)
 
 
 
@@ -1564,6 +1527,152 @@ df.plot %>%
   ylab("median combined HSI") +
   facet_grid(geo_grad~adapt) +
   theme(legend.position="bottom") 
+
+
+
+
+############################################################################
+#
+#                 SUPPLEMENTARY material
+#
+############################################################################
+
+
+
+
+# Temporal trends over years:   -----------------------------------------
+# try for:
+# a) wind damage risk, 
+# b) age, 
+# c) combined HSI
+# d) deadwood volume
+# e) H_dom
+library(viridis)
+
+
+# wind risk
+#windows(height = 3, width = 7)
+p.risk <- df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(mean_windRisk = mean(windRisk, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = mean_windRisk*100,
+             col = regime)) +
+  geom_line(size = 1.2) +
+  ylim(0,10) +
+  ylab("Wind damage risk [%]") +
+  facet_grid(.~climChange) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+
+
+# Age over landscape
+#windows(height = 3, width = 7)
+p.age <- df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(Age, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  geom_line(size = 1.2) +
+  ylim(20,130) +
+  facet_grid(.~climChange) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw() +
+  ylab("Age [years]") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+
+
+# Combined HSI
+#windows(height = 3, width = 7)
+p.HSI <- df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(COMBINED_HSI, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  geom_line(size = 1.2) +
+  ylim(0,1) +
+  facet_grid(.~climChange) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw() +
+  ylab("COMBINED_HSI ") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+
+
+# Deadwood
+#windows(height = 3, width = 7)
+p.DW <- df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(V_total_deadwood, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  geom_line(size = 1.2) +
+  # ylim(0,1) +
+  facet_grid(.~climChange) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw() +
+  ylab("Total deadwood [V m3/ha]") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+
+# H_dom
+#windows(height = 3, width = 7)
+p.H_dom <- df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(H_dom, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  geom_line(size = 1.2) +
+  # ylim(0,1) +
+  facet_grid(.~climChange) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw() +
+  ylab("Dominant tree height [m]") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+
+
+# print all at one page ----------------------------------
+windows(width = 8, height = 15)
+ggarrange(p.risk, p.age, p.HSI, p.DW, p.H_dom, ncol = 1, nrow = 5, common.legend = T)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
