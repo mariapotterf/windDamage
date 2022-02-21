@@ -372,7 +372,7 @@ df.out %>%
 
 
 
-# Make several histograms at once: reshape the data from wide to long:
+# DO NOT RUN Make several histograms at once: reshape the data from wide to long: -------
 # whould I use median or median??? 
 # highly skewed, I should use median!!
 df.ind <- 
@@ -598,7 +598,15 @@ ggarrange(p.risk, p.age, p.HSI, p.DW, p.H_dom, ncol = 1, nrow = 5, common.legend
 # ------------------------------------
 
 
-# Calculate the differences in harvested timber volume between reference and RCP 85
+# Calculate the differences in harvested timber volume between reference and RCP 85:
+# https://www.mathsisfun.com/numbers/percentage-change.html
+
+# percentage change: change is a percent of teh old values: divide by the old values and mulltiply by 100%
+# eg change from 5 to 7:
+# first get teh difference: 7-5 = 2, divide by the old value: 
+# percentage change from 5 to7 is 2/5 = 0.4 = 40%
+
+
 df_timb <- df.out %>% 
   filter(climChange != 'RCP45') %>%   # remove the 'medium' scenario, keep only extremes to calculate the differences
   group_by(id, climChange, regime) %>% # modif, #geo_grad,
@@ -610,7 +618,7 @@ df_timb <- df.out %>%
             sum_V_pulp    = mean(sum_V_pulp, na.rm = T)) # %>%
   
 
-# Split into towo datasets and tehn merge by columsn
+# Split into two datasets and then merge by columns
 
 df_timb_ref <- df_timb %>%
   filter(climChange == 'REF') %>% 
@@ -629,12 +637,27 @@ df_timb_rcp85 <- df_timb %>%
 
 
 # join by columns and calculate the % change between timber volume between climate change
-df_timb_out <- df_timb_ref %>% 
+#df_timb_out <- 
+  df_timb_ref %>% 
   left_join( df_timb_rcp85) %>% 
-  mutate(Vlog_change  = RCP85_V_log - REF_V_log,
-         Vpulp_change = RCP85_V_pulp - REF_V_pulp,
-         Vlog_rate    = RCP85_V_log/REF_V_log*100-100,
-         Vpulp_rate   = RCP85_V_pulp/REF_V_pulp*100-100)
+  select(regime   ,
+         REF_V_log, RCP85_V_log, 
+         REF_V_pulp, RCP85_V_pulp)   %>% 
+  mutate(Vlog_change         = RCP85_V_log  - REF_V_log,
+         Vpulp_change        = RCP85_V_pulp - REF_V_pulp,
+         #Vlog_perc_change    = RCP85_V_log/REF_V_log*100-100,
+         #Vpulp_perc_change   = RCP85_V_pulp/REF_V_pulp*100-100,
+         Vlog_perc_change    = Vlog_change/REF_V_log*100,
+         Vpulp_perc_change   = Vpulp_change/REF_V_pulp*100) %>% 
+    select(regime,
+           REF_V_log, 
+           RCP85_V_log, 
+           Vlog_change, 
+           Vlog_perc_change, 
+           REF_V_pulp, 
+           RCP85_V_pulp,
+           Vlog_perc_change,
+           Vpulp_perc_change) #   %>% 
   
 
 
