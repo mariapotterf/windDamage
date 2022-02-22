@@ -1083,13 +1083,47 @@ df.species.means <-
   dplyr::filter(regime != 'BAU')
 
 
+# Get the same table with clim change as a factor to add it supplementary material 
+
+df.species.means.clim <- 
+  df.out %>% 
+  group_by(regime, climChange) %>% # modif, #geo_grad,
+  summarise(mean_risk    = mean(windRisk, na.rm = T),
+            mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
+            mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
+            mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
+            mean_LESSER  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T),
+            mean_TIT     = mean(LONG_TAILED_TIT, na.rm = T),
+            mean_SQIRR   = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T)
+  )  %>%
+  mutate(control_risk    = mean_risk[match('BAU', regime)],
+         control_CAPER   = mean_CAPER[match('BAU', regime)],
+         p_change_CAPER  = mean_CAPER /control_CAPER * 100 - 100,
+         p_change_risk   = mean_risk/control_risk * 100 - 100,
+         control_HAZ     = mean_HAZ[match('BAU', regime)],
+         p_change_HAZ    = mean_HAZ /control_HAZ * 100 - 100,
+         control_THREE   = mean_THREE[match('BAU', regime)],
+         p_change_THREE  = mean_THREE /control_THREE * 100 - 100,
+         control_LESSER  = mean_LESSER[match('BAU', regime)],
+         p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
+         control_TIT     = mean_TIT[match('BAU', regime)],
+         p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
+         control_SQIRR   = mean_SQIRR[match('BAU', regime)],
+         p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100) %>% 
+  dplyr::filter(regime != 'BAU')
+
+
+
+
+
+
 # plot XY scatter plots by regimes and fill with species --------------------
 
 # Make my own gradient scheme:
 
 #breaks <- c(levels(df.out$regime))
 
-
+# !!!!! check if need to update a point plot for the climChange effect on individual species??
 pt_details <- function() {
   list(
     ylab(''),
@@ -1132,6 +1166,9 @@ my_cols_RdGn <- c(
 
 
 library(RColorBrewer)
+
+
+# Get individual species specific plots -----------------------------------
 
 p1 <- 
   df.species.means %>% 
@@ -1197,6 +1234,22 @@ annotate_figure(species.plot,
                                    y = 4.5,
                                    face = "plain", size = 9)
 )
+
+
+
+# Get species& clim change specific plots
+#p1 <- 
+  df.species.means.clim %>% 
+  ggplot(aes(x = p_change_CAPER,
+             y = p_change_risk,
+             fill = regime)) + 
+  ggtitle("a) capercaillie\n") +
+  pt_details() +
+    geom_point(aes(shape = climChange)) +
+  ylab(my_lab_risk)
+
+
+
 
 
 
