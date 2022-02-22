@@ -81,58 +81,58 @@ df.out$timeEffect <-factor(df.out$timeEffect,
 lab_manag = c("Regime adaptation")
 
 
-# Plots for averaged deadwood and volume over short vs long-term
-
-p.DW <- df.out %>% 
-  group_by(regime, climChange, timeEffect) %>% 
-  summarize(DW_mean = mean(V_total_deadwood, na.rm = T)) %>% 
-  ggplot(aes(x = regime,
-             y = DW_mean,
-             color = climChange,
-             group = climChange)) +
-  geom_line() + 
-  geom_point() +
-  ylim(0,40)+
-  ylab("Deadwood volume \n [m3/ha]") +
-  xlab(lab_manag) + 
-  facet_grid(.~timeEffect, scales = 'free') + # scales="free"
-  viridis::scale_color_viridis(discrete = TRUE) +
-theme( axis.title  = element_text(size = 9, face="plain", family = "sans"),
-        axis.text   = element_text(size=8),
-       axis.text.x = element_text(angle = 90, 
-                                 vjust = 0.5, 
-                                 hjust=1))
-
-# Total stand volume
-p.V <- df.out %>% 
-  #sample_n(500000) %>% 
-  group_by(regime, climChange, timeEffect) %>% 
-  summarize(V_mean = mean(V, na.rm = T)) %>% 
-  ggplot(aes(x = regime,
-             y = V_mean,
-             color = climChange,
-             group = climChange)) +
-  geom_line() + 
-  geom_point() +
-  ylab("Volume \n[m3/ha]") +
-  xlab(lab_manag) + 
-  facet_grid(.~timeEffect, scales = 'free') +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme( axis.title  = element_text(size = 9, face="plain", family = "sans"),
-         axis.text   = element_text(size = 8),
-         axis.text.x = element_text(angle = 90, 
-                                   vjust = 0.5, 
-                                   hjust=1))
-
-
-
-windows(width = 7,height = 2.4)
-ggarrange(p.V, p.DW, 
-          ncol = 2, 
-          nrow = 1, 
-          labels = "auto",
-          common.legend = T, 
-          legend = 'bottom' )
+# Plots for averaged deadwood and volume over short vs long-term - no need for that, comment out
+# 
+# p.DW <- df.out %>% 
+#   group_by(regime, climChange, timeEffect) %>% 
+#   summarize(DW_mean = mean(V_total_deadwood, na.rm = T)) %>% 
+#   ggplot(aes(x = regime,
+#              y = DW_mean,
+#              color = climChange,
+#              group = climChange)) +
+#   geom_line() + 
+#   geom_point() +
+#   ylim(0,40)+
+#   ylab("Deadwood volume \n [m3/ha]") +
+#   xlab(lab_manag) + 
+#   facet_grid(.~timeEffect, scales = 'free') + # scales="free"
+#   viridis::scale_color_viridis(discrete = TRUE) +
+# theme( axis.title  = element_text(size = 9, face="plain", family = "sans"),
+#         axis.text   = element_text(size=8),
+#        axis.text.x = element_text(angle = 90, 
+#                                  vjust = 0.5, 
+#                                  hjust=1))
+# 
+# # Total stand volume
+# p.V <- df.out %>% 
+#   #sample_n(500000) %>% 
+#   group_by(regime, climChange, timeEffect) %>% 
+#   summarize(V_mean = mean(V, na.rm = T)) %>% 
+#   ggplot(aes(x = regime,
+#              y = V_mean,
+#              color = climChange,
+#              group = climChange)) +
+#   geom_line() + 
+#   geom_point() +
+#   ylab("Volume \n[m3/ha]") +
+#   xlab(lab_manag) + 
+#   facet_grid(.~timeEffect, scales = 'free') +
+#   viridis::scale_color_viridis(discrete = TRUE) +
+#   theme( axis.title  = element_text(size = 9, face="plain", family = "sans"),
+#          axis.text   = element_text(size = 8),
+#          axis.text.x = element_text(angle = 90, 
+#                                    vjust = 0.5, 
+#                                    hjust=1))
+# 
+# 
+# 
+# windows(width = 7,height = 2.4)
+# ggarrange(p.V, p.DW, 
+#           ncol = 2, 
+#           nrow = 1, 
+#           labels = "auto",
+#           common.legend = T, 
+#           legend = 'bottom' )
 
 
 
@@ -388,8 +388,8 @@ df.out %>%
 
 
 
-# Differences in  timber volume REF - RCP85
-# ----------------------------------------------------------------------------------
+# Differences in  timber volume REF - RCP85  ------------------------------------------------
+# 
 # Calculate the differences in harvested timber volume between reference and RCP 85:
 # https://www.mathsisfun.com/numbers/percentage-change.html
 
@@ -457,237 +457,77 @@ df_timb_ref %>%
 
 
 
-# Tr to run it on my data: ---------------------------------------------------
 # apply a basic stat_summary
 # df.out, but filetr to 1000 values
 
-# Calculate firts mean sums of harvested timber
+
+# Get plots with bar errors using 'stat_summary'  ----------------------------------
+
+# Fuirst marge all data into single long df???
+# needs to have normalized windrisk, log, pulp 
+# Calculate firts mean sums of harvested timber 
 df_harv <- df.out %>% 
- # filter(climChange != 'RCP45') %>%   # remove the 'medium' scenario, keep only extremes to calculate the differences
   group_by(id, climChange, regime) %>% # modif, #geo_grad,
   summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
-            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  #%>%
-  #ungroup() %>% 
-  #group_by(climChange, regime) %>% 
-  #summarise(sum_V_log     = mean(sum_V_log, na.rm = T),
-   #         sum_V_pulp    = mean(sum_V_pulp, na.rm = T)) # %>%
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))
+
+
+# Try first on log and pulp
+df_log <- df_harv %>% 
+  group_by(climChange) %>% 
+  mutate(norm_log = (sum_V_log /mean(sum_V_log [regime == "BAU"]))-1)  %>% 
+  select(id, climChange, regime, norm_log) %>% 
+  ungroup()
 
 
 
-
-# 
-# df.small <-df_harv %>%   # df.timber has already mean sums of teh data harvested volume
-#   sample_n(1000) # %>%
-  
-
-head(df.small)
-
-# Make a bar plot of V
-windows()
-df_harv %>% 
-  ggplot(aes(x = regime,
-             y = sum_V_log )) + 
-  stat_summary(geom = 'bar', fun = 'mean') +
-  stat_summary(geom = 'errorbar', fun.data = mean_cl_normal, fun.args=list(mult = 5))
-# Working! 
-
-# Normalize the values to the BAU
-windows()
-df_harv %>% 
-  mutate(norm_vol = (sum_V_log /mean(sum_V_log [regime == "BAU"]))-1)  %>% 
-  ggplot(aes(x = regime,
-             y = norm_vol,
-             fill = climChange)) + 
-  stat_summary(geom = 'bar', 
-               fun = 'mean', 
-               position = 'dodge') +
-  stat_summary(geom = 'errorbar', 
-               fun.data = mean_cl_normal, 
-               fun.args=list(mult = 1), 
-               position = 'dodge') 
+df_pulp <- df_harv %>% 
+  group_by(climChange) %>% 
+  mutate(norm_pulp = (sum_V_pulp /mean(sum_V_pulp [regime == "BAU"]))-1)  %>% 
+  select(id, climChange, regime, norm_pulp) %>% 
+  ungroup()
 
 
 
-
-
-
-
-
-
-
-
-# ------------------------------------------------------------------------------
-# Put barplot data together to have the same y labels
-# ------------------------------------------------------------------------------
-
-
-# Put together wind risk and pulp and log  -------------------------------------
-
-# Dummy example 
-
-# How to get error bars? ---------------------------------
-
-dd <- data.frame(id = rep(c(1,2,3), 2),
-                 vol = c(10,5,8,11,10,9),
-                 reg = rep(c('control', 'new'), each = 3))
-
-
-# calculate mean and sd
-sum_dd <- dd %>% 
-  group_by(reg) %>% 
-  summarize(V_mean = mean(vol, na.rm = T),
-            V_sd = sd(vol, na.rm = T)) #
-
-
-sum_dd %>%
-  ggplot(aes(x = reg,
-             y = V_mean)) +
-  geom_bar(stat = 'identity') +
-  geom_errorbar(aes(x=reg,
-                    min=V_mean-V_sd, 
-                    ymax=V_mean+V_sd)) # + 
-
-
-
-# Express the 'b' as percent change from 'a':
-# first count the difference in %
-sum_dd %>% 
-  group_by(reg) %>% 
-  # Calculate % change from a to b value
-  mutate(control_mean   = 7.67,
-         perc_change    = (10-7.67)/7.67 * 100) %>%
-  filter(reg !='control') %>% 
-  ggplot(aes(x = reg,
-             y = perc_change)) +
-  geom_bar(stat = 'identity') #+
-# from which values calculate the error bar??
-  geom_errorbar(aes(x=reg,
-                    min=V_mean-V_sd, 
-                    ymax=V_mean+V_sd)) # +
-  
-  
-# Calculate directly the difference between samples?
-
-
-dd %>% 
- # group_by(reg) %>% 
- # mutate(vol_mean = mean(vol[reg == "control"])) %>% 
-  mutate(norm_vol = vol/mean(vol[reg == "control"])) #%>% 
-  ggplot(aes(reg, norm_vol)) + 
-  stat_summary(geom = "bar", 
-               fun = mean) +
-  stat_summary(geom = "errorbar", 
-               fun.data = mean_cl_normal, 
-               fun.args = list(mult = 1))# +
-  #scale_y_continuous(labels = scales::percent_format())
-  
-  
-  
-
-  
-  # Run example:
-  ggplot(mtcars, aes(cyl, qsec)) + 
-    stat_summary(fun = mean, geom = "bar") + 
-    stat_summary(fun.data = mean_cl_normal, geom = "errorbar", mult = 1)
-  
-  
-  
-# update the example to my data
-str(mtcars)
-
-mtcars %>% 
-  filter(cyl == 6)
-  
-  
-ggplot(mtcars, 
-       aes(cyl, as.factor(qsec))) + 
-  mutate(norm_qsec = qsec/mean(qsec[cyl == 6])) #%>% 
-  stat_summary(fun = mean, 
-               geom = "bar") + 
-  stat_summary(fun.data = mean_cl_normal, 
-               geom = "errorbar", mult = 1)
-  
-  
-  
-  
-  
-  
-df.out %>% 
- # filter(climChange == 'REF') %>% 
-  group_by(id, climChange, regime) %>% # modif, #geo_grad,
-  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
-            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
-  ungroup() %>% 
- # group_by(climChange, regime) %>% 
-  mutate(norm_vol = sum_V_log/mean(sum_V_log[regime == "BAU"])) %>% 
-  ggplot(aes(regime, norm_vol)) + 
-  stat_summary(geom = "bar", 
-               fun = mean) +
-  stat_summary(geom = "errorbar", 
-               fun.data = mean_cl_normal, 
-               fun.args = list(mult = 1)) +
-  scale_y_continuous(labels = scales::percent_format()) +
-  facet_grid(.~climChange)
-
-
-
-
-
-
-
-# Get the table, merge with log and pulp estimates ----------------------
-
-# Table wind risk
-df.risk <- 
+# Wind risk
+df_wind <- 
   df.out %>% 
-  group_by(climChange, regime) %>% # modif, #geo_grad,
-  summarise(windRisk_mean = mean(windRisk, na.rm = T)) %>% 
-  mutate(BAU_risk         = windRisk_mean[match('BAU', regime)],
-         perc_change_risk = windRisk_mean/BAU_risk * 100 - 100) # %>%
-  dplyr::select(c(climChange, 
-                  regime, 
-                  perc_change_risk)) %>% 
-  filter(regime != "BAU")   # remove BAU from teh table
+  group_by(climChange, id, regime) %>% 
+  filter(!is.na(windRisk))  %>% 
+  summarize(mean_wind = mean(windRisk, na.rm = T)) %>%  
+  mutate(norm_risk = (mean_wind /mean(mean_wind [regime == "BAU"])) - 1)  %>%
+  select(id, climChange, regime, norm_risk) %>% 
+  ungroup()
 
-# Table log and pulp
-#df.log.pulp <- 
-  df.out %>% 
-  group_by(id, climChange, regime) %>% # modif, #geo_grad,
-  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
-            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  %>%
-  ungroup() %>% 
-  group_by(climChange, regime) %>% 
-  summarise(mean_sum_V_log     = mean(sum_V_log, na.rm = T),
-            mean_sum_V_pulp    = mean(sum_V_pulp, na.rm = T),
-            sd_sum_V_log       = sd(sum_V_log, na.rm = T),
-            sd_sum_V_pulp      = sd(sum_V_pulp, na.rm = T)) #  %>%
-  mutate(BAU_log          = mean_sum_V_log[match('BAU', regime)],
-         BAU_pulp         = mean_sum_V_pulp[match('BAU', regime)],
-         perc_change_log  = mean_sum_V_log /BAU_log  * 100 - 100,
-         perc_change_pulp = mean_sum_V_pulp/BAU_pulp * 100 - 100)  %>%
-  filter(regime != "BAU")  %>%    # remove BAU from teh table
-  dplyr::select(c(climChange, regime, 
-                  perc_change_log, 
-                  perc_change_pulp)) #%>%
-  
 
-# Join  tables for wind risk and timber quality, and pivot values --------------------------------------------
+
+
+
+
+# PLOT merge data wind risk, log and pulp !!! ----------------------------------
 windows(height = 3.5, width=7)
-
-df.risk %>% 
-  left_join(df.log.pulp) %>% 
-  pivot_longer(!c(regime, climChange), #everything(vars = NULL),
+left_join(df_log, df_pulp) %>% 
+  left_join(df_wind) %>% 
+  pivot_longer(!c(id, regime, climChange), #everything(vars = NULL),
                names_to = "Indicator", 
                values_to = "perc_ch")  %>%
- # print(n = 80)
   mutate(Indicator = factor(Indicator, 
-                            levels = c('perc_change_risk', 'perc_change_log', 'perc_change_pulp' ),
+                            levels = c('norm_risk', 'norm_log', 'norm_pulp' ),
                             labels = c('Wind damage risk', 'Log timber',      'Pulp timber'))) %>% 
-  ggplot(aes(y=perc_ch, 
-               x=regime,
-               fill = climChange)) + 
-  geom_bar(position="dodge", 
-           stat="identity") +
+  
+  filter(regime != 'BAU') %>% 
+  ggplot(aes(x = regime,
+             y = perc_ch*100,
+             fill = climChange)) + 
+  stat_summary(geom = 'bar', 
+               fun = 'mean',
+              # width = .4,
+               position = 'dodge') +
+  stat_summary(geom = 'errorbar', 
+               #width = .4,
+               fun.data = mean_cl_normal, 
+               fun.args=list(mult = 3), 
+               position = 'dodge') +
   geom_hline(yintercept = 0) +
   coord_flip() +
   facet_grid(.~ Indicator, scales = 'free') +
@@ -704,7 +544,61 @@ df.risk %>%
         legend.background = element_rect(fill = "white", color = "black"),
         legend.box.background = element_rect(colour = "black")) 
 
+  
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ------------------------------------------------------------------------------
+# Put barplot data together to have the same y labels
+# ------------------------------------------------------------------------------
+
+
+# Join  tables for wind risk and timber quality, and pivot values --------------------------------------------
+
+# 
+# df.risk %>% 
+#   left_join(df.log.pulp) %>% 
+#   pivot_longer(!c(regime, climChange), #everything(vars = NULL),
+#                names_to = "Indicator", 
+#                values_to = "perc_ch")  %>%
+#  # print(n = 80)
+#   mutate(Indicator = factor(Indicator, 
+#                             levels = c('perc_change_risk', 'perc_change_log', 'perc_change_pulp' ),
+#                             labels = c('Wind damage risk', 'Log timber',      'Pulp timber'))) %>% 
+#   ggplot(aes(y=perc_ch, 
+#                x=regime,
+#                fill = climChange)) + 
+#   geom_bar(position="dodge", 
+#            stat="identity") +
+#   geom_hline(yintercept = 0) +
+#   coord_flip() +
+#   facet_grid(.~ Indicator, scales = 'free') +
+#   scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+#                     name="Climate change") +
+#   ylab("Difference from BAU scenario [%]") +
+#   xlab(lab_manag) +
+#   theme_bw()  + 
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+#         #legend.position = 'bottom',
+#         legend.position = c(.2, .3), # legend position within the plot, x, y
+#         legend.title = element_text(size=10),
+#         legend.text  = element_text(size=8),
+#         legend.background = element_rect(fill = "white", color = "black"),
+#         legend.box.background = element_rect(colour = "black")) 
+# 
+# 
 
 
 
@@ -2072,6 +1966,134 @@ df.out %>%
   facet_grid(.~geo_grad) +
   theme_classic()+
   theme(legend.position = "bottom")
+
+
+
+
+
+
+# Dummy exmples: make a barplot with error bars
+
+# Dummy example 
+
+# How to get error bars? ---------------------------------
+# make sure that the BAU is group-specific
+
+dd1 <- data.frame(id = rep(c(1,2,3), 2),
+                 vol = c(4,2,1,3,5,9),
+                 reg = rep(c('control', 'new'), each = 3),
+                 scen = rep('cc1', 6))
+
+dd2 <- data.frame(id = rep(c(1,2,3), 2),
+                  vol = c(13,14,10,15,15,11),
+                  reg = rep(c('control', 'new'), each = 3),
+                  scen = rep('cc2', 6))
+
+# Merge dd1 and dd2
+dd <- rbind(dd1, dd2)
+
+dd %>% 
+  group_by(scen, reg) %>% 
+  summarize(means = mean(vol))
+
+# 
+# scen  reg     means
+# <chr> <chr>   <dbl>
+#   1 cc1   control  2.33
+# 2 cc1   new      5.67
+# 3 cc2   control 12.3 
+# 4 cc2   new     13.7 
+
+
+
+# Complete the mean values to the table??
+
+
+dd %>% 
+  group_by(scen) %>% 
+ # mutate(vol_mean = mean(vol[reg == "new"])) #  %>% 
+#mutate(control_vol = vol[reg == "control"]) #%>% 
+  mutate(my_mean = mean(vol[reg == "control"])) %>% 
+mutate(norm_vol = vol/mean(vol[reg == "control"]))# %>% 
+ggplot(aes(reg, 
+           y = norm_vol-1,
+           fill = scen)) + 
+  stat_summary(geom = "bar", 
+               fun = mean) +
+  stat_summary(geom = "errorbar", 
+               fun.data = mean_cl_normal, 
+               fun.args = list(mult = 1))# +
+#scale_y_continuous(labels = scales::percent_format())
+
+
+
+
+
+
+
+
+# calculate mean and sd
+sum_dd <- dd %>% 
+  group_by(reg, scen) %>% 
+  summarize(V_mean = mean(vol, na.rm = T),
+            V_sd = sd(vol, na.rm = T)) #
+(sum_dd)
+
+
+sum_dd %>%
+  ggplot(aes(x = reg,
+             y = V_mean)) +
+  geom_bar(stat = 'identity') +
+  geom_errorbar(aes(x=reg,
+                    min=V_mean-V_sd, 
+                    ymax=V_mean+V_sd)) # + 
+
+
+
+# Express the 'b' as percent change from 'a':
+# first count the difference in %
+sum_dd %>% 
+  group_by(reg) %>% 
+  # Calculate % change from a to b value
+  mutate(control_mean   = 7.67,
+         perc_change    = (10-7.67)/7.67 * 100) %>%
+  filter(reg !='control') %>% 
+  ggplot(aes(x = reg,
+             y = perc_change)) +
+  geom_bar(stat = 'identity') #+
+# from which values calculate the error bar??
+geom_errorbar(aes(x=reg,
+                  min=V_mean-V_sd, 
+                  ymax=V_mean+V_sd)) # +
+
+
+# Calculate directly the difference between samples?
+
+
+
+
+# Run example:
+ggplot(mtcars, aes(cyl, qsec)) + 
+  stat_summary(fun = mean, geom = "bar") + 
+  stat_summary(fun.data = mean_cl_normal, geom = "errorbar", mult = 1)
+
+
+
+# update the example to my data
+str(mtcars)
+
+mtcars %>% 
+  filter(cyl == 6)
+
+
+ggplot(mtcars, 
+       aes(cyl, as.factor(qsec))) + 
+  mutate(norm_qsec = qsec/mean(qsec[cyl == 6])) #%>% 
+stat_summary(fun = mean, 
+             geom = "bar") + 
+  stat_summary(fun.data = mean_cl_normal, 
+               geom = "errorbar", mult = 1)
+
 
 
 
