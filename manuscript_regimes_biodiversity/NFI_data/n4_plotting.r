@@ -457,6 +457,54 @@ df_timb_ref %>%
 
 
 
+# Tr to run it on my data: ---------------------------------------------------
+# apply a basic stat_summary
+# df.out, but filetr to 1000 values
+
+# Calculate firts mean sums of harvested timber
+df_harv <- df.out %>% 
+ # filter(climChange != 'RCP45') %>%   # remove the 'medium' scenario, keep only extremes to calculate the differences
+  group_by(id, climChange, regime) %>% # modif, #geo_grad,
+  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))  #%>%
+  #ungroup() %>% 
+  #group_by(climChange, regime) %>% 
+  #summarise(sum_V_log     = mean(sum_V_log, na.rm = T),
+   #         sum_V_pulp    = mean(sum_V_pulp, na.rm = T)) # %>%
+
+
+
+
+# 
+# df.small <-df_harv %>%   # df.timber has already mean sums of teh data harvested volume
+#   sample_n(1000) # %>%
+  
+
+head(df.small)
+
+# Make a bar plot of V
+windows()
+df_harv %>% 
+  ggplot(aes(x = regime,
+             y = sum_V_log )) + 
+  stat_summary(geom = 'bar', fun = 'mean') +
+  stat_summary(geom = 'errorbar', fun.data = mean_cl_normal, fun.args=list(mult = 5))
+# Working! 
+
+# Normalize the values to the BAU
+windows()
+df_harv %>% 
+  mutate(norm_vol = (sum_V_log /mean(sum_V_log [regime == "BAU"]))-1)  %>% 
+  ggplot(aes(x = regime,
+             y = norm_vol,
+             fill = climChange)) + 
+  stat_summary(geom = 'bar', 
+               fun = 'mean', 
+               position = 'dodge') +
+  stat_summary(geom = 'errorbar', 
+               fun.data = mean_cl_normal, 
+               fun.args=list(mult = 1), 
+               position = 'dodge') 
 
 
 
@@ -519,25 +567,51 @@ sum_dd %>%
   
   
 # Calculate directly the difference between samples?
-dd %>% 
-  group_by(id, reg) %>% 
-  pivot_wider(names_from=reg, 
-              values_from = vol )
 
 
 dd %>% 
+ # group_by(reg) %>% 
+ # mutate(vol_mean = mean(vol[reg == "control"])) %>% 
   mutate(norm_vol = vol/mean(vol[reg == "control"])) #%>% 
   ggplot(aes(reg, norm_vol)) + 
   stat_summary(geom = "bar", 
                fun = mean) +
   stat_summary(geom = "errorbar", 
                fun.data = mean_cl_normal, 
-               fun.args = list(mult = 1)) +
-  scale_y_continuous(labels = scales::percent_format())
+               fun.args = list(mult = 1))# +
+  #scale_y_continuous(labels = scales::percent_format())
   
   
   
 
+  
+  # Run example:
+  ggplot(mtcars, aes(cyl, qsec)) + 
+    stat_summary(fun = mean, geom = "bar") + 
+    stat_summary(fun.data = mean_cl_normal, geom = "errorbar", mult = 1)
+  
+  
+  
+# update the example to my data
+str(mtcars)
+
+mtcars %>% 
+  filter(cyl == 6)
+  
+  
+ggplot(mtcars, 
+       aes(cyl, as.factor(qsec))) + 
+  mutate(norm_qsec = qsec/mean(qsec[cyl == 6])) #%>% 
+  stat_summary(fun = mean, 
+               geom = "bar") + 
+  stat_summary(fun.data = mean_cl_normal, 
+               geom = "errorbar", mult = 1)
+  
+  
+  
+  
+  
+  
 df.out %>% 
  # filter(climChange == 'REF') %>% 
   group_by(id, climChange, regime) %>% # modif, #geo_grad,
