@@ -1043,7 +1043,7 @@ df.ind.diff2 %>%
 
 
 # 
-# wind damage risk  vs individual species no climate change !!-------------------------
+# wind damage risk  vs individual species across all climate scenarios !-------------------------
 
 # CAPERCAILLIE  
 # HAZEL_GROUSE
@@ -1067,51 +1067,26 @@ df.species.means <-
             mean_SQIRR   = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T)
   )  %>%
   mutate(control_risk    = mean_risk[match('BAU', regime)],
+         p_change_risk   = mean_risk/control_risk * 100 - 100,
+         
          control_CAPER   = mean_CAPER[match('BAU', regime)],
          p_change_CAPER  = mean_CAPER /control_CAPER * 100 - 100,
-         p_change_risk   = mean_risk/control_risk * 100 - 100,
+        
          control_HAZ     = mean_HAZ[match('BAU', regime)],
          p_change_HAZ    = mean_HAZ /control_HAZ * 100 - 100,
+         
          control_THREE   = mean_THREE[match('BAU', regime)],
          p_change_THREE  = mean_THREE /control_THREE * 100 - 100,
+         
          control_LESSER  = mean_LESSER[match('BAU', regime)],
          p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
+         
          control_TIT     = mean_TIT[match('BAU', regime)],
          p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
+         
          control_SQIRR   = mean_SQIRR[match('BAU', regime)],
          p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100) %>% 
   dplyr::filter(regime != 'BAU')
-
-
-# Get the same table with clim change as a factor to add it supplementary material 
-
-df.species.means.clim <- 
-  df.out %>% 
-  group_by(regime, climChange) %>% # modif, #geo_grad,
-  summarise(mean_risk    = mean(windRisk, na.rm = T),
-            mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
-            mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
-            mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
-            mean_LESSER  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T),
-            mean_TIT     = mean(LONG_TAILED_TIT, na.rm = T),
-            mean_SQIRR   = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T)
-  )  %>%
-  mutate(control_risk    = mean_risk[match('BAU', regime)],
-         control_CAPER   = mean_CAPER[match('BAU', regime)],
-         p_change_CAPER  = mean_CAPER /control_CAPER * 100 - 100,
-         p_change_risk   = mean_risk/control_risk * 100 - 100,
-         control_HAZ     = mean_HAZ[match('BAU', regime)],
-         p_change_HAZ    = mean_HAZ /control_HAZ * 100 - 100,
-         control_THREE   = mean_THREE[match('BAU', regime)],
-         p_change_THREE  = mean_THREE /control_THREE * 100 - 100,
-         control_LESSER  = mean_LESSER[match('BAU', regime)],
-         p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
-         control_TIT     = mean_TIT[match('BAU', regime)],
-         p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
-         control_SQIRR   = mean_SQIRR[match('BAU', regime)],
-         p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100) %>% 
-  dplyr::filter(regime != 'BAU')
-
 
 
 
@@ -1131,8 +1106,10 @@ pt_details <- function() {
     geom_vline(xintercept = 0, color = "grey70", lty = "dashed"), 
     geom_hline(yintercept = 0, color = "grey70", lty = "dashed"),
     geom_point(size = 3, shape = 21, color = 'grey'), # + 'black', shape 21
-    scale_fill_manual(values  = my_cols_RdGn),
-    scale_color_manual(values = my_cols_RdGn),
+    scale_fill_manual(values  = my_cols_RdGn,
+                      name= lab_manag),
+    scale_color_manual(values = my_cols_RdGn,
+                       name= lab_manag),
     theme_bw(),
     theme(plot.title = element_text(size = 9, face = "plain"),
           axis.title  = element_text(size = 9, face="plain", family = "sans"),
@@ -1175,7 +1152,7 @@ p1 <-
   ggplot(aes(x = p_change_CAPER,
              y = p_change_risk,
              fill = regime)) + 
-  ggtitle("a) capercaillie\n") +
+  ggtitle("a) Capercaillie\n") +
   pt_details() +
   ylab(my_lab_risk)
 
@@ -1185,21 +1162,21 @@ p2 <- df.species.means %>%
              y = p_change_risk,
              fill = regime)) +
   pt_details() +
-  ggtitle("b) hazel grouse\n")
+  ggtitle("b) Hazel grouse\n")
 
 p3 <- df.species.means %>% 
   ggplot(aes(x = p_change_THREE,
              y = p_change_risk,
              fill = regime)) +
   pt_details() +
-  ggtitle("c) three toed\nwoodpecker")
+  ggtitle("c) Three toed\nwoodpecker")
 
 p4 <- df.species.means %>% 
   ggplot(aes(x = p_change_LESSER,
              y = p_change_risk,
              fill = regime)) +
   pt_details() +
-  ggtitle("d) lesser spotted\nwoodpecker") +
+  ggtitle("d) Lesser spotted\nwoodpecker") +
   ylab(my_lab_risk)
 
 p5 <- df.species.means %>% 
@@ -1207,14 +1184,14 @@ p5 <- df.species.means %>%
              y = p_change_risk,
              fill = regime)) +
   pt_details() +
-  ggtitle("e) long tailed tit\n")
+  ggtitle("e) Long tailed tit\n")
 
 p6 <- df.species.means %>% 
   ggplot(aes(x = p_change_SQIRR,
              y = p_change_risk,
              fill = regime)) +
   pt_details() +
-  ggtitle("f) siberian flying\nsquirrel")
+  ggtitle("f) Siberian flying\nsquirrel")
 
 
 
@@ -1237,18 +1214,196 @@ annotate_figure(species.plot,
 
 
 
-# Get species& clim change specific plots
+
+
+
+
+
+
+# Get species& clim change specific plots ------------------------------------------
+# For supplementary material -------------------------------------------------------
+
+# the BAU is a climate change specific - checked
+
+df.species.means.clim <- 
+  df.out %>% 
+  group_by(regime, climChange) %>% # modif, #geo_grad,
+  summarise(mean_risk    = mean(windRisk, na.rm = T),
+            mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
+            mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
+            mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
+            mean_LESSER  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T),
+            mean_TIT     = mean(LONG_TAILED_TIT, na.rm = T),
+            mean_SQIRR   = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T)
+  )  %>%
+  ungroup(.) %>% 
+  group_by(climChange) %>% 
+  mutate(control_risk    = mean_risk[match('BAU', regime)],
+         p_change_risk   = mean_risk/control_risk * 100 - 100 ,
+         
+         control_CAPER   = mean_CAPER[match('BAU', regime)],
+         p_change_CAPER  = mean_CAPER /control_CAPER * 100 - 100,
+         
+         control_HAZ     = mean_HAZ[match('BAU', regime)],
+         p_change_HAZ    = mean_HAZ /control_HAZ * 100 - 100,
+
+         control_THREE   = mean_THREE[match('BAU', regime)],
+         p_change_THREE  = mean_THREE /control_THREE * 100 - 100,
+
+         control_LESSER  = mean_LESSER[match('BAU', regime)],
+         p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
+
+         control_TIT     = mean_TIT[match('BAU', regime)],
+         p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
+
+         control_SQIRR   = mean_SQIRR[match('BAU', regime)],
+         p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100
+         ) %>%
+  #print(n = 40)
+  dplyr::filter(regime != 'BAU')
+
+
+
+
+
+# !!!!! check if need to update a point plot for the climChange effect on individual species??
+pt_details_clim <- function() {
+  list(
+    ylab(''),
+    xlab(''),
+    geom_vline(xintercept = 0, color = "grey70", lty = "dashed"), 
+    geom_hline(yintercept = 0, color = "grey70", lty = "dashed"),
+    geom_point(size = 2.5, 
+               #shape = 21, 
+               #color = 'grey'
+               ), # + 'black', shape 21
+    scale_fill_manual(values  = my_cols_RdGn,
+                      name = lab_manag),
+    scale_color_manual(values = my_cols_RdGn,
+                       name = lab_manag),
+    scale_shape(name = 'Climate scenario'),
+    theme_bw(),
+    theme(plot.title = element_text(size = 9, face = "plain"),
+          axis.title  = element_text(size = 9, face="plain", family = "sans"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
+          axis.text.y = element_text(face="plain", size = 8, family = "sans"),
+          legend.position = "bottom",
+          strip.background =element_rect(fill="white", 
+                                         color = NA),
+          panel.grid.major = element_line(size = 0, 
+                                          linetype = 'dotted',
+                                          colour = NA),
+          panel.grid.minor = element_line(size = 0, 
+                                          linetype = 1,
+                                          colour = NA))#,
+    # guides(colour = guide_legend(title.position="top", 
+    #                              title.hjust = 0.5),
+    #        size = guide_legend(title.position="top", 
+    #                            title.hjust = 0.5))
+  )
+}
+
+
+
+# Get individual species specific plots -----------------------------------
+
+p1.clim <- 
+  df.species.means.clim %>% 
+  ggplot(aes(x = p_change_CAPER,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) + 
+  ggtitle("a) Capercaillie\n") +
+  pt_details_clim() +
+  ylab(my_lab_risk)
+
+
+p2.clim <- df.species.means.clim %>% 
+  ggplot(aes(x = p_change_HAZ,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) +
+  pt_details_clim() +
+  ggtitle("b) Hazel grouse\n")
+
+p3.clim <- df.species.means.clim %>% 
+  ggplot(aes(x = p_change_THREE,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) +
+  pt_details_clim() +
+  ggtitle("c) Three toed\nwoodpecker")
+
+p4.clim <- df.species.means.clim %>% 
+  ggplot(aes(x = p_change_LESSER,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) +
+  pt_details_clim() +
+  ggtitle("d) Lesser spotted\nwoodpecker") +
+  ylab(my_lab_risk)
+
+p5.clim <- df.species.means.clim %>% 
+  ggplot(aes(x = p_change_TIT,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) +
+  pt_details_clim() +
+  ggtitle("e) Long tailed tit\n")
+
+p6.clim <- df.species.means.clim %>% 
+  ggplot(aes(x = p_change_SQIRR,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) +
+  pt_details_clim() +
+  ggtitle("f) Siberian flying\nsquirrel")
+
+
+
+species.plot.clim <- ggarrange(p1.clim, p2.clim, p3.clim,
+                          p4.clim, p5.clim, p6.clim, 
+                          widths = c(1.05,1, 1, 1.05,1,1),
+                          ncol = 3,
+                          nrow = 2,
+                          common.legend = TRUE,
+                          legend = 'right')
+
+windows(7.5,5.3)  
+# https://rpkgs.datanovia.com/ggpubr/reference/annotate_figure.html
+annotate_figure(species.plot.clim,
+                bottom = text_grob("Difference in HSI [%]", 
+                                   color = "black",
+                                   hjust = 0.5, 
+                                   #x = -1, 
+                                   y = 1.5, #4.5,
+                                   face = "plain", size = 9)
+)
+
+
+
+
+
+
+
+
+
+
 #p1 <- 
   df.species.means.clim %>% 
   ggplot(aes(x = p_change_CAPER,
              y = p_change_risk,
-             fill = regime)) + 
+             color = regime)) + 
+  geom_point(aes(shape = climChange)) +
   ggtitle("a) capercaillie\n") +
-  pt_details() +
-    geom_point(aes(shape = climChange)) +
+ # pt_details() +
   ylab(my_lab_risk)
-
-
 
 
 
