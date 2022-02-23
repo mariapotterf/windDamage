@@ -1474,110 +1474,6 @@ cols_ylRd3 <- c(	'#ff9a00', # yellow
 
 
 
-# Put differences in HSI and wind damage risk together in points plots --------------
-
-# ========================================================
-#                    WIND RISK x COMBINED HSI
-# ========================================================
-
-
-
-# Calculate % change between BAU_normal and other adaptations? ---------
-
-
-
-# Make functions for plotting: LOLLIPOP
-my_lollipop <- function() {
-  list(
-    geom_hline(yintercept = 0),# +
-    #geom_segment( aes(x= climChange, 
-    #                 xend= climChange, 
-    #                y=0, 
-    #            yend= yval*100,#median_risk*100,
-    #               col = climChange)), # +
-    geom_point(aes(col = climChange), 
-               size = 5), # +
-    scale_color_manual(values = cols_ylRd3),#  +
-    facet_grid(geo_grad~adapt), # +
-    theme(legend.position="bottom")
-  )
-}
-
-
-
-
-
-
-
-# subset only regimes of interest and check if values will change?
-df.out2 <- df.out %>% 
-  filter(regime %in% my_regimes)
-
-my_cols = c('climChange', 'adapt', 'mainType', 
-            'median_risk', 'control_risk', 'perc_change_risk', 
-            'median_HSI',  'control_HSI',  'perc_change_HSI',
-            'adaptPaste')
-
-# Get a compare toward the BAU normal
-df.plot <- 
-  df.out2 %>% 
-  #  filter(mainType != "SA" ) %>% # & climChange == "no"
-  group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
-  summarise(median_risk = median(windRisk, na.rm = T),
-            median_HSI  = median(COMBINED_HSI, na.rm = T)) %>%
-  mutate(adaptPaste = paste(adapt, mainType, sep = "_")) %>%
-  group_by(geo_grad, climChange) %>% 
-  mutate(control_risk = median_risk[match('normal_BAUwT', adaptPaste)],
-         control_HSI  = median_HSI[ match('normal_BAUwT', adaptPaste)],
-         perc_change_HSI  = median_HSI /control_HSI  * 100 - 100,
-         perc_change_risk = median_risk/control_risk * 100 - 100) %>% 
-  dplyr::select(all_of(my_cols)) %>% 
-  filter(adapt != "normal") %>% 
-  mutate(adapt = factor(adapt, 
-                        levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" )))  
-
-
-
-# Lollipop risk by adaptation: medians, absolute ---------------------------------------
-windows(7,5.5)
-df.plot %>% 
-  ggplot(aes(x = climChange,
-             y = median_risk*100)) +
-  my_lollipop()  +
-  geom_segment(aes(x= climChange, 
-                   xend= climChange, 
-                   y=0, 
-                   yend= median_risk*100,#median_risk*100,
-                   col = climChange)) +
-  # ylim() +
-  ylab("median wind damage risk")
-
-
-
-
-windows(7,5.5)
-df.plot %>% 
-  filter(adapt != "normal") %>% 
-  mutate(adapt = factor(adapt, 
-                        levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
-  ggplot(aes(x = climChange,
-             y = median_HSI)) +
-  geom_hline(yintercept = c(0, 0.5), 
-             col = 'grey80',
-             lty = "dashed") +
-  geom_segment( aes(x= climChange, 
-                    xend= climChange, 
-                    y=0, 
-                    yend= median_HSI,
-                    col = climChange)) +
-  geom_point(aes(col = climChange), size = 5) +
-  scale_color_manual(values = cols_ylRd3) +
-  ylim(0, 1) +
-  ylab("median combined HSI") +
-  facet_grid(geo_grad~adapt) +
-  theme(legend.position="bottom") 
-
-
 
 
 ############################################################################
@@ -1585,8 +1481,6 @@ df.plot %>%
 #                 SUPPLEMENTARY material
 #
 ############################################################################
-
-
 
 
 # For supplementary material -------------------------------------------------------
@@ -1634,7 +1528,7 @@ df.species.means.clim <-
 
 
 
-# !!!!! check if need to update a point plot for the climChange effect on individual species??
+# get function for scatter plot style
 pt_details_clim <- function() {
   list(
     ylab(''),
@@ -1645,7 +1539,7 @@ pt_details_clim <- function() {
                #shape = 21, 
                #color = 'grey'
     ), # + 'black', shape 21
-    scale_fill_manual(values  = my_cols_RdGn,
+    scale_fill_manual(values  = my_cols_RdGn ,
                       name = lab_manag),
     scale_color_manual(values = my_cols_RdGn,
                        name = lab_manag),
@@ -1761,27 +1655,54 @@ annotate_figure(species.plot.clim,
 # c) combined HSI
 # d) deadwood volume
 #
-#
-library(viridis)
+
+# Get colors for line plots
+my_cols_8 <- c(
+  '#b10026', # dark red
+  '#fd8d3c',
+  '#0868ac',  # blue
+  '#ffeda0',  # bright red
+  '#f7fcb9',
+  '#addd8e',
+  '#41ab5d',
+  '#005a32'  # dark green
+)
+
+
+# make a small function for the line plotting:
+fun_line_pt <- function() {
+  
+  list( geom_line(size = 1, alpha = 0.5),
+        geom_point(), #aes(fill = regime, 
+                    #   shape = 21), size = 1),
+        facet_grid(.~climChange),
+        scale_color_manual(values =my_cols_8 ),
+      #  scale_shape(),
+        #viridis::scale_color_viridis(discrete = TRUE),
+        theme_bw(), 
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+              legend.position = 'bottom')# +
+  )
+}
+
+
+
+
+
 
 
 # wind risk
 #windows(height = 3, width = 7)
-p.risk <- df.out %>% 
+p.risk <- 
+  df.out %>% 
+    #filter(regime ==  'BAU') %>% 
   group_by(year, regime, climChange) %>% 
   summarize(mean_windRisk = mean(windRisk, na.rm = T)) %>% 
   ggplot(aes(x = year,
              y = mean_windRisk*100,
              col = regime)) +
-  geom_line(size = 1.2) +
-  ylim(0,10) +
-  ylab("Wind damage risk [%]") +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
-
+  fun_line_pt() +
+  ylab("Wind damage risk [%]") #+
 
 
 # Combined HSI
@@ -1792,15 +1713,8 @@ p.HSI <- df.out %>%
   ggplot(aes(x = year,
              y = my_mean,
              col = regime)) +
-  geom_line(size = 1.2) +
-  ylim(0,1) +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  ylab("Combined HSI ") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
-
+  fun_line_pt() +
+  ylab("Combined HSI ") 
 
 
 # Deadwood
@@ -1811,15 +1725,8 @@ p.DW <- df.out %>%
   ggplot(aes(x = year,
              y = my_mean,
              col = regime)) +
-  geom_line(size = 1.2) +
-  # ylim(0,1) +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  ylab("Total deadwood [V m3/ha]") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
-
+  fun_line_pt() +
+   ylab("Total deadwood [V m3/ha]") 
 
 # V_pulp
 #windows(height = 3, width = 7)
@@ -1830,14 +1737,8 @@ p.V_pulp <-
   ggplot(aes(x = year,
              y = my_mean,
              col = regime)) +
-  geom_line(size = 1.2) +
-  # ylim(0,1) +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  ylab("Harvested pulp [m3/ha]") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
+  fun_line_pt() +
+  ylab("Harvested pulp [m3/ha]") #+
 
 # V_log
 #windows(height = 3, width = 7)
@@ -1848,14 +1749,8 @@ p.V_log <-
   ggplot(aes(x = year,
              y = my_mean,
              col = regime)) +
-  geom_line(size = 1.2) +
-  # ylim(0,1) +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  ylab("Harvested log [m3/ha]") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
+  fun_line_pt() +  
+  ylab("Harvested log [m3/ha]") 
 
 
 
@@ -1865,7 +1760,10 @@ p.V_log <-
 # print all at one page ----------------------------------
 windows(width = 8, height = 15)
 ggarrange(p.risk,  p.HSI, p.DW, p.V_log, p.V_pulp, 
-          ncol = 1, nrow = 5, common.legend = T)
+          ncol = 1, nrow = 5, common.legend = T, legend = 'bottom')
+
+
+# Adapt colors:
 
 
 
@@ -1880,20 +1778,8 @@ ggarrange(p.risk,  p.HSI, p.DW, p.V_log, p.V_pulp,
 # "LONG_TAILED_TIT" 
 # "SIBERIAN_FLYING_SQUIRREL"
 
-library(viridis)
 
 
-# make a small function for the line plotting:
-fun_line_pt <- function() {
-  
-  list( geom_line(size = 1),
-        facet_grid(.~climChange),
-          viridis::scale_color_viridis(discrete = TRUE),
-          theme_bw(), 
-          theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-                legend.position = 'bottom')# +
-  )
-}
 
 
 p.caper <- 
