@@ -1388,26 +1388,6 @@ annotate_figure(species.plot.clim,
 
 
 
-
-
-
-
-
-
-
-#p1 <- 
-  df.species.means.clim %>% 
-  ggplot(aes(x = p_change_CAPER,
-             y = p_change_risk,
-             color = regime)) + 
-  geom_point(aes(shape = climChange)) +
-  ggtitle("a) capercaillie\n") +
- # pt_details() +
-  ylab(my_lab_risk)
-
-
-
-
 # Calculate total sum of harvested timber given scenarios --------------
 
 df.vol <- 
