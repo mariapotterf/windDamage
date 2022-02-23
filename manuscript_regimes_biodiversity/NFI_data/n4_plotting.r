@@ -550,11 +550,11 @@ left_join(df_log, df_pulp) %>%
 
 
 
+ 
+# Plot combined HSI and biodiversity -------------------------------------------
 
-# Plot combined HSI and biodiversity
 
-
-# gerenarate partial tables:
+# Make partial tables:
 
 df_comb_HSI <- 
   df.out %>% 
@@ -587,9 +587,8 @@ left_join(df_comb_HSI, df_DW) %>%
                names_to = "Indicator", 
                values_to = "perc_ch")  %>%
   mutate(Indicator = factor(Indicator, 
-                            levels = c('norm_HSI', 'norm_DW'),
-                            labels = c('Combined HSI', 'Deadwood volume'))) %>% 
-  
+                            levels = c('norm_DW', 'norm_HSI'),
+                            labels = c('Deadwood volume', 'Combined HSI' ))) %>% 
   filter(regime != 'BAU') %>% 
   ggplot(aes(x = regime,
              y = perc_ch*100,
@@ -613,7 +612,7 @@ left_join(df_comb_HSI, df_DW) %>%
   theme_bw()  + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         #legend.position = 'bottom',
-        legend.position = c(.90, .22),  # legend position within the plot, x, y
+        legend.position = c(.40, .22),  # legend position within the plot, x, y
         legend.title = element_text(size=10),
         legend.text  = element_text(size=8),
         legend.background = element_rect(fill = "white", color = "black"),
@@ -1221,171 +1220,6 @@ annotate_figure(species.plot,
 
 
 # Get species& clim change specific plots ------------------------------------------
-# For supplementary material -------------------------------------------------------
-
-# the BAU is a climate change specific - checked
-
-df.species.means.clim <- 
-  df.out %>% 
-  group_by(regime, climChange) %>% # modif, #geo_grad,
-  summarise(mean_risk    = mean(windRisk, na.rm = T),
-            mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
-            mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
-            mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
-            mean_LESSER  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T),
-            mean_TIT     = mean(LONG_TAILED_TIT, na.rm = T),
-            mean_SQIRR   = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T)
-  )  %>%
-  ungroup(.) %>% 
-  group_by(climChange) %>% 
-  mutate(control_risk    = mean_risk[match('BAU', regime)],
-         p_change_risk   = mean_risk/control_risk * 100 - 100 ,
-         
-         control_CAPER   = mean_CAPER[match('BAU', regime)],
-         p_change_CAPER  = mean_CAPER /control_CAPER * 100 - 100,
-         
-         control_HAZ     = mean_HAZ[match('BAU', regime)],
-         p_change_HAZ    = mean_HAZ /control_HAZ * 100 - 100,
-
-         control_THREE   = mean_THREE[match('BAU', regime)],
-         p_change_THREE  = mean_THREE /control_THREE * 100 - 100,
-
-         control_LESSER  = mean_LESSER[match('BAU', regime)],
-         p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
-
-         control_TIT     = mean_TIT[match('BAU', regime)],
-         p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
-
-         control_SQIRR   = mean_SQIRR[match('BAU', regime)],
-         p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100
-         ) %>%
-  #print(n = 40)
-  dplyr::filter(regime != 'BAU')
-
-
-
-
-
-# !!!!! check if need to update a point plot for the climChange effect on individual species??
-pt_details_clim <- function() {
-  list(
-    ylab(''),
-    xlab(''),
-    geom_vline(xintercept = 0, color = "grey70", lty = "dashed"), 
-    geom_hline(yintercept = 0, color = "grey70", lty = "dashed"),
-    geom_point(size = 2.5, 
-               #shape = 21, 
-               #color = 'grey'
-               ), # + 'black', shape 21
-    scale_fill_manual(values  = my_cols_RdGn,
-                      name = lab_manag),
-    scale_color_manual(values = my_cols_RdGn,
-                       name = lab_manag),
-    scale_shape(name = 'Climate scenario'),
-    theme_bw(),
-    theme(plot.title = element_text(size = 9, face = "plain"),
-          axis.title  = element_text(size = 9, face="plain", family = "sans"),
-          axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
-          axis.text.y = element_text(face="plain", size = 8, family = "sans"),
-          legend.position = "bottom",
-          strip.background =element_rect(fill="white", 
-                                         color = NA),
-          panel.grid.major = element_line(size = 0, 
-                                          linetype = 'dotted',
-                                          colour = NA),
-          panel.grid.minor = element_line(size = 0, 
-                                          linetype = 1,
-                                          colour = NA))#,
-    # guides(colour = guide_legend(title.position="top", 
-    #                              title.hjust = 0.5),
-    #        size = guide_legend(title.position="top", 
-    #                            title.hjust = 0.5))
-  )
-}
-
-
-
-# Get individual species specific plots -----------------------------------
-
-p1.clim <- 
-  df.species.means.clim %>% 
-  ggplot(aes(x = p_change_CAPER,
-             y = p_change_risk,
-             fill = regime,
-             shape = climChange,
-             color = regime)) + 
-  ggtitle("a) Capercaillie\n") +
-  pt_details_clim() +
-  ylab(my_lab_risk)
-
-
-p2.clim <- df.species.means.clim %>% 
-  ggplot(aes(x = p_change_HAZ,
-             y = p_change_risk,
-             fill = regime,
-             shape = climChange,
-             color = regime)) +
-  pt_details_clim() +
-  ggtitle("b) Hazel grouse\n")
-
-p3.clim <- df.species.means.clim %>% 
-  ggplot(aes(x = p_change_THREE,
-             y = p_change_risk,
-             fill = regime,
-             shape = climChange,
-             color = regime)) +
-  pt_details_clim() +
-  ggtitle("c) Three toed\nwoodpecker")
-
-p4.clim <- df.species.means.clim %>% 
-  ggplot(aes(x = p_change_LESSER,
-             y = p_change_risk,
-             fill = regime,
-             shape = climChange,
-             color = regime)) +
-  pt_details_clim() +
-  ggtitle("d) Lesser spotted\nwoodpecker") +
-  ylab(my_lab_risk)
-
-p5.clim <- df.species.means.clim %>% 
-  ggplot(aes(x = p_change_TIT,
-             y = p_change_risk,
-             fill = regime,
-             shape = climChange,
-             color = regime)) +
-  pt_details_clim() +
-  ggtitle("e) Long tailed tit\n")
-
-p6.clim <- df.species.means.clim %>% 
-  ggplot(aes(x = p_change_SQIRR,
-             y = p_change_risk,
-             fill = regime,
-             shape = climChange,
-             color = regime)) +
-  pt_details_clim() +
-  ggtitle("f) Siberian flying\nsquirrel")
-
-
-
-species.plot.clim <- ggarrange(p1.clim, p2.clim, p3.clim,
-                          p4.clim, p5.clim, p6.clim, 
-                          widths = c(1.05,1, 1, 1.05,1,1),
-                          ncol = 3,
-                          nrow = 2,
-                          common.legend = TRUE,
-                          legend = 'right')
-
-windows(7.5,5.3)  
-# https://rpkgs.datanovia.com/ggpubr/reference/annotate_figure.html
-annotate_figure(species.plot.clim,
-                bottom = text_grob("Difference in HSI [%]", 
-                                   color = "black",
-                                   hjust = 0.5, 
-                                   #x = -1, 
-                                   y = 1.5, #4.5,
-                                   face = "plain", size = 9)
-)
-
 
 
 # Calculate total sum of harvested timber given scenarios --------------
@@ -1755,13 +1589,179 @@ df.plot %>%
 
 
 
+# For supplementary material -------------------------------------------------------
+
+# the BAU is a climate change specific - checked
+
+df.species.means.clim <- 
+  df.out %>% 
+  group_by(regime, climChange) %>% # modif, #geo_grad,
+  summarise(mean_risk    = mean(windRisk, na.rm = T),
+            mean_CAPER   = mean(CAPERCAILLIE, na.rm = T),
+            mean_HAZ     = mean(HAZEL_GROUSE, na.rm = T),
+            mean_THREE   = mean(THREE_TOED_WOODPECKER, na.rm = T),
+            mean_LESSER  = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T),
+            mean_TIT     = mean(LONG_TAILED_TIT, na.rm = T),
+            mean_SQIRR   = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T)
+  )  %>%
+  ungroup(.) %>% 
+  group_by(climChange) %>% 
+  mutate(control_risk    = mean_risk[match('BAU', regime)],
+         p_change_risk   = mean_risk/control_risk * 100 - 100 ,
+         
+         control_CAPER   = mean_CAPER[match('BAU', regime)],
+         p_change_CAPER  = mean_CAPER /control_CAPER * 100 - 100,
+         
+         control_HAZ     = mean_HAZ[match('BAU', regime)],
+         p_change_HAZ    = mean_HAZ /control_HAZ * 100 - 100,
+         
+         control_THREE   = mean_THREE[match('BAU', regime)],
+         p_change_THREE  = mean_THREE /control_THREE * 100 - 100,
+         
+         control_LESSER  = mean_LESSER[match('BAU', regime)],
+         p_change_LESSER = mean_LESSER /control_LESSER * 100 - 100,
+         
+         control_TIT     = mean_TIT[match('BAU', regime)],
+         p_change_TIT    = mean_TIT /control_TIT * 100 - 100,
+         
+         control_SQIRR   = mean_SQIRR[match('BAU', regime)],
+         p_change_SQIRR  = mean_SQIRR /control_SQIRR * 100 - 100
+  ) %>%
+  #print(n = 40)
+  dplyr::filter(regime != 'BAU')
+
+
+
+
+
+# !!!!! check if need to update a point plot for the climChange effect on individual species??
+pt_details_clim <- function() {
+  list(
+    ylab(''),
+    xlab(''),
+    geom_vline(xintercept = 0, color = "grey70", lty = "dashed"), 
+    geom_hline(yintercept = 0, color = "grey70", lty = "dashed"),
+    geom_point(size = 2.5, 
+               #shape = 21, 
+               #color = 'grey'
+    ), # + 'black', shape 21
+    scale_fill_manual(values  = my_cols_RdGn,
+                      name = lab_manag),
+    scale_color_manual(values = my_cols_RdGn,
+                       name = lab_manag),
+    scale_shape(name = 'Climate scenario'),
+    theme_bw(),
+    theme(plot.title = element_text(size = 9, face = "plain"),
+          axis.title  = element_text(size = 9, face="plain", family = "sans"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, face="plain", size = 9, family = "sans"),
+          axis.text.y = element_text(face="plain", size = 8, family = "sans"),
+          legend.position = "bottom",
+          strip.background =element_rect(fill="white", 
+                                         color = NA),
+          panel.grid.major = element_line(size = 0, 
+                                          linetype = 'dotted',
+                                          colour = NA),
+          panel.grid.minor = element_line(size = 0, 
+                                          linetype = 1,
+                                          colour = NA))
+  )
+}
+
+
+
+# Get individual species specific plots -----------------------------------
+
+p1.clim <- 
+  df.species.means.clim %>% 
+  ggplot(aes(x = p_change_CAPER,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) + 
+  ggtitle("a) Capercaillie\n") +
+  pt_details_clim() +
+  ylab(my_lab_risk)
+
+
+p2.clim <- df.species.means.clim %>% 
+  ggplot(aes(x = p_change_HAZ,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) +
+  pt_details_clim() +
+  ggtitle("b) Hazel grouse\n")
+
+p3.clim <- df.species.means.clim %>% 
+  ggplot(aes(x = p_change_THREE,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) +
+  pt_details_clim() +
+  ggtitle("c) Three toed\nwoodpecker")
+
+p4.clim <- df.species.means.clim %>% 
+  ggplot(aes(x = p_change_LESSER,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) +
+  pt_details_clim() +
+  ggtitle("d) Lesser spotted\nwoodpecker") +
+  ylab(my_lab_risk)
+
+p5.clim <- df.species.means.clim %>% 
+  ggplot(aes(x = p_change_TIT,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) +
+  pt_details_clim() +
+  ggtitle("e) Long tailed tit\n")
+
+p6.clim <- df.species.means.clim %>% 
+  ggplot(aes(x = p_change_SQIRR,
+             y = p_change_risk,
+             fill = regime,
+             shape = climChange,
+             color = regime)) +
+  pt_details_clim() +
+  ggtitle("f) Siberian flying\nsquirrel")
+
+
+
+species.plot.clim <- ggarrange(p1.clim, p2.clim, p3.clim,
+                               p4.clim, p5.clim, p6.clim, 
+                               widths = c(1.05,1, 1, 1.05,1,1),
+                               ncol = 3,
+                               nrow = 2,
+                               common.legend = TRUE,
+                               legend = 'right')
+
+windows(7.5,5.3)  
+# https://rpkgs.datanovia.com/ggpubr/reference/annotate_figure.html
+annotate_figure(species.plot.clim,
+                bottom = text_grob("Difference in HSI [%]", 
+                                   color = "black",
+                                   hjust = 0.5, 
+                                   #x = -1, 
+                                   y = 1.5, #4.5,
+                                   face = "plain", size = 9)
+)
+
+
+
+
+
+
 # Temporal trends over years:   -----------------------------------------
 # try for:
 # a) wind damage risk, 
-# b) age, 
 # c) combined HSI
 # d) deadwood volume
-# e) H_dom
+#
+#
 library(viridis)
 
 
@@ -1784,25 +1784,6 @@ p.risk <- df.out %>%
 
 
 
-# Age over landscape
-#windows(height = 3, width = 7)
-p.age <- df.out %>% 
-  group_by(year, regime, climChange) %>% 
-  summarize(my_mean = mean(Age, na.rm = T)) %>% 
-  ggplot(aes(x = year,
-             y = my_mean,
-             col = regime)) +
-  geom_line(size = 1.2) +
-  ylim(20,130) +
-  facet_grid(.~climChange) +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme_bw() +
-  ylab("Age [years]") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')# +
-
-
-
 # Combined HSI
 #windows(height = 3, width = 7)
 p.HSI <- df.out %>% 
@@ -1816,7 +1797,7 @@ p.HSI <- df.out %>%
   facet_grid(.~climChange) +
   viridis::scale_color_viridis(discrete = TRUE) +
   theme_bw() +
-  ylab("COMBINED_HSI ") +
+  ylab("Combined HSI ") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position = 'bottom')# +
 
@@ -1840,11 +1821,12 @@ p.DW <- df.out %>%
         legend.position = 'bottom')# +
 
 
-# H_dom
+# V_pulp
 #windows(height = 3, width = 7)
-p.H_dom <- df.out %>% 
+p.V_pulp <- 
+  df.out %>% 
   group_by(year, regime, climChange) %>% 
-  summarize(my_mean = mean(H_dom, na.rm = T)) %>% 
+  summarize(my_mean = mean(Harvested_V_pulp, na.rm = T)) %>% 
   ggplot(aes(x = year,
              y = my_mean,
              col = regime)) +
@@ -1853,21 +1835,138 @@ p.H_dom <- df.out %>%
   facet_grid(.~climChange) +
   viridis::scale_color_viridis(discrete = TRUE) +
   theme_bw() +
-  ylab("Dominant tree height [m]") +
+  ylab("Harvested pulp [m3/ha]") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')# +
+
+# V_log
+#windows(height = 3, width = 7)
+p.V_log <- 
+  df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(Harvested_V_log, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  geom_line(size = 1.2) +
+  # ylim(0,1) +
+  facet_grid(.~climChange) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw() +
+  ylab("Harvested log [m3/ha]") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position = 'bottom')# +
 
 
 
+
+
+
 # print all at one page ----------------------------------
 windows(width = 8, height = 15)
-ggarrange(p.risk, p.age, p.HSI, p.DW, p.H_dom, ncol = 1, nrow = 5, common.legend = T)
+ggarrange(p.risk,  p.HSI, p.DW, p.V_log, p.V_pulp, 
+          ncol = 1, nrow = 5, common.legend = T)
 
 
 
 
 
+# Tremporal trends for individual HSI ---------------------------------------------
+# try for:
+# "CAPERCAILLIE"
+# "HAZEL_GROUSE"
+# "THREE_TOED_WOODPECKER"
+# "LESSER_SPOTTED_WOODPECKER"
+# "LONG_TAILED_TIT" 
+# "SIBERIAN_FLYING_SQUIRREL"
 
+library(viridis)
+
+
+# make a small function for the line plotting:
+fun_line_pt <- function() {
+  
+  list( geom_line(size = 1),
+        facet_grid(.~climChange),
+          viridis::scale_color_viridis(discrete = TRUE),
+          theme_bw(), 
+          theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+                legend.position = 'bottom')# +
+  )
+}
+
+
+p.caper <- 
+  df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(mean_y = mean(CAPERCAILLIE, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = mean_y,
+             col = regime)) +
+  ylab("Capercaillie") +
+  fun_line_pt()
+
+
+
+
+p.hazel <- df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(HAZEL_GROUSE, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  ylab("Hazel grouse") +
+  fun_line_pt()
+
+
+p.three <- df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(THREE_TOED_WOODPECKER, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  ylab("Three-toed wodpecker") +
+  fun_line_pt()
+
+
+
+p.lesser <- df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(LESSER_SPOTTED_WOODPECKER, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  ylab("Lesser spotted woodpecker")  +
+  fun_line_pt()
+
+p.long <- df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(LONG_TAILED_TIT, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  ylab("Long tailed tit") +  fun_line_pt()
+
+
+
+p.squir <- df.out %>% 
+  group_by(year, regime, climChange) %>% 
+  summarize(my_mean = mean(SIBERIAN_FLYING_SQUIRREL, na.rm = T)) %>% 
+  ggplot(aes(x = year,
+             y = my_mean,
+             col = regime)) +
+  ylab("Siberian flying squirrel") +
+  fun_line_pt()
+
+# print all at one page ----------------------------------
+windows(width = 8, height = 15)
+ggarrange(p.caper,
+          p.hazel,
+          p.three,
+          p.lesser,
+          p.long,
+          p.squir, 
+          ncol = 1, nrow = 6, common.legend = T, legend = 'bottom')
 
 
 
@@ -1919,231 +2018,15 @@ df.plot %>%
 
 
 
-# ========================================================
-# Are there differences for individual species??? ======================================
-# ========================================================
-
-# CAPERCAILLIE  
-# HAZEL_GROUSE
-# LESSER_SPOTTED_WOODPECKER
-# SIBERIAN_FLYING_SQUIRREL
-# LONG_TAILED_TIT
-# THREE_TOED_WOODPECKER
-
-
-# automate script plotting:
-col_keep = c('climChange', 'adapt', 'mainType', 
-             'median_risk', 'control_risk', 'perc_change_risk', 
-             'median_HSI',  'control_HSI',  'perc_change_HSI',
-             'adaptPaste')
-
-# CAPERCAILIE   =============================
-windows(width = 7, height = 3)
-
-df.CAP <- 
-  df.out %>% 
-  filter(mainType != "SA" ) %>% # & climChange == "no"
-  group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
-  summarise(median_risk = median(windRisk, na.rm = T),
-            median_HSI  = median(CAPERCAILLIE, na.rm = T)) %>%
-  mutate(adaptPaste = paste(adapt, mainType, sep = "_")) %>%
-  group_by(geo_grad, climChange) %>% 
-  mutate(control_risk = median_risk[match('normal_BAUwT', adaptPaste)],
-         control_HSI  = median_HSI[ match('normal_BAUwT', adaptPaste)],
-         perc_change_HSI  = median_HSI /control_HSI * 100 - 100,
-         perc_change_risk = median_risk/control_risk * 100 - 100) %>% 
-  #  print(n = 30) %>% 
-  dplyr::select(col_keep) 
-
-
-# Lollipop risk by adaptation: medians, absolute ---------------------------------------
-
-windows(7,5.5)
-df.CAP %>% 
-  filter(adapt != "normal") %>% 
-  mutate(adapt = factor(adapt, 
-                        levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
-  ggplot(aes(x = climChange,
-             y = median_HSI)) +
-  geom_hline(yintercept = c(0, 0.5), 
-             col = 'grey80',
-             lty = "dashed") +
-  geom_segment( aes(x= climChange, 
-                    xend= climChange, 
-                    y=0, 
-                    yend= median_HSI,
-                    col = climChange)) +
-  geom_point(aes(col = climChange), size = 5) +
-  scale_color_manual(values = cols_ylRd3) +
-  ylim(0, 1) +
-  ylab("median CAPERCAILLIE") +
-  facet_grid(geo_grad~adapt) +
-  theme(legend.position="bottom") 
-
-
-# =======================================
-#    Capercailie scatter plot
-# =======================================
-
-windows(width = 7, length = 3.5)
-df.CAP %>%  
-  filter(adapt != "normal" ) %>% 
-  mutate(adapt = factor(adapt, 
-                        levels =  c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
-  ggplot(aes(x = perc_change_HSI,
-             y = perc_change_risk,
-             color = adapt,
-             shape = climChange)) + 
-  geom_vline(xintercept = c(0,100), col = 'grey', lty = "dashed") +
-  geom_hline(yintercept = c(0,100), col = 'grey', lty = "dashed") +
-  geom_point(size = 4, alpha = 0.8) +  
-  #ylim(-50,170) +
-  #xlim(-50,170) + 
-  facet_grid(.~geo_grad) +
-  # scale_color_manual(values = colorBlindBlack8) +
-  ylab("Change in wind damage risk (%)") +
-  xlab("Change in CAPERCAILLIE (%)") +
-  guides(colour = guide_legend(override.aes = list(size=3))) # change the point size in teh legend
-
-
-# ==========================================
-#    HASEL GROUSE 
-# ==========================================
-
-df.HASEL <- 
-  df.out %>% 
-  filter(mainType != "SA" ) %>% # & climChange == "no"
-  group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
-  summarise(median_risk = median(windRisk, na.rm = T),
-            median_HSI  = median(HAZEL_GROUSE, na.rm = T)) %>%
-  mutate(adaptPaste = paste(adapt, mainType, sep = "_")) %>%
-  group_by(geo_grad, climChange) %>% 
-  mutate(control_risk = median_risk[match('normal_BAUwT', adaptPaste)],
-         control_HSI  = median_HSI[ match('normal_BAUwT', adaptPaste)],
-         perc_change_HSI  = median_HSI /control_HSI * 100 - 100,
-         perc_change_risk = median_risk/control_risk * 100 - 100) %>% 
-  #  print(n = 30) %>% 
-  dplyr::select('climChange', 'adapt', 'mainType', 
-                'median_risk', 'control_risk', 'perc_change_risk', 
-                'median_HSI',  'control_HSI',  'perc_change_HSI',
-                'adaptPaste') 
-
-
-# Lollipop HAZEL_GROUSE by adaptation: medians, absolute ---------------------------------------
-windows(7,5.5)
-df.HASEL %>% 
-  filter(adapt != "normal") %>% 
-  mutate(adapt = factor(adapt, 
-                        levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
-  ggplot(aes(x = climChange,
-             y = median_HSI)) +
-  geom_hline(yintercept = c(0, 0.5), 
-             col = 'grey80',
-             lty = "dashed") +
-  geom_segment( aes(x= climChange, 
-                    xend= climChange, 
-                    y=0, 
-                    yend= median_HSI,
-                    col = climChange)) +
-  geom_point(aes(col = climChange), size = 5) +
-  scale_color_manual(values = cols_ylRd3) +
-  ylim(0, 1) +
-  ylab("median HAZEL_GROUSE") +
-  facet_grid(geo_grad~adapt) +
-  theme(legend.position="bottom") 
-
-
-# =======================================
-#    HAZEL_GROUSE scatter plot
-# =======================================
-
-windows(width = 7, length = 3.5)
-df.HASEL %>%  
-  filter(adapt != "normal" ) %>% 
-  mutate(adapt = factor(adapt, 
-                        levels =  c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
-  ggplot(aes(x = perc_change_HSI,
-             y = perc_change_risk,
-             color = adapt,
-             shape = climChange)) + 
-  geom_vline(xintercept = c(0,100), col = 'grey', lty = "dashed") +
-  geom_hline(yintercept = c(0,100), col = 'grey', lty = "dashed") +
-  geom_point(size = 4, alpha = 0.8) +  
-  facet_grid(.~geo_grad) +
-  ylab("Change in wind damage risk (%)") +
-  xlab("Change in HAZEL_GROUSE (%)") +
-  guides(colour = guide_legend(override.aes = list(size=3))) # change the point size in teh legend
 
 
 
-###!! 
-# ==========================================
-#    LESSER_SPOTTED_WOODPECKER 
-# ==========================================
 
-df.woodPeck <- 
-  df.out %>% 
-  filter(mainType != "SA" ) %>% # & climChange == "no"
-  group_by(geo_grad, climChange, adapt, mainType) %>% # modif, #geo_grad,
-  summarise(median_risk = median(windRisk, na.rm = T),
-            median_HSI  = median(LESSER_SPOTTED_WOODPECKER, na.rm = T)) %>%
-  mutate(adaptPaste = paste(adapt, mainType, sep = "_")) %>%
-  group_by(geo_grad, climChange) %>% 
-  mutate(control_risk = median_risk[match('normal_BAUwT', adaptPaste)],
-         control_HSI  = median_HSI[ match('normal_BAUwT', adaptPaste)],
-         perc_change_HSI  = median_HSI /control_HSI * 100 - 100,
-         perc_change_risk = median_risk/control_risk * 100 - 100) %>% 
-  #  print(n = 30) %>% 
-  dplyr::select('climChange', 'adapt', 'mainType', 
-                'median_risk', 'control_risk', 'perc_change_risk', 
-                'median_HSI',  'control_HSI',  'perc_change_HSI',
-                'adaptPaste') 
 
 
-# Lollipop LESSER_SPOTTED_WOODPECKER by adaptation: medians, absolute ---------------------------------------
-windows(7,5.5)
-df.HASEL %>% 
-  filter(adapt != "normal") %>% 
-  mutate(adapt = factor(adapt, 
-                        levels = c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
-  ggplot(aes(x = climChange,
-             y = median_HSI)) +
-  geom_hline(yintercept = c(0, 0.5), 
-             col = 'grey80',
-             lty = "dashed") +
-  geom_segment( aes(x= climChange, 
-                    xend= climChange, 
-                    y=0, 
-                    yend= median_HSI,
-                    col = climChange)) +
-  geom_point(aes(col = climChange), size = 5) +
-  scale_color_manual(values = cols_ylRd3) +
-  ylim(0, 1) +
-  ylab("median LESSER_SPOTTED_WOODPECKER") +
-  facet_grid(geo_grad~adapt) +
-  theme(legend.position="bottom") 
 
 
-# =======================================
-#    LESSER_SPOTTED_WOODPECKER scatter plot
-# =======================================
 
-windows(width = 7, length = 3.5)
-df.woodPeck %>%  
-  filter(adapt != "normal" ) %>% 
-  mutate(adapt = factor(adapt, 
-                        levels =  c("extended", "shorten", 'noThin', "GTR" ,"CCF" ))) %>% 
-  ggplot(aes(x = perc_change_HSI,
-             y = perc_change_risk,
-             color = adapt,
-             shape = climChange)) + 
-  geom_vline(xintercept = c(0,100), col = 'grey', lty = "dashed") +
-  geom_hline(yintercept = c(0,100), col = 'grey', lty = "dashed") +
-  geom_point(size = 4, alpha = 0.8) +  
-  facet_grid(.~geo_grad) +
-  ylab("Change in wind damage risk (%)") +
-  xlab("Change in LESSER_SPOTTED_WOODPECKER (%)") +
-  guides(colour = guide_legend(override.aes = list(size=3))) # change the point size in teh legend
 
 
 
@@ -2154,65 +2037,6 @@ df.woodPeck %>%
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# how does the shortening affect tree age over landscape? --------------------------------------
-# 
-windows(7,2.5)
-df.out %>% 
-  filter(year == 2111 & geo_grad == "center") %>% #& geo_grad == "center" 
-  filter(mainType != "SA") %>% 
-  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%
-  group_by(geo_grad, climChange, mainType, modif) %>% # modif,
-  summarise(my_y = median(Age, na.rm = T)) %>%
-  ggplot(aes(x= mainType,
-             y = my_y,
-             color = modif,
-             group = climChange)) +
-  geom_point(aes()) #+
-ylab("median age") +
-  facet_grid(geo_grad~mainType)
-
-
-
-
-# Make median +- quantil plot for HSI: -------------------------------------------------
-windows(7,2.5)
-df.out %>% 
-  filter(mainType != "CCF" & mainType != "SA") %>% 
-  filter(windRisk < quantile(windRisk, 0.95, na.rm = T))  %>%  
-  ggplot() + 
-  stat_summary(mapping = aes(x = modif, #change_time, 
-                             y = COMBINED_HSI,
-                             group = climChange,
-                             col = climChange),
-               fun.min = function(z) { quantile(z,0.25) },
-               fun.max = function(z) { quantile(z,0.75) },
-               fun = median,
-               position=position_dodge(width=0.4)) +
-  facet_grid(.~geo_grad) +
-  theme_classic()+
-  theme(legend.position = "bottom")
 
 
 
