@@ -65,7 +65,7 @@ df.out$climChange <-factor(df.out$climChange,
 # Regimes
 df.out <- df.out %>% 
   mutate(regime = factor(regime, 
-                         levels = c("short_30", "short_10","BAU", "noThin", "ext_10", "ext_30", "GTR", "CCF")))
+                         levels = c("short_30", "short_10", "noThin","BAU", "ext_10", "ext_30", "GTR", "CCF")))
 
 
 # time effect
@@ -1300,9 +1300,6 @@ df.plot <-
 
 
 
-# Evaluate changes in mean age over landscape ---
-
-
 
 
 # What is the age at harvest???? ---------------------------------------------
@@ -1660,8 +1657,9 @@ annotate_figure(species.plot.clim,
 my_cols_8 <- c(
   '#b10026', # dark red
   '#fd8d3c',
-  '#0868ac',  # blue
+  
   '#ffeda0',  # bright red
+  '#0868ac',  # blue
   '#f7fcb9',
   '#addd8e',
   '#41ab5d',
@@ -1673,7 +1671,7 @@ my_cols_8 <- c(
 fun_line_pt <- function() {
   
   list( geom_line(size = 1, alpha = 0.5),
-        geom_point(), #aes(fill = regime, 
+        geom_point(size= 0.8), #aes(fill = regime, 
                     #   shape = 21), size = 1),
         facet_grid(.~climChange),
         scale_color_manual(values =my_cols_8 ),
