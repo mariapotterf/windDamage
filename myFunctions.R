@@ -14,6 +14,31 @@ cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
           "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 
+# Calculate NPV
+
+calculate_NPV <- function(df, ...) {
+  
+  # Calculate discounted income and PV 
+  df$disc_income = df$cash_flow/(1.03^(df$year-2016))
+  df$disc_PV = df$PV/(1.03^(df$year-2016))
+  
+  # Replace the disc_PV value by 0 if less year < 2111
+  df <- df %>% 
+    mutate(disc_PV = case_when(year < 2111 ~ 0,
+                               year >= 2111 ~ disc_PV))
+  # Calculate sums 
+  df <- df %>% 
+    group_by(id, regime) %>% 
+    summarize(NPV = sum(disc_PV, na.rm = T)+
+                sum(disc_income, na.rm = T))
+  
+  return(df) 
+}
+
+
+
+
+
 # ------------------------------------------
 #  Add initial year based on SA values
 # ------------------------------------------
