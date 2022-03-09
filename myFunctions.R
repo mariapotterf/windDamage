@@ -18,21 +18,28 @@ cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
 
 calculate_NPV <- function(df, ...) {
   
+  # get indication of the climChange scenario
+  df <- df  %>% 
+    mutate(climChange = case_when(
+      grepl("RCP0", name)  ~ "REF",
+      grepl("RCP45", name) ~ "RCP45",
+      grepl("RCP85", name) ~ "RCP85"))
+  
   # Calculate discounted income and PV 
   df$disc_income = df$cash_flow/(1.03^(df$year-2016))
-  df$disc_PV = df$PV/(1.03^(df$year-2016))
+  df$disc_PV     = df$PV/(1.03^(df$year-2016))
   
   # Replace the disc_PV value by 0 if less year < 2111
-  df <- df %>% 
+  df1 <- df %>% 
     mutate(disc_PV = case_when(year < 2111 ~ 0,
                                year >= 2111 ~ disc_PV))
   # Calculate sums 
-  df <- df %>% 
-    group_by(id, regime) %>% 
+  df1 <- df1 %>% 
+    group_by(id, branching_group, climChange) %>% #branching_group
     summarize(NPV = sum(disc_PV, na.rm = T)+
                 sum(disc_income, na.rm = T))
   
-  return(df) 
+  return(df1) 
 }
 
 
