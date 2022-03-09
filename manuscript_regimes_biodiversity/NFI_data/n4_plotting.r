@@ -47,32 +47,53 @@ theme_update(panel.grid.major = element_line(colour = "grey95",  # background gr
 inPath   = myPath
 inFolder = "output/plotting"
 inName   = 'df_filt.csv'
+inNPV    = 'df_NPV.csv'
 
-# Input table
+# Input data table witha all data
 df.out <- data.table::fread(paste(inPath, inFolder, inName,  sep = "/"),  # 
                                                                 data.table=TRUE, 
                                                                 stringsAsFactors = FALSE,
                                                                 integer64="character")
+# Input table with NPV values
+df.NPV <- data.table::fread(paste(inPath, inFolder, inNPV,  sep = "/"),  # 
+                            data.table=TRUE, 
+                            stringsAsFactors = FALSE,
+                            integer64="character")
 
 
 
 # Order factors levels ----------------------------------------------------
 
+# Regimes
+regime_levels = c("short_30", 
+                "short_10", 
+                "noThin",
+                "BAU", 
+                "ext_10", 
+                "ext_30", 
+                "GTR", 
+                "CCF")
+
+clim_levels = c("REF", "RCP45", "RCP85")
+
 # Climate change
 df.out$climChange <-factor(df.out$climChange, 
-                           levels = c("REF", "RCP45", "RCP85"))
+                           levels = clim_levels)
 
-# Regimes
+
 df.out <- df.out %>% 
   mutate(regime = factor(regime, 
-                         levels = c("short_30", "short_10", "noThin","BAU", "ext_10", "ext_30", "GTR", "CCF")))
+                         levels = regime_levels))
 
 
-# time effect
-df.out$timeEffect <-factor(df.out$timeEffect, 
-                           levels = c("short-term", 'long-term'))
+# order the NPV values
+df.NPV$climChange <-factor(df.NPV$climChange, 
+                           levels = clim_levels)
 
 
+df.NPV <- df.NPV %>% 
+  mutate(regime = factor(regime, 
+                         levels = regime_levels))
 
 
 # Create plots  ----------------------------------------------------------------------------------------
@@ -500,22 +521,40 @@ df_wind <-
   ungroup()
 
 
-
+# Change in NPV:
+df_NPV <- 
+  df.NPV %>% 
+  group_by(climChange, id, regime) %>% 
+  summarize(mean_NPV = mean(NPV, na.rm = T)) %>%  
+  mutate(norm_NPV    = (mean_NPV /mean(mean_NPV[regime == "BAU"])) - 1) %>%
+  select(id, climChange, regime, norm_NPV) %>% 
+  ungroup()
+  
 
 
 
 # Bar plot: wind risk, log and pulp -------------------------------------
 
 
-windows(height = 3.5, width=7)
-left_join(df_log, df_pulp) %>% 
+windows(height = 7, width= 7)
+
+# JOin the data and make a plot
+left_join(df_log, 
+          df_pulp) %>% 
   left_join(df_wind) %>% 
+  left_join(df_NPV) %>% 
   pivot_longer(!c(id, regime, climChange), #everything(vars = NULL),
                names_to = "Indicator", 
                values_to = "perc_ch")  %>%
   mutate(Indicator = factor(Indicator, 
-                            levels = c('norm_risk', 'norm_log', 'norm_pulp' ),
-                            labels = c('Wind damage risk', 'Log timber',      'Pulp timber'))) %>% 
+                            levels = c('norm_risk', 
+                                       'norm_NPV',
+                                       'norm_log', 
+                                       'norm_pulp'),
+                            labels = c('Wind damage risk',
+                                       'NPV',
+                                       'Log timber', 
+                                       'Pulp timber'))) %>% 
   
   filter(regime != 'BAU') %>% 
   ggplot(aes(x = regime,
@@ -532,15 +571,14 @@ left_join(df_log, df_pulp) %>%
                position = 'dodge') +
   geom_hline(yintercept = 0) +
   coord_flip() +
-  facet_grid(.~ Indicator, scales = 'free') +
+  facet_wrap(.~ Indicator, scales = 'free') +
   scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
                     name="Climate change") +
   ylab("Difference from BAU scenario [%]") +
   xlab(lab_manag) +
   theme_bw()  + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        #legend.position = 'bottom',
-        legend.position = c(.2, .3), # legend position within the plot, x, y
+        legend.position = c(.28, .7), # legend position within the plot, x, y
         legend.title = element_text(size=10),
         legend.text  = element_text(size=8),
         legend.background = element_rect(fill = "white", color = "black"),
