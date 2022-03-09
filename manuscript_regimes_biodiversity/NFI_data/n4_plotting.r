@@ -102,6 +102,19 @@ df.NPV <- df.NPV %>%
 lab_manag = c("Regime adaptation")
 
 
+
+
+# Get stats for the NPV ---------------------------------------------------
+df.NPV %>% 
+  group_by(regime, climChange) %>% 
+  summarise(mean_NPV = mean(NPV, na.rm = T)#,
+            #sd_NPV = sd(NPV, na.rm = T)
+            ) %>% 
+  pivot_wider(names_from = c(regime),
+              values_from = mean_NPV)
+
+
+
 # Plots for averaged deadwood and volume over short vs long-term - no need for that, comment out
 # 
 # p.DW <- df.out %>% 
@@ -888,6 +901,9 @@ df.ind.diff %>%
 
 # Calculate first sums and means for harvested volume:
 
+
+
+
 df.timber <- df.out %>% 
   group_by(id, climChange, regime) %>% # modif, #geo_grad,
   summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
@@ -904,13 +920,16 @@ df.timber <- df.out %>%
 
 df_summary_main <-
   df.out %>% 
+  left_join(df.NPV) %>% 
   group_by(climChange, regime) %>% 
   summarise(windRisk_mean = round(mean(windRisk, na.rm = T)*100, digits = 1),
             windRisk_sd   = round(sd(windRisk, na.rm = T)*100, digits = 1),
             HSI_mean      = round(mean(COMBINED_HSI, na.rm = T), digits = 1),
             HSI_sd        = round(sd(COMBINED_HSI, na.rm = T), digits = 1),
             DW_mean       = round(mean(V_total_deadwood, na.rm = T), digits = 1),
-            DW_sd         = round(sd(V_total_deadwood, na.rm = T), digits = 1)) %>% 
+            DW_sd         = round(sd(V_total_deadwood, na.rm = T), digits = 1),
+            NPV_mean       = round(mean(NPV, na.rm = T), digits = 0),
+            NPV_sd         = round(sd(NPV, na.rm = T), digits = 0)) %>% 
   left_join(df.timber)
 
 
@@ -922,9 +941,10 @@ formated_df_main <-
          Deadwood      = stringr::str_glue("{DW_mean}±{DW_sd}"),
          Harvested_log = stringr::str_glue("{mean_sum_V_log}±{sd_sum_V_log}"),
          Harvested_pulp= stringr::str_glue("{mean_sum_V_pulp}±{sd_sum_V_pulp}"),
+         NPV           = stringr::str_glue("{NPV_mean}±{NPV_sd}"),
   ) %>%  #,  {scales::percent(sd_height)}
   dplyr::select(regime, climChange, WindDamage, Deadwood,
-                Combined_HSI, Harvested_log, Harvested_pulp)
+                Combined_HSI, Harvested_log, Harvested_pulp, NPV)
 
 
 
