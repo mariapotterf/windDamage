@@ -57,8 +57,14 @@ df.out <- data.table::fread(paste(inPath, inFolder, inName,  sep = "/"),  #
                             integer64="character")
 
 
-# Make table: initial conditions
-(tot_stands = length(unique(df.out$id)))
+# Make table: initial conditions: 25394 stands
+(tot_stands = 
+    df.out %>% 
+      filter(year == 2016 & MAIN_SP != 0 & 
+               regime == 'BAU' & climChange == 'REF') %>% 
+      tally() %>%
+      pull())
+    #length(unique(df.out$id)))
 
 # Make a summary table
 summary_df <- 
@@ -68,7 +74,7 @@ summary_df <-
                              MAIN_SP == 2 ~ "spruce",
                             TRUE ~ "other")) %>%
   dplyr::select(-MAIN_SP) %>% 
-  group_by(species) %>% 
+  group_by(species) %>%
   summarise(mean_height = round(mean(H_dom, na.rm = T), digits = 1),
             sd_height   = round(sd(  H_dom, na.rm = T), digits = 1),
             mean_Age    = round(mean(Age, na.rm = T),   digits = 1),
@@ -94,7 +100,6 @@ formated_df <-
          Species_share = stringr::str_glue("{n}({share_n})")) %>%  #,  {scales::percent(sd_height)}
   #Age    = stringr::str_glue("{scales::percent(share_bball, accuracy = 1)} ({count_bball} / {n})")) %>%
   tidyr::complete(species)  %>%
-
   dplyr::arrange(desc(Species_share)) %>%   # arrange by the importance NOT WORKING!
   dplyr::select(species, Species_share, Height, Age, Volume, Deadwood) 
 
