@@ -114,63 +114,6 @@ df.NPV %>%
               values_from = mean_NPV)
 
 
-# Make a bar plot for NPV
-
-
-
-# Plots for averaged deadwood and volume over short vs long-term - no need for that, comment out
-# 
-# p.DW <- df.out %>% 
-#   group_by(regime, climChange, timeEffect) %>% 
-#   summarize(DW_mean = mean(V_total_deadwood, na.rm = T)) %>% 
-#   ggplot(aes(x = regime,
-#              y = DW_mean,
-#              color = climChange,
-#              group = climChange)) +
-#   geom_line() + 
-#   geom_point() +
-#   ylim(0,40)+
-#   ylab("Deadwood volume \n [m3/ha]") +
-#   xlab(lab_manag) + 
-#   facet_grid(.~timeEffect, scales = 'free') + # scales="free"
-#   viridis::scale_color_viridis(discrete = TRUE) +
-# theme( axis.title  = element_text(size = 9, face="plain", family = "sans"),
-#         axis.text   = element_text(size=8),
-#        axis.text.x = element_text(angle = 90, 
-#                                  vjust = 0.5, 
-#                                  hjust=1))
-# 
-# # Total stand volume
-# p.V <- df.out %>% 
-#   #sample_n(500000) %>% 
-#   group_by(regime, climChange, timeEffect) %>% 
-#   summarize(V_mean = mean(V, na.rm = T)) %>% 
-#   ggplot(aes(x = regime,
-#              y = V_mean,
-#              color = climChange,
-#              group = climChange)) +
-#   geom_line() + 
-#   geom_point() +
-#   ylab("Volume \n[m3/ha]") +
-#   xlab(lab_manag) + 
-#   facet_grid(.~timeEffect, scales = 'free') +
-#   viridis::scale_color_viridis(discrete = TRUE) +
-#   theme( axis.title  = element_text(size = 9, face="plain", family = "sans"),
-#          axis.text   = element_text(size = 8),
-#          axis.text.x = element_text(angle = 90, 
-#                                    vjust = 0.5, 
-#                                    hjust=1))
-# 
-# 
-# 
-# windows(width = 7,height = 2.4)
-# ggarrange(p.V, p.DW, 
-#           ncol = 2, 
-#           nrow = 1, 
-#           labels = "auto",
-#           common.legend = T, 
-#           legend = 'bottom' )
-
 
 
 
@@ -1412,6 +1355,81 @@ cols_ylRd3 <- c(	'#ff9a00', # yellow
 #                 SUPPLEMENTARY material
 #
 ############################################################################
+
+
+# Make a bar plot for NPV & timber volume for Supplementary materials
+
+df_harv <- df.out %>% 
+  group_by(id, climChange, regime) %>% # modif, #geo_grad,
+  summarise(sum_V_log     = sum(Harvested_V_log, na.rm = T),
+            sum_V_pulp    = sum(Harvested_V_pulp, na.rm = T))
+
+# Get plot for the timber:
+windows(7, 4)
+df_harv %>% 
+  pivot_longer(!c(id, regime, climChange), #everything(vars = NULL),
+               names_to = "Indicator", 
+               values_to = "Volume")  %>%
+  mutate(Indicator = factor(Indicator, 
+                            levels = c('sum_V_log', 'sum_V_pulp'),
+                            labels = c('Log', 'Pulp' ))) %>% 
+  ggplot(aes(x = regime,
+             y = Volume,
+             fill = climChange)) + 
+  stat_summary(geom = 'bar', 
+               fun = 'mean',
+               position = 'dodge') +
+  stat_summary(geom = 'errorbar', 
+               fun.data = mean_cl_normal,# mean_sdl, #, 
+               fun.args=list(mult = 3), 
+               position = 'dodge') +
+  facet_wrap(.~ Indicator) +
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                    name="Climate change") +
+  ylab("Harvested timber volume [m3/ha]") +
+  xlab(lab_manag) +
+  theme_bw()  + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        #legend.position = c(.28, .7), # legend position within the plot, x, y
+        legend.position = 'bottom',
+        legend.title = element_text(size=10),
+        legend.text  = element_text(size=8),
+        legend.background = element_rect(fill = "white", color = "white"),
+        legend.box.background = element_rect(colour = "black")) 
+
+
+# Get plot for NPV
+
+# Get plot for the timber:
+windows(7, 4)
+df.NPV %>% 
+  ggplot(aes(x = regime,
+             y = NPV,
+             fill = climChange)) + 
+  stat_summary(geom = 'bar', 
+               fun = 'mean',
+               position = 'dodge') +
+  stat_summary(geom = 'errorbar', 
+               fun.data = mean_cl_normal,# mean_sdl, #, 
+               fun.args=list(mult = 3), 
+               position = 'dodge') +
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                    name="Climate change") +
+  ylab("Net present volume [ €/ha]") +
+  xlab(lab_manag) +
+  theme_bw()  + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom',
+        legend.title = element_text(size=10),
+        legend.text  = element_text(size=8),
+        legend.background = element_rect(fill = "white", color = "white"),
+        legend.box.background = element_rect(colour = "black")) 
+
+
+
+
+
+
 
 
 # For supplementary material -------------------------------------------------------
