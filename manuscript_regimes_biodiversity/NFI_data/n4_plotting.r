@@ -74,7 +74,9 @@ regime_levels = c("short_30",
                 "GTR", 
                 "CCF")
 
-clim_levels = c("REF", "RCP45", "RCP85")
+clim_levels = c("REF",
+                "RCP45", 
+                "RCP85")
 
 # Climate change
 df.out$climChange <-factor(df.out$climChange, 
@@ -117,7 +119,7 @@ df.NPV %>%
 
 
 
-# Why the NPV can be the same between BAU and noThin?  -------------------------
+# (not run) Why the NPV can be the same between BAU and noThin?  -------------------------
 # changes in tree species (getting towards spruce instead or pine? shortened rotation compared to 
 # species change)
 # check frequency of dom tree species between regimes?
@@ -144,6 +146,12 @@ df.out %>%
 
 
 # Check the average age at the harvests? is it later at the noThin?
+# not visible at the 5-yr time resolution
+
+
+
+
+
 
 
 
@@ -1489,6 +1497,61 @@ df.NPV %>%
         legend.text  = element_text(size=8),
         legend.background = element_rect(fill = "white", color = "white"),
         legend.box.background = element_rect(colour = "black")) 
+
+
+
+
+# Get plot for parts of NPV: income  + PV -----------------------------------------
+
+# PLOT Supplementary Compare the NPV calculation by plots: ------------------------------
+
+#windows()
+p_PV <- df.NPV %>% 
+  filter(regime == 'BAU' | regime == 'noThin' | regime == 'GTR') %>% 
+  ggplot(aes(x = regime,
+             y = sum_dist_PV,
+             fill = climChange)) +
+  geom_boxplot( outlier.shape=NA) +
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                    name="Climate change") +
+  ylab("Present value [€/ha]") +
+  coord_cartesian(ylim = c(0, 3000)) + 
+  xlab(lab_manag) +
+  theme_bw()  + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1),
+        legend.position = 'bottom',
+        legend.title = element_text(size=10),
+        legend.text  = element_text(size=8),
+        legend.background = element_rect(fill = "white", color = "white"),
+        legend.box.background = element_rect(colour = "black")) 
+  
+  
+
+p_income <- df.NPV %>% 
+  filter(regime == 'BAU' | regime == 'noThin' | regime == 'GTR') %>% 
+  ggplot(aes(x = regime,
+             y = sum_dist_income,
+             fill = climChange)) +
+  geom_boxplot(outlier.shape=NA) +
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                    name="Climate change") +
+  ylab("Income [€/ha]") +
+  coord_cartesian(ylim = c(0, 20000)) + 
+  xlab(lab_manag) +
+  theme_bw()  + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1),
+        legend.position = 'bottom',
+        legend.title = element_text(size=10),
+        legend.text  = element_text(size=8),
+        legend.background = element_rect(fill = "white", color = "white"),
+        legend.box.background = element_rect(colour = "black")) 
+
+windows(7,3.1)
+ggarrange(p_PV, p_income, 
+          ncol = 2,
+          nrow = 1,
+          common.legend = TRUE,
+          legend = 'right')
 
 
 
