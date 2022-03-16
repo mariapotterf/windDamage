@@ -117,6 +117,44 @@ df.NPV %>%
 
 
 
+# Why the NPV can be the same between BAU and noThin?  -------------------------
+# changes in tree species (getting towards spruce instead or pine? shortened rotation compared to 
+# species change)
+# check frequency of dom tree species between regimes?
+# or H_dom?
+# or age at harvest? age should be ollder at no thinning
+head(df.out)
+
+# Get individual tree species:
+#df.out
+mutate(species = case_when(MAIN_SP == 1 ~ "pine",
+                           MAIN_SP == 2 ~ "spruce",
+                           TRUE ~ "other")) %>% 
+
+
+# The tree species remains the same: no effect on NPV
+df.out %>% 
+  filter(climChange == 'REF' & (regime == 'BAU' | regime == 'noThin')
+         & year > 2080) %>% 
+  mutate(species = case_when(MAIN_SP == 1 ~ "pine",
+                             MAIN_SP == 2 ~ "spruce",
+                             TRUE ~ "other")) %>% 
+  group_by(regime, species) %>% 
+  tally()
+
+
+# Check the average age at the harvests? is it later at the noThin?
+
+
+
+
+
+
+
+
+
+
+
 # Explore the data basic statistics --------------------------------------------------------
 
 
@@ -1232,19 +1270,46 @@ df.out %>%
 
 
 # Try for another stand id: 101000407
-my_id = '101000407'
+my_id = '101400206'  # age 0 at 2016
 
 windows()
 df.out %>% 
-  filter(id == my_id & climChange == "RCP85") %>% 
-  filter(regime == "BAU" | regime == 'noThin' | regime == 'ext_30') %>% 
+  filter(id == my_id & climChange == "REF") %>% 
+  filter(regime == "BAU" | regime == 'noThin' ) %>% 
   dplyr::select(year, Age, V_total_deadwood, climChange, regime) %>% 
-  arrange(year) %>% 
+  arrange(year)# %>% 
   ggplot(aes(x = year, 
              y = Age,
              color = regime)) +
-  geom_line() +
+  geom_line() #+
   facet_grid(.~regime)
+  
+  
+# Is the shift visible for stands that are older at the 2016, and under REF85? 
+# Get random stand id that is old in 2016
+df.out %>% 
+  filter(year == 2016 & Age > 90)# %>% 
+  distinct(id) 
+
+
+df.out %>% filter(id == 101400401      )
+
+
+# 101400401 #  no effect of postponing the harvest even in old stands, between NPV and noThin
+  
+  windows()
+  df.out %>% 
+    filter(id == 101400401 & climChange == "RCP85") %>% 
+    filter(regime == "BAU" | regime == 'noThin' ) %>% 
+    dplyr::select(year, Age, V, climChange, regime) %>% 
+    arrange(year) %>% 
+  ggplot(aes(x = year, 
+             y = Age,# V, #Age, #
+             color = regime)) +
+    geom_line() #+
+  #facet_grid(.~regime)
+  
+  
 
 windows()
 df.out %>% 
