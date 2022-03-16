@@ -36,8 +36,9 @@ calculate_NPV <- function(df, ...) {
   # Calculate sums 
   df1 <- df1 %>% 
     group_by(id, branching_group, climChange) %>% #branching_group
-    summarize(NPV = sum(disc_PV, na.rm = T)+
-                sum(disc_income, na.rm = T))
+    summarize(sum_dist_PV     = sum(disc_PV, na.rm = T),
+              sum_dist_income = sum(disc_income, na.rm = T),
+              NPV = sum_dist_PV + sum_dist_income)
   
   return(df1) 
 }
