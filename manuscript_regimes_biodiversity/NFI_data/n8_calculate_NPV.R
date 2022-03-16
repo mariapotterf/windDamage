@@ -99,28 +99,8 @@ df.out <- df.out %>%
 
 
 
-# Plot: is the PV (present value of standing trees) different between noThin and BAU?
-
-
-
-
 # Export final table ------------------------------------------------------
 data.table::fwrite(df.out, paste(inPath, outFolder, outName, sep = "/"))
 
 
-
-
-
-# Set themes ----
-theme_set(theme_classic())
-theme_update(panel.grid.major = element_line(colour = "grey95",  # background gridlines
-                                             size = 0.1,
-                                             linetype = 2),
-             strip.background = element_rect(color="white",      # headings for facets
-                                             fill="white",
-                                             size=0.1, 
-                                             linetype="solid"),
-             panel.background = element_rect(fill = "white",     # individual plots
-                                             colour = "grey50",
-                                             linetype = "solid"))
 
