@@ -1507,7 +1507,7 @@ df.NPV %>%
 
 #windows()
 p_PV <- df.NPV %>% 
-  filter(regime == 'BAU' | regime == 'noThin' | regime == 'GTR') %>% 
+ # filter(regime == 'BAU' | regime == 'noThin' | regime == 'GTR') %>% 
   ggplot(aes(x = regime,
              y = sum_dist_PV,
              fill = climChange)) +
@@ -1518,7 +1518,7 @@ p_PV <- df.NPV %>%
   coord_cartesian(ylim = c(0, 3000)) + 
   xlab(lab_manag) +
   theme_bw()  + 
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1),
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position = 'bottom',
         legend.title = element_text(size=10),
         legend.text  = element_text(size=8),
@@ -1528,7 +1528,7 @@ p_PV <- df.NPV %>%
   
 
 p_income <- df.NPV %>% 
-  filter(regime == 'BAU' | regime == 'noThin' | regime == 'GTR') %>% 
+  #filter(regime == 'BAU' | regime == 'noThin' | regime == 'GTR') %>% 
   ggplot(aes(x = regime,
              y = sum_dist_income,
              fill = climChange)) +
@@ -1539,7 +1539,7 @@ p_income <- df.NPV %>%
   coord_cartesian(ylim = c(0, 20000)) + 
   xlab(lab_manag) +
   theme_bw()  + 
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1),
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position = 'bottom',
         legend.title = element_text(size=10),
         legend.text  = element_text(size=8),
@@ -1551,7 +1551,7 @@ ggarrange(p_PV, p_income,
           ncol = 2,
           nrow = 1,
           common.legend = TRUE,
-          legend = 'right')
+          legend = 'bottom')
 
 
 
