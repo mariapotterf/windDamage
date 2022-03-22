@@ -153,47 +153,6 @@ df.out %>%
 
 
 
-# How much area each species covers?
-
-# The extend of tiles: 12 tiles from N to S
-# size of the stand: 
-# N = 16*16 pixels, 16 m resolution
-# S = 9*9 pixels, 16 m resolution
-
-n_area = (16*16)^2/10000
-s_area = (9*16)^2/10000
-tiles = 11  # the x is excluded
-
-# Interpolate the value between north and souths: from 2 ha (South) to 6.5 ha (North)
-increase = (n_area-s_area)/tiles
-
-# Check calculation: correct! 
-2+increase*11
-
-# get a vector of increasing values:
-vec = 1:(tiles-2)
-2+increase*vec
-
-# Predict approaximate stand size for each tiles:
-df_area = data.frame(cell = c('l',
-                              'm',
-                              'n',
-                              'p',
-                              'q',
-                              'r',
-                              's',
-                              't',
-                              'u',
-                              'v',
-                              'w'),
-                     avg_area = c(s_area, 
-                                  2+increase*vec, 
-                                  n_area))
-
-
-
-
-
 
 
 
@@ -990,6 +949,122 @@ df.ind.diff2 %>%
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
         legend.position = 'bottom')# +
+
+
+
+
+
+
+
+
+# ------------------------------------------------------------------------------
+# 
+#                      Habitat availability
+# 
+# ------------------------------------------------------------------------------
+
+
+
+# What is habitat availability for each species ??  ----------------------------
+
+# predict the area of each stand across Finland based on its location in tile
+
+# The extend of tiles: 12 tiles from N to S
+# size of the stand: 
+# N = 16*16 pixels, 16 m resolution
+# S = 9*9 pixels, 16 m resolution
+
+n_area = (16*16)^2/10000
+s_area = (9*16)^2/10000
+tiles = 13  # 13 includes k and x tiles
+
+# Interpolate the value between north and souths: from 2 ha (South) to 6.5 ha (North)
+increase = (n_area-s_area)/tiles
+
+# Check calculation: correct! 
+2+increase*tiles
+
+# get a vector of increasing values:
+vec = 1:(tiles-2)
+2+increase*vec
+
+# Predict approaximate stand size for each tiles:
+df_area = data.frame(text = c('k',
+                              'l',
+                              'm',
+                              'n',
+                              'p',
+                              'q',
+                              'r',
+                              's',
+                              't',
+                              'u',
+                              'v',
+                              'w',
+                              'x'),
+                     stand_area = c(s_area, 
+                                    2+increase*vec, 
+                                    n_area))
+
+
+# Add predcited stand area to the original table
+# first separate the letters from numbers in 'cell' field;
+# then join the 
+df.habit <- df.out %>%
+ # dplyr::select(-c(magnit, since_thin, timeEffect)) %>% 
+  separate(cell, 
+           into = c("text", "num"), 
+           sep = "(?<=[A-Za-z])(?=[0-9])"
+  )
+
+# Join tables together
+df.habit <- df.habit %>%
+  left_join(df_area)
+
+
+# Classify habitat suitability: HSI > 0.7 is suitable
+# the calculate, how much habitat is available for particullar species:
+
+#"CAPERCAILLIE"              "HAZEL_GROUSE"              "THREE_TOED_WOODPECKER"    
+#"LESSER_SPOTTED_WOODPECKER" "LONG_TAILED_TIT"           "SIBERIAN_FLYING_SQUIRREL" 
+
+df.habit <- df.habit %>% 
+  mutate( CAPERCAILLIE = ifelse(CAPERCAILLIE > 0.7, 1, 0),
+          HAZEL_GROUSE = ifelse(HAZEL_GROUSE > 0.7, 1, 0),
+          THREE_TOED_WOODPECKER = ifelse(THREE_TOED_WOODPECKER > 0.7, 1, 0),
+          LESSER_SPOTTED_WOODPECKER = ifelse(LESSER_SPOTTED_WOODPECKER > 0.7, 1, 0),
+          LONG_TAILED_TIT = ifelse(LONG_TAILED_TIT > 0.7, 1, 0),
+          SIBERIAN_FLYING_SQUIRREL = ifelse(SIBERIAN_FLYING_SQUIRREL > 0.7, 1, 0)) %>% 
+  select(c(year, regime, climChange, 
+           CAPERCAILLIE,
+           HAZEL_GROUSE,
+           THREE_TOED_WOODPECKER,
+           LESSER_SPOTTED_WOODPECKER, 
+           LONG_TAILED_TIT, 
+           SIBERIAN_FLYING_SQUIRREL, 
+           stand_area))
+
+
+# Convert from wide to long
+df.habit.long <- df.habit %>% 
+  pivot_longer()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
