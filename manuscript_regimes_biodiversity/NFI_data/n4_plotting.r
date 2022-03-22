@@ -1060,7 +1060,7 @@ df.habit.long <- df.habit2 %>%
 # Get the total forest area for each regime abnd climChange:
 # this value is for all stands across 20 years and 
 sum_forest = df.habit.long %>% 
-  filter(Indicator == 'CAPERCAILLIE')  %>%  # filter only one species 
+  filter(Indicator == 'CAPERCAILLIE' & climChange == 'REF' & regime == 'BAU')  %>%  # filter only one species 
   #group_by(regime, climChange) %>% 
   summarize(sum_forest = sum(stand_area)) %>% 
   pull()
@@ -1069,17 +1069,35 @@ sum_forest = df.habit.long %>%
 
 
 # Summarize the table by categories
+
+windows()
 df.habit.long %>% 
   group_by(regime, climChange, Indicator, HSI) %>% 
   summarize(sum_HSI = sum(stand_area)) %>%
   filter(HSI == 1) %>% 
   ggplot(aes(x = regime,
-             y = sum_HSI/sum_forest,
+             y = sum_HSI/sum_forest*100,
              fill = climChange)) +
     geom_col(position = "dodge") +
-  facet_wrap(.~Indicator, scales = 'free')
+  ylab('Available habitat share [%]') + 
+  facet_wrap(.~Indicator, scales = 'free') +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')
 
 
+windows()
+df.habit.long %>% 
+  group_by(regime, climChange, Indicator, HSI) %>% 
+  summarize(sum_HSI = sum(stand_area)) %>%
+  filter(HSI == 1) %>% 
+  ggplot(aes(x = regime,
+             y = sum_HSI/20,
+             fill = climChange)) +
+  ylab('Available habitat [ha]') + 
+  geom_col(position = "dodge") +
+  facet_wrap(.~Indicator, scales = 'free') +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')
 
 
 
