@@ -989,6 +989,7 @@ vec = 1:(tiles-2)
 2+increase*vec
 
 # Predict approaximate stand size for each tiles:
+# the area is in hectares
 df_area = data.frame(text = c('k',
                               'l',
                               'm',
@@ -1018,8 +1019,8 @@ df.habit <- df.out %>%
   )
 
 # Join tables together
-df.habit <- df.habit %>%
-  left_join(df_area)
+#df.habit <- df.habit %>%
+ # left_join(df_area)
 
 
 # Classify habitat suitability: HSI > 0.7 is suitable
@@ -1028,27 +1029,55 @@ df.habit <- df.habit %>%
 #"CAPERCAILLIE"              "HAZEL_GROUSE"              "THREE_TOED_WOODPECKER"    
 #"LESSER_SPOTTED_WOODPECKER" "LONG_TAILED_TIT"           "SIBERIAN_FLYING_SQUIRREL" 
 
-df.habit <- df.habit %>% 
+df.habit2 <- df.habit %>% 
   mutate( CAPERCAILLIE = ifelse(CAPERCAILLIE > 0.7, 1, 0),
           HAZEL_GROUSE = ifelse(HAZEL_GROUSE > 0.7, 1, 0),
           THREE_TOED_WOODPECKER = ifelse(THREE_TOED_WOODPECKER > 0.7, 1, 0),
           LESSER_SPOTTED_WOODPECKER = ifelse(LESSER_SPOTTED_WOODPECKER > 0.7, 1, 0),
           LONG_TAILED_TIT = ifelse(LONG_TAILED_TIT > 0.7, 1, 0),
           SIBERIAN_FLYING_SQUIRREL = ifelse(SIBERIAN_FLYING_SQUIRREL > 0.7, 1, 0)) %>% 
-  select(c(year, regime, climChange, 
+  select(c(regime, climChange, 
            CAPERCAILLIE,
            HAZEL_GROUSE,
            THREE_TOED_WOODPECKER,
            LESSER_SPOTTED_WOODPECKER, 
            LONG_TAILED_TIT, 
            SIBERIAN_FLYING_SQUIRREL, 
-           stand_area))
+           #stand_area,
+           text))
+
 
 
 # Convert from wide to long
-df.habit.long <- df.habit %>% 
-  pivot_longer()
+df.habit.long <- df.habit2 %>% 
+  pivot_longer(!c(regime, climChange, text), #everything(vars = NULL),
+               names_to = "Indicator", 
+               values_to = "HSI")  %>%
+  left_join(df_area) %>% # join area table
+  mutate(HSI_area = stand_area*HSI) #%>%
 
+
+# Get the total forest area for each regime abnd climChange:
+# this value is for all stands across 20 years and 
+sum_forest = df.habit.long %>% 
+  filter(Indicator == 'CAPERCAILLIE')  %>%  # filter only one species 
+  #group_by(regime, climChange) %>% 
+  summarize(sum_forest = sum(stand_area)) %>% 
+  pull()
+
+
+
+
+# Summarize the table by categories
+df.habit.long %>% 
+  group_by(regime, climChange, Indicator, HSI) %>% 
+  summarize(sum_HSI = sum(stand_area)) %>%
+  filter(HSI == 1) %>% 
+  ggplot(aes(x = regime,
+             y = sum_HSI/sum_forest,
+             fill = climChange)) +
+    geom_col(position = "dodge") +
+  facet_wrap(.~Indicator, scales = 'free')
 
 
 
