@@ -153,7 +153,42 @@ df.out %>%
 
 
 
+# How much area each species covers?
 
+# The extend of tiles: 12 tiles from N to S
+# size of the stand: 
+# N = 16*16 pixels, 16 m resolution
+# S = 9*9 pixels, 16 m resolution
+
+n_area = (16*16)^2/10000
+s_area = (9*16)^2/10000
+tiles = 11  # the x is excluded
+
+# Interpolate the value between north and souths: from 2 ha (South) to 6.5 ha (North)
+increase = (n_area-s_area)/tiles
+
+# Check calculation: correct! 
+2+increase*11
+
+# get a vector of increasing values:
+vec = 1:(tiles-2)
+2+increase*vec
+
+# Predict approaximate stand size for each tiles:
+df_area = data.frame(cell = c('l',
+                              'm',
+                              'n',
+                              'p',
+                              'q',
+                              'r',
+                              's',
+                              't',
+                              'u',
+                              'v',
+                              'w'),
+                     avg_area = c(s_area, 
+                                  2+increase*vec, 
+                                  n_area))
 
 
 
