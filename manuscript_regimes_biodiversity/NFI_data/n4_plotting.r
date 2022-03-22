@@ -48,6 +48,7 @@ inPath   = myPath
 inFolder = "output/plotting"
 inName   = 'df_filt.csv'
 inNPV    = 'df_NPV.csv'
+outHabitat  = 'df_HSI.csv'
 
 # Input data table witha all data
 df.out <- data.table::fread(paste(inPath, inFolder, inName,  sep = "/"),  # 
@@ -1018,6 +1019,12 @@ df.habit <- df.out %>%
            sep = "(?<=[A-Za-z])(?=[0-9])"
   )
 
+# Read table
+df.habit <- data.table::fread(paste(inPath, inFolder, outHabitat, sep = "/"))
+
+# Export table
+#data.table::fwrite(df.habit, paste(inPath, inFolder, outHabitat, sep = "/"))
+
 # Join tables together
 #df.habit <- df.habit %>%
  # left_join(df_area)
@@ -1029,13 +1036,38 @@ df.habit <- df.out %>%
 #"CAPERCAILLIE"              "HAZEL_GROUSE"              "THREE_TOED_WOODPECKER"    
 #"LESSER_SPOTTED_WOODPECKER" "LONG_TAILED_TIT"           "SIBERIAN_FLYING_SQUIRREL" 
 
-df.habit2 <- df.habit %>% 
-  mutate( CAPERCAILLIE = ifelse(CAPERCAILLIE > 0.7, 1, 0),
-          HAZEL_GROUSE = ifelse(HAZEL_GROUSE > 0.7, 1, 0),
-          THREE_TOED_WOODPECKER = ifelse(THREE_TOED_WOODPECKER > 0.7, 1, 0),
+
+# get wtwo thresholds: HSi = 0, HSI = 0.7
+
+# FOR HSI > 0
+df.habit00 <- df.habit %>% 
+  mutate( CAPERCAILLIE              = ifelse(CAPERCAILLIE > 0, 1, 0),
+          HAZEL_GROUSE              = ifelse(HAZEL_GROUSE > 0, 1, 0),
+          THREE_TOED_WOODPECKER     = ifelse(THREE_TOED_WOODPECKER > 0, 1, 0),
+          LESSER_SPOTTED_WOODPECKER = ifelse(LESSER_SPOTTED_WOODPECKER > 0, 1, 0),
+          LONG_TAILED_TIT           = ifelse(LONG_TAILED_TIT > 0, 1, 0),
+          SIBERIAN_FLYING_SQUIRREL  = ifelse(SIBERIAN_FLYING_SQUIRREL > 0, 1, 0)) %>% 
+  select(c(regime, climChange, 
+           CAPERCAILLIE,
+           HAZEL_GROUSE,
+           THREE_TOED_WOODPECKER,
+           LESSER_SPOTTED_WOODPECKER, 
+           LONG_TAILED_TIT, 
+           SIBERIAN_FLYING_SQUIRREL, 
+           #stand_area,
+           text))
+
+
+
+# FOR HSI > 0.7
+
+df.habit07 <- df.habit %>% 
+  mutate( CAPERCAILLIE              = ifelse(CAPERCAILLIE > 0.7, 1, 0),
+          HAZEL_GROUSE              = ifelse(HAZEL_GROUSE > 0.7, 1, 0),
+          THREE_TOED_WOODPECKER     = ifelse(THREE_TOED_WOODPECKER > 0.7, 1, 0),
           LESSER_SPOTTED_WOODPECKER = ifelse(LESSER_SPOTTED_WOODPECKER > 0.7, 1, 0),
-          LONG_TAILED_TIT = ifelse(LONG_TAILED_TIT > 0.7, 1, 0),
-          SIBERIAN_FLYING_SQUIRREL = ifelse(SIBERIAN_FLYING_SQUIRREL > 0.7, 1, 0)) %>% 
+          LONG_TAILED_TIT           = ifelse(LONG_TAILED_TIT > 0.7, 1, 0),
+          SIBERIAN_FLYING_SQUIRREL  = ifelse(SIBERIAN_FLYING_SQUIRREL > 0.7, 1, 0)) %>% 
   select(c(regime, climChange, 
            CAPERCAILLIE,
            HAZEL_GROUSE,
@@ -1049,7 +1081,16 @@ df.habit2 <- df.habit %>%
 
 
 # Convert from wide to long
-df.habit.long <- df.habit2 %>% 
+df.habit.long00 <- df.habit00 %>% 
+  pivot_longer(!c(regime, climChange, text), #everything(vars = NULL),
+               names_to = "Indicator", 
+               values_to = "HSI")  %>%
+  left_join(df_area) %>% # join area table
+  mutate(HSI_area = stand_area*HSI) #%>%
+
+
+# for HSI > 0.7
+df.habit.long07 <- df.habit07 %>% 
   pivot_longer(!c(regime, climChange, text), #everything(vars = NULL),
                names_to = "Indicator", 
                values_to = "HSI")  %>%
@@ -1059,7 +1100,7 @@ df.habit.long <- df.habit2 %>%
 
 # Get the total forest area for each regime abnd climChange:
 # this value is for all stands across 20 years and 
-sum_forest = df.habit.long %>% 
+sum_forest = df.habit.long07 %>% 
   filter(Indicator == 'CAPERCAILLIE' & climChange == 'REF' & regime == 'BAU')  %>%  # filter only one species 
   #group_by(regime, climChange) %>% 
   summarize(sum_forest = sum(stand_area)) %>% 
@@ -1068,17 +1109,19 @@ sum_forest = df.habit.long %>%
 
 
 
-# Summarize the table by categories
+# Summarize the table by categories, make plots: for HSI > 0.0, for HSI > .7
+
 
 windows()
-df.habit.long %>% 
+df.habit.long00 %>% 
   group_by(regime, climChange, Indicator, HSI) %>% 
   summarize(sum_HSI = sum(stand_area)) %>%
   filter(HSI == 1) %>% 
   ggplot(aes(x = regime,
              y = sum_HSI/sum_forest*100,
              fill = climChange)) +
-    geom_col(position = "dodge") +
+  geom_col(position = "dodge") +
+  ggtitle('HSI > 0.0') +
   ylab('Available habitat share [%]') + 
   facet_wrap(.~Indicator, scales = 'free') +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
@@ -1086,7 +1129,7 @@ df.habit.long %>%
 
 
 windows()
-df.habit.long %>% 
+df.habit.long00 %>% 
   group_by(regime, climChange, Indicator, HSI) %>% 
   summarize(sum_HSI = sum(stand_area)) %>%
   filter(HSI == 1) %>% 
@@ -1094,6 +1137,7 @@ df.habit.long %>%
              y = sum_HSI/20,
              fill = climChange)) +
   ylab('Available habitat [ha]') + 
+  ggtitle('HSI > 0.0') +
   geom_col(position = "dodge") +
   facet_wrap(.~Indicator, scales = 'free') +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
@@ -1104,6 +1148,52 @@ df.habit.long %>%
 
 
 
+
+
+
+
+
+
+
+
+
+
+windows()
+df.habit.long07 %>% 
+  group_by(regime, climChange, Indicator, HSI) %>% 
+  summarize(sum_HSI = sum(stand_area)) %>%
+  filter(HSI == 1) %>% 
+  ggplot(aes(x = regime,
+             y = sum_HSI/sum_forest*100,
+             fill = climChange)) +
+    geom_col(position = "dodge") +
+  ggtitle('HSI > 0.7') +
+  ylab('Available habitat share [%]') + 
+  facet_wrap(.~Indicator, scales = 'free') +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')
+
+
+windows()
+df.habit.long07 %>% 
+  group_by(regime, climChange, Indicator, HSI) %>% 
+  summarize(sum_HSI = sum(stand_area)) %>%
+  filter(HSI == 1) %>% 
+  ggplot(aes(x = regime,
+             y = sum_HSI/20,
+             fill = climChange)) +
+  ylab('Available habitat [ha]') + 
+  ggtitle('HSI > 0.7') +
+  geom_col(position = "dodge") +
+  facet_wrap(.~Indicator, scales = 'free') +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        legend.position = 'bottom')
+
+
+
+
+
+# check if % calculation is correct!!
 
 
 
@@ -1671,7 +1761,7 @@ p_PV <- df.NPV %>%
   geom_boxplot( outlier.shape=NA) +
   scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
                     name="Climate change") +
-  ylab("Present value [€/ha]") +
+  ylab("Discounted\npresent value [€/ha]") +
   coord_cartesian(ylim = c(0, 3000)) + 
   xlab(lab_manag) +
   theme_bw()  + 
@@ -1692,7 +1782,7 @@ p_income <- df.NPV %>%
   geom_boxplot(outlier.shape=NA) +
   scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
                     name="Climate change") +
-  ylab("Income [€/ha]") +
+  ylab("Discounted\nincome [€/ha]") +
   coord_cartesian(ylim = c(0, 20000)) + 
   xlab(lab_manag) +
   theme_bw()  + 
