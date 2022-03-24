@@ -1026,8 +1026,8 @@ df.habit <- data.table::fread(paste(inPath, inFolder, outHabitat, sep = "/"))
 #data.table::fwrite(df.habit, paste(inPath, inFolder, outHabitat, sep = "/"))
 
 # Join tables together
-#df.habit <- df.habit %>%
- # left_join(df_area)
+df.habit <- df.habit %>%
+  left_join(df_area)
 
 
 # Classify habitat suitability: HSI > 0.7 is suitable
@@ -1080,13 +1080,15 @@ df.habit07 <- df.habit %>%
 
 
 
+
 # Convert from wide to long
 df.habit.long00 <- df.habit00 %>% 
   pivot_longer(!c(regime, climChange, text), #everything(vars = NULL),
                names_to = "Indicator", 
                values_to = "HSI")  %>%
   left_join(df_area) %>% # join area table
-  mutate(HSI_area = stand_area*HSI) #%>%
+  mutate(HSI_area = stand_area*HSI) %>%
+  filter(HSI == 1)
 
 
 # for HSI > 0.7
@@ -1095,30 +1097,49 @@ df.habit.long07 <- df.habit07 %>%
                names_to = "Indicator", 
                values_to = "HSI")  %>%
   left_join(df_area) %>% # join area table
-  mutate(HSI_area = stand_area*HSI) #%>%
+  mutate(HSI_area = stand_area*HSI) %>%
+  filter(HSI == 1)
+
+
+# Check if they are different in number of 0/1?
+df.habit.long00 %>% 
+  group_by(Indicator, HSI) %>% 
+tally()
+
+
+df.habit.long07 %>% 
+  group_by(Indicator, HSI) %>% 
+  tally()
+
+
+
+
+
 
 
 # Get the total forest area for each regime abnd climChange:
 # this value is for all stands across 20 years and 
-sum_forest = df.habit.long07 %>% 
-  filter(Indicator == 'CAPERCAILLIE' & climChange == 'REF' & regime == 'BAU')  %>%  # filter only one species 
+sum_forest = df.habit %>%
+  filter( year == '2016' & climChange == 'REF' & regime == 'BAU')  %>%  # filter only one species #  &
   #group_by(regime, climChange) %>% 
   summarize(sum_forest = sum(stand_area)) %>% 
   pull()
 
-
-
+# Finald forest cover: 22157000 ha (22.157.000 ha)
+# sum for 1 year : 92273.23   # /22157000
+# sum for 20 years: 
 
 # Summarize the table by categories, make plots: for HSI > 0.0, for HSI > .7
+# Need to order the regimes!!!
 
 
-windows()
-df.habit.long00 %>% 
+#windows()
+p_00_share <-df.habit.long00 %>% 
   group_by(regime, climChange, Indicator, HSI) %>% 
-  summarize(sum_HSI = sum(stand_area)) %>%
-  filter(HSI == 1) %>% 
+ # filter(HSI == 1) %>% 
+  summarize(sum_HSI = sum(HSI_area)) %>%
   ggplot(aes(x = regime,
-             y = sum_HSI/sum_forest*100,
+             y = sum_HSI/20/sum_forest*100,
              fill = climChange)) +
   geom_col(position = "dodge") +
   ggtitle('HSI > 0.0') +
@@ -1129,14 +1150,14 @@ df.habit.long00 %>%
 
 
 windows()
-df.habit.long00 %>% 
+p_00_area <- df.habit.long00 %>% 
   group_by(regime, climChange, Indicator, HSI) %>% 
-  summarize(sum_HSI = sum(stand_area)) %>%
-  filter(HSI == 1) %>% 
+ # filter(HSI == 1) %>% 
+  summarize(sum_HSI = sum(HSI_area)) %>%
   ggplot(aes(x = regime,
              y = sum_HSI/20,
              fill = climChange)) +
-  ylab('Available habitat [ha]') + 
+  ylab('Available habitat [mean, ha]') + 
   ggtitle('HSI > 0.0') +
   geom_col(position = "dodge") +
   facet_wrap(.~Indicator, scales = 'free') +
@@ -1148,23 +1169,13 @@ df.habit.long00 %>%
 
 
 
-
-
-
-
-
-
-
-
-
-
-windows()
-df.habit.long07 %>% 
+#windows()
+p_07_share <- df.habit.long07 %>% 
   group_by(regime, climChange, Indicator, HSI) %>% 
-  summarize(sum_HSI = sum(stand_area)) %>%
-  filter(HSI == 1) %>% 
+#  filter(HSI == 1) %>% 
+  summarize(sum_HSI = sum(HSI_area)) %>%
   ggplot(aes(x = regime,
-             y = sum_HSI/sum_forest*100,
+             y = sum_HSI/20/sum_forest*100,
              fill = climChange)) +
     geom_col(position = "dodge") +
   ggtitle('HSI > 0.7') +
@@ -1174,15 +1185,15 @@ df.habit.long07 %>%
         legend.position = 'bottom')
 
 
-windows()
-df.habit.long07 %>% 
+#windows()
+p_07_area <- df.habit.long07 %>% 
   group_by(regime, climChange, Indicator, HSI) %>% 
-  summarize(sum_HSI = sum(stand_area)) %>%
-  filter(HSI == 1) %>% 
+#  filter(HSI == 1) %>% 
+  summarize(sum_HSI = sum(HSI_area)) %>%
   ggplot(aes(x = regime,
              y = sum_HSI/20,
              fill = climChange)) +
-  ylab('Available habitat [ha]') + 
+  ylab('Available habitat [mean, ha]') + 
   ggtitle('HSI > 0.7') +
   geom_col(position = "dodge") +
   facet_wrap(.~Indicator, scales = 'free') +
@@ -1190,7 +1201,10 @@ df.habit.long07 %>%
         legend.position = 'bottom')
 
 
-
+ggarrange(p_00_share,
+          p_00_area,
+          p_07_share,
+          p_07_area, common.legend = TRUE)
 
 
 # check if % calculation is correct!!
