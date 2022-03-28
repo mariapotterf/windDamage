@@ -89,7 +89,7 @@ df.out <- df.out %>%
                          levels = regime_levels))
 
 
-# order the NPV values
+# order the NPV values ------------------------------------------------------------
 df.NPV$climChange <-factor(df.NPV$climChange, 
                            levels = clim_levels)
 
@@ -972,11 +972,11 @@ df.ind.diff2 %>%
 
 # The extend of tiles: 12 tiles from N to S
 # size of the stand: 
-# N = 16*16 pixels, 16 m resolution
-# S = 9*9 pixels, 16 m resolution
+# N = 4*4 pixels, 16 pixels in total , 16 m resolution
+# S = 3*3 pixels, 9pixels, in total, 16 m resolution
 
-n_area = (16*16)^2/10000
-s_area = (9*16)^2/10000
+n_area = (4*16)^2/10000
+s_area = (3*16)^2/10000
 tiles = 13  # 13 includes k and x tiles
 
 # Interpolate the value between north and souths: from 2 ha (South) to 6.5 ha (North)
@@ -1030,6 +1030,20 @@ df.habit <- df.habit %>%
   left_join(df_area)
 
 
+
+# Order by regimes & climate change -----------------------------------------------------
+df.habit <- df.habit %>% 
+  mutate(regime = factor(regime, 
+                         levels = regime_levels))
+
+# Climate change
+df.habit <- df.habit %>% 
+  mutate(climChange = factor(climChange, 
+                           levels = clim_levels))
+
+
+
+
 # Classify habitat suitability: HSI > 0.7 is suitable
 # the calculate, how much habitat is available for particullar species:
 
@@ -1081,14 +1095,16 @@ df.habit07 <- df.habit %>%
 
 
 
-# Convert from wide to long
+# Convert from wide to long;
+# replace the "_ " by the space
 df.habit.long00 <- df.habit00 %>% 
   pivot_longer(!c(regime, climChange, text), #everything(vars = NULL),
                names_to = "Indicator", 
                values_to = "HSI")  %>%
   left_join(df_area) %>% # join area table
   mutate(HSI_area = stand_area*HSI) %>%
-  filter(HSI == 1)
+  filter(HSI == 1) %>% 
+  mutate(Indicator = gsub('_', ' ', Indicator))
 
 
 # for HSI > 0.7
@@ -1098,20 +1114,21 @@ df.habit.long07 <- df.habit07 %>%
                values_to = "HSI")  %>%
   left_join(df_area) %>% # join area table
   mutate(HSI_area = stand_area*HSI) %>%
-  filter(HSI == 1)
+  filter(HSI == 1) %>% 
+  mutate(Indicator = gsub('_', ' ', Indicator))
 
 
-# Check if they are different in number of 0/1?
-df.habit.long00 %>% 
-  group_by(Indicator, HSI) %>% 
-tally()
-
-
-df.habit.long07 %>% 
-  group_by(Indicator, HSI) %>% 
-  tally()
-
-
+# Check if they are different in number of 0/1? yes, they are ----------------------
+# df.habit.long00 %>% 
+#   group_by(Indicator, HSI) %>% 
+#   tally()
+# 
+# 
+# df.habit.long07 %>% 
+#   group_by(Indicator, HSI) %>% 
+#   tally()
+# 
+# 
 
 
 
@@ -1121,97 +1138,138 @@ df.habit.long07 %>%
 # this value is for all stands across 20 years and 
 sum_forest = df.habit %>%
   filter( year == '2016' & climChange == 'REF' & regime == 'BAU')  %>%  # filter only one species #  &
-  #group_by(regime, climChange) %>% 
   summarize(sum_forest = sum(stand_area)) %>% 
   pull()
 
 # Finald forest cover: 22157000 ha (22.157.000 ha)
-# sum for 1 year : 92273.23   # /22157000
+# sum for 1 year : 57105.45   # /22157000
 # sum for 20 years: 
 
 # Summarize the table by categories, make plots: for HSI > 0.0, for HSI > .7
-# Need to order the regimes!!!
+pt_fill_cols <- function() {
+  list(  
+    geom_col(position = "dodge"),
+    scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                             name="Climate change"), 
+    facet_wrap(.~Indicator, scales = 'free'), # +
+    xlab(lab_manag),#  +
+    theme_bw(), #  + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+                 legend.title = element_text(size=10),
+                 legend.text  = element_text(size=8),
+                 legend.background = element_rect(fill = "white", color = "white"),
+                 legend.box.background = element_rect(colour = "white")) 
+  )
+}
+
 
 
 #windows()
-p_00_share <-df.habit.long00 %>% 
+p_00 <-
+  df.habit.long00 %>% 
   group_by(regime, climChange, Indicator, HSI) %>% 
- # filter(HSI == 1) %>% 
   summarize(sum_HSI = sum(HSI_area)) %>%
   ggplot(aes(x = regime,
-             y = sum_HSI/20/sum_forest*100,
+             y = sum_HSI/20, #/sum_forest*100,
              fill = climChange)) +
-  geom_col(position = "dodge") +
+ # ylab('Available habitat [mean, %]') + 
   ggtitle('HSI > 0.0') +
-  ylab('Available habitat share [%]') + 
-  facet_wrap(.~Indicator, scales = 'free') +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')
+  pt_fill_cols() +
+  scale_y_continuous(
+    "Available habitats [ha]", 
+    sec.axis = sec_axis(~ . / sum_forest*100, name = "[%]")
+  )
+  #scale_y_continuous(labels=abs)  #abs_comma
+  
+  
+
+p_07 <-
+  df.habit.long07 %>% 
+  group_by(regime, climChange, Indicator, HSI) %>% 
+  summarize(sum_HSI = sum(HSI_area)) %>%
+  ggplot(aes(x = regime,
+             y = sum_HSI/20, #/sum_forest*100,
+             fill = climChange)) +
+  # ylab('Available habitat [mean, %]') + 
+  ggtitle('HSI > 0.7') +
+  pt_fill_cols() +
+  scale_y_continuous(
+    "Available habitats [ha]", 
+    sec.axis = sec_axis(~ . / sum_forest*100, name = "[%]")
+  )
+
 
 
 windows()
-p_00_area <- df.habit.long00 %>% 
-  group_by(regime, climChange, Indicator, HSI) %>% 
- # filter(HSI == 1) %>% 
-  summarize(sum_HSI = sum(HSI_area)) %>%
-  ggplot(aes(x = regime,
-             y = sum_HSI/20,
-             fill = climChange)) +
-  ylab('Available habitat [mean, ha]') + 
-  ggtitle('HSI > 0.0') +
-  geom_col(position = "dodge") +
-  facet_wrap(.~Indicator, scales = 'free') +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')
+ggarrange(p_00, p_07, 
+           ncol = 1, #nrow = 2,
+          common.legend = TRUE)
+
+# 
+# 
+# 
+# 
+# 
+# #windows()
+# p_00_area <- df.habit.long00 %>% 
+#   group_by(regime, climChange, Indicator, HSI) %>% 
+#   summarize(sum_HSI = sum(HSI_area)) %>%
+#   ggplot(aes(x = regime,
+#              y = sum_HSI/20,
+#              fill = climChange)) +
+#   ylab('Available habitat [mean, ha]') + 
+#   ggtitle('HSI > 0.0') +
+#   pt_fill_cols() 
+# 
+# 
+# 
+# 
+# 
+# #windows()
+# p_07_share <- df.habit.long07 %>% 
+#   group_by(regime, climChange, Indicator, HSI) %>% 
+#   summarize(sum_HSI = sum(HSI_area)) %>%
+#   ggplot(aes(x = regime,
+#              y = sum_HSI/20/sum_forest*100,
+#              fill = climChange)) +
+#     geom_col(position = "dodge") +
+#   ggtitle('HSI > 0.7') +
+#   ylab('Available habitat [mean, %]') +
+#   pt_fill_cols() 
+# 
+# 
+# #windows()
+# p_07_area <- df.habit.long07 %>% 
+#   group_by(regime, climChange, Indicator, HSI) %>% 
+#   summarize(sum_HSI = sum(HSI_area)) %>%
+#   ggplot(aes(x = regime,
+#              y = sum_HSI/20,
+#              fill = climChange)) +
+#   ylab('Available habitat [mean, ha]') + 
+#   ggtitle('HSI > 0.7') +
+#   geom_col(position = "dodge") +
+#   pt_fill_cols() 
+# 
+# windows()
+# ggarrange(p_00_share, p_00_area,
+#           p_07_share, p_07_area, 
+#          # ncol = 2, #nrow = 2,
+#           common.legend = TRUE)
+
+# Change: get % and ha scale on the different axes
+# change the naming 
 
 
 
 
 
 
-#windows()
-p_07_share <- df.habit.long07 %>% 
-  group_by(regime, climChange, Indicator, HSI) %>% 
-#  filter(HSI == 1) %>% 
-  summarize(sum_HSI = sum(HSI_area)) %>%
-  ggplot(aes(x = regime,
-             y = sum_HSI/20/sum_forest*100,
-             fill = climChange)) +
-    geom_col(position = "dodge") +
-  ggtitle('HSI > 0.7') +
-  ylab('Available habitat share [%]') + 
-  facet_wrap(.~Indicator, scales = 'free') +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')
-
-
-#windows()
-p_07_area <- df.habit.long07 %>% 
-  group_by(regime, climChange, Indicator, HSI) %>% 
-#  filter(HSI == 1) %>% 
-  summarize(sum_HSI = sum(HSI_area)) %>%
-  ggplot(aes(x = regime,
-             y = sum_HSI/20,
-             fill = climChange)) +
-  ylab('Available habitat [mean, ha]') + 
-  ggtitle('HSI > 0.7') +
-  geom_col(position = "dodge") +
-  facet_wrap(.~Indicator, scales = 'free') +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = 'bottom')
-
-
-ggarrange(p_00_share,
-          p_00_area,
-          p_07_share,
-          p_07_area, common.legend = TRUE)
-
-
-# check if % calculation is correct!!
-
-
-
-
+# Test the scale % and abs value
+library(scales)
+ggplot(mpg, 
+       aes(displ, hwy)) +
+  geom_point() + 
+  scale_y_continuous(labels = abs)
 
 
 
