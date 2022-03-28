@@ -161,7 +161,7 @@ df.out %>%
 # Explore the data basic statistics --------------------------------------------------------
 
 
-# Get histograms
+# Get histograms ----------------------------------------------------------------
 windows()
 hist(df.out$V)
 hist(df.out$V_total_deadwood)
@@ -522,12 +522,17 @@ df_wind <-
 
 
 # Change in NPV:
+# this is all estimated over 100 years
 df_NPV <- 
   df.NPV %>% 
   group_by(climChange, id, regime) %>% 
-  summarize(mean_NPV = mean(NPV, na.rm = T)) %>%  
-  mutate(norm_NPV    = (mean_NPV /mean(mean_NPV[regime == "BAU"])) - 1) %>%
-  select(id, climChange, regime, norm_NPV) %>% 
+  summarize(mean_NPV = mean(NPV, na.rm = T),
+            mean_sum_dist_PV  = mean(sum_dist_PV , na.rm = T),
+            mean_sum_dist_income  = mean(sum_dist_income, na.rm = T)) %>%  
+  mutate(norm_NPV    = (mean_NPV /mean(mean_NPV[regime == "BAU"])) - 1,
+         norm_PV     = (mean_sum_dist_PV /mean(mean_sum_dist_PV[regime == "BAU"])) - 1,
+         norm_income = (mean_sum_dist_income /mean(mean_sum_dist_income[regime == "BAU"])) - 1) %>%
+  select(id, climChange, regime, norm_NPV, norm_PV, norm_income) %>% 
   ungroup()
   
 
@@ -549,10 +554,14 @@ left_join(df_log,
   mutate(Indicator = factor(Indicator, 
                             levels = c('norm_risk', 
                                        'norm_NPV',
+                                       'norm_PV',
+                                       'norm_income',
                                        'norm_log', 
                                        'norm_pulp'),
                             labels = c('Wind damage risk',
                                        'NPV',
+                                       'PV',
+                                       'Income',
                                        'Log timber', 
                                        'Pulp timber'))) %>% 
   
@@ -578,8 +587,9 @@ left_join(df_log,
   xlab(lab_manag) +
   theme_bw()  + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        legend.position = c(.28, .7), # legend position within the plot, x, y
-        legend.title = element_text(size=10),
+       #legend.position = c(.83, .2), # legend position within the plot, x, y
+       legend.position = 'bottom', 
+       legend.title = element_text(size=10),
         legend.text  = element_text(size=8),
         legend.background = element_rect(fill = "white", color = "black"),
         legend.box.background = element_rect(colour = "black")) 
@@ -987,7 +997,7 @@ increase = (n_area-s_area)/tiles
 
 # get a vector of increasing values:
 vec = 1:(tiles-2)
-2+increase*vec
+s_area+increase*vec
 
 # Predict approaximate stand size for each tiles:
 # the area is in hectares
@@ -1005,7 +1015,7 @@ df_area = data.frame(text = c('k',
                               'w',
                               'x'),
                      stand_area = c(s_area, 
-                                    2+increase*vec, 
+                                    s_area+increase*vec, 
                                     n_area))
 
 
@@ -1040,6 +1050,82 @@ df.habit <- df.habit %>%
 df.habit <- df.habit %>% 
   mutate(climChange = factor(climChange, 
                            levels = clim_levels))
+
+
+
+
+# Get original forest cover: 
+# Calculate how much forests we have? 8.000 ha
+# Get sum of forest for the all years
+(sum_forest_all = 
+    df.habit %>%
+    filter(# year == '2016' & 
+              climChange == 'REF' & 
+              regime == 'BAU')  %>%  # filter only one regime #  &
+    summarize(sum_forest = sum(stand_area)) %>% 
+    pull())
+
+
+# Calculate sum of all HSI >0.7 for CCF
+df.habit %>% 
+  filter(regime == "CCF"  & year == 2016 & climChange == 'REF' & COMBINED_HSI > 0.0) # 
+
+
+# get Combined HSI for 0.0 and 0.7
+# FOR HSI > 0
+df.combHSI <- 
+  df.habit %>% 
+  mutate(comb_HSI00  = ifelse(COMBINED_HSI > 0,   1, 0),
+         comb_HSI07  = ifelse(COMBINED_HSI > 0.7, 1, 0)) %>% 
+  select(c(regime, 
+           climChange, 
+           comb_HSI00,
+           comb_HSI07,                      #stand_area,
+           text)) #%>% 
+   # group_by()
+
+# Gret frequency of values
+df.combHSI %>% 
+  #group_by()
+  summarize(comb_HSI00, comb_HSI07)
+
+
+
+
+# Get the raneg of HSI 
+df.combHSI.long <- df.combHSI %>% 
+  pivot_longer(!c(regime, climChange, text), #everything(vars = NULL),
+               names_to = "Indicator", 
+               values_to = "HSI")  %>%
+  left_join(df_area) %>% # join area table
+  mutate(HSI_area = stand_area*HSI) %>%
+  filter(HSI == 1) #%>% 
+ # mutate(Indicator = gsub('_', ' ', Indicator))
+
+
+
+
+
+# Need to check the calculation!!!
+  
+  # Make a plot for the Comb_HSI
+library(scales)
+#p_comb_HSI <-
+  df.combHSI.long %>% 
+  group_by(regime, climChange, Indicator) %>% 
+  summarize(sum_HSI = sum(HSI_area))  %>%
+  #  print(n = 60)
+  ggplot(aes(x = regime,
+             y = sum_HSI, #/20, #/sum_forest*100,
+             fill = climChange)) +
+  # ylab('Available habitat [mean, %]') + 
+  #ggtitle('a) HSI > 0.0') +
+  pt_fill_cols() +
+  scale_y_continuous(
+    "Available habitats [ha]", 
+    sec.axis = sec_axis(~ . / sum_forest_all*100, 
+                        name = "Available habitat [%]")
+  )
 
 
 
