@@ -1174,7 +1174,7 @@ p_00 <-
              y = sum_HSI/20, #/sum_forest*100,
              fill = climChange)) +
  # ylab('Available habitat [mean, %]') + 
-  ggtitle('HSI > 0.0') +
+  ggtitle('a) HSI > 0.0') +
   pt_fill_cols() +
   scale_y_continuous(
     "Available habitats [ha]", 
@@ -1193,7 +1193,7 @@ p_07 <-
              y = sum_HSI/20, 
              fill = climChange)) +
   # ylab('Available habitat [mean, %]') + 
-  ggtitle('HSI > 0.7') +
+  ggtitle('b) HSI > 0.7') +
   pt_fill_cols() +
   scale_y_continuous(
     "Available habitat [ha]", 
