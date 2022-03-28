@@ -1151,7 +1151,8 @@ pt_fill_cols <- function() {
     geom_col(position = "dodge"),
     scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
                              name="Climate change"), 
-    facet_wrap(.~Indicator, scales = 'free'), # +
+    facet_wrap(.~Indicator, scales = 'free', 
+               labeller = label_wrap_gen(10)), # +
     xlab(lab_manag),#  +
     theme_bw(), #  + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
@@ -1177,7 +1178,8 @@ p_00 <-
   pt_fill_cols() +
   scale_y_continuous(
     "Available habitats [ha]", 
-    sec.axis = sec_axis(~ . / sum_forest*100, name = "[%]")
+    sec.axis = sec_axis(~ . / sum_forest*100, 
+                        name = "Available habitat [%]")
   )
   #scale_y_continuous(labels=abs)  #abs_comma
   
@@ -1188,19 +1190,20 @@ p_07 <-
   group_by(regime, climChange, Indicator, HSI) %>% 
   summarize(sum_HSI = sum(HSI_area)) %>%
   ggplot(aes(x = regime,
-             y = sum_HSI/20, #/sum_forest*100,
+             y = sum_HSI/20, 
              fill = climChange)) +
   # ylab('Available habitat [mean, %]') + 
   ggtitle('HSI > 0.7') +
   pt_fill_cols() +
   scale_y_continuous(
-    "Available habitats [ha]", 
-    sec.axis = sec_axis(~ . / sum_forest*100, name = "[%]")
+    "Available habitat [ha]", 
+    sec.axis = sec_axis(~ . / sum_forest*100, 
+                        name = "Available habitat [%]")
   )
 
 
 
-windows()
+windows(7.5, 12)
 ggarrange(p_00, p_07, 
            ncol = 1, #nrow = 2,
           common.legend = TRUE)
