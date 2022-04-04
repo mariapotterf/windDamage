@@ -560,8 +560,8 @@ left_join(df_log,
                                        'norm_pulp'),
                             labels = c('Wind damage risk',
                                        'NPV',
-                                       'PV',
-                                       'Income',
+                                       'Discounted PV',
+                                       'Discounted Income',
                                        'Log timber', 
                                        'Pulp timber'))) %>% 
   
@@ -1275,30 +1275,15 @@ df.habit.long07 <- df.habit07 %>%
   mutate(Indicator = gsub('_', ' ', Indicator))
 
 
-# Check if they are different in number of 0/1? yes, they are ----------------------
-# df.habit.long00 %>% 
-#   group_by(Indicator, HSI) %>% 
-#   tally()
-# 
-# 
-# df.habit.long07 %>% 
-#   group_by(Indicator, HSI) %>% 
-#   tally()
-# 
-# 
-
-
-
-
 
 # Get the total forest area for each regime abnd climChange:
 # this value is for all stands across 20 years and 
 sum_forest = df.habit %>%
-  filter( year == '2016' & climChange == 'REF' & regime == 'BAU')  %>%  # filter only one species #  &
+  filter( year == '2016' & climChange == 'RCP85' & regime == 'CCF')  %>%  # filter only one species #  &
   summarize(sum_forest = sum(stand_area)) %>% 
   pull()
 
-# Finald forest cover: 22157000 ha (22.157.000 ha)
+# Final forest cover: 22157000 ha (22.157.000 ha)
 # sum for 1 year : 57105.45   # /22157000
 # sum for 20 years: 
 
@@ -1326,11 +1311,10 @@ pt_fill_cols <- function() {
 p_00 <-
   df.habit.long00 %>% 
   group_by(regime, climChange, Indicator, HSI) %>% 
-  summarize(sum_HSI = sum(HSI_area)) %>%
+  summarize(sum_HSI = sum(HSI_area, na.rm = T)) %>%
   ggplot(aes(x = regime,
              y = sum_HSI/20, #/sum_forest*100,
              fill = climChange)) +
- # ylab('Available habitat [mean, %]') + 
   ggtitle('a) HSI > 0.0') +
   pt_fill_cols() +
   scale_y_continuous(
@@ -1338,8 +1322,9 @@ p_00 <-
     sec.axis = sec_axis(~ . / sum_forest*100, 
                         name = "Available habitat [%]")
   )
-  #scale_y_continuous(labels=abs)  #abs_comma
   
+  
+
   
 
 p_07 <-
@@ -1349,7 +1334,6 @@ p_07 <-
   ggplot(aes(x = regime,
              y = sum_HSI/20, 
              fill = climChange)) +
-  # ylab('Available habitat [mean, %]') + 
   ggtitle('b) HSI > 0.7') +
   pt_fill_cols() +
   scale_y_continuous(
@@ -1364,77 +1348,6 @@ windows(7.5, 12)
 ggarrange(p_00, p_07, 
            ncol = 1, #nrow = 2,
           common.legend = TRUE)
-
-# 
-# 
-# 
-# 
-# 
-# #windows()
-# p_00_area <- df.habit.long00 %>% 
-#   group_by(regime, climChange, Indicator, HSI) %>% 
-#   summarize(sum_HSI = sum(HSI_area)) %>%
-#   ggplot(aes(x = regime,
-#              y = sum_HSI/20,
-#              fill = climChange)) +
-#   ylab('Available habitat [mean, ha]') + 
-#   ggtitle('HSI > 0.0') +
-#   pt_fill_cols() 
-# 
-# 
-# 
-# 
-# 
-# #windows()
-# p_07_share <- df.habit.long07 %>% 
-#   group_by(regime, climChange, Indicator, HSI) %>% 
-#   summarize(sum_HSI = sum(HSI_area)) %>%
-#   ggplot(aes(x = regime,
-#              y = sum_HSI/20/sum_forest*100,
-#              fill = climChange)) +
-#     geom_col(position = "dodge") +
-#   ggtitle('HSI > 0.7') +
-#   ylab('Available habitat [mean, %]') +
-#   pt_fill_cols() 
-# 
-# 
-# #windows()
-# p_07_area <- df.habit.long07 %>% 
-#   group_by(regime, climChange, Indicator, HSI) %>% 
-#   summarize(sum_HSI = sum(HSI_area)) %>%
-#   ggplot(aes(x = regime,
-#              y = sum_HSI/20,
-#              fill = climChange)) +
-#   ylab('Available habitat [mean, ha]') + 
-#   ggtitle('HSI > 0.7') +
-#   geom_col(position = "dodge") +
-#   pt_fill_cols() 
-# 
-# windows()
-# ggarrange(p_00_share, p_00_area,
-#           p_07_share, p_07_area, 
-#          # ncol = 2, #nrow = 2,
-#           common.legend = TRUE)
-
-# Change: get % and ha scale on the different axes
-# change the naming 
-
-
-
-
-
-
-# Test the scale % and abs value
-library(scales)
-ggplot(mpg, 
-       aes(displ, hwy)) +
-  geom_point() + 
-  scale_y_continuous(labels = abs)
-
-
-
-
-
 
 
 
