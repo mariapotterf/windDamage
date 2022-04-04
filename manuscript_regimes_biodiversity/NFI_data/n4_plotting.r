@@ -1054,21 +1054,35 @@ df.habit <- df.habit %>%
 
 
 
-# Get original forest cover: 
-# Calculate how much forests we have? 8.000 ha
+# Get sum of forest covered by the NFI data: 
+# Calculate how much forests covered by NFI grid we have? ~8.000 ha
 # Get sum of forest for the all years
 (sum_forest_all = 
     df.habit %>%
     filter(# year == '2016' & 
-              climChange == 'REF' & 
-              regime == 'BAU')  %>%  # filter only one regime #  &
+              climChange == 'RCP85' & 
+              regime == 'CCF')  %>%  # filter only one regime #  &
     summarize(sum_forest = sum(stand_area)) %>% 
     pull())
 
+# In total there is 161.000 hectares of forest over 10 years
+
+
+# get counts of stand numbers per regimes
+# df.habit %>% 
+#   group_by(regime, climChange, year) %>%
+#   summarize(area = sum(stand_area) )  %>% 
+#   #distinct(id) %>% 
+#   #tally() %>% 
+#   print(n = 800)
+# 
+# Seems that CCF and ext_30 have more stands than BAU: CCF under RCP85: 8092, BAu under REf: 7891
+
+
 
 # Calculate sum of all HSI >0.7 for CCF
-df.habit %>% 
-  filter(regime == "CCF"  & year == 2016 & climChange == 'REF' & COMBINED_HSI > 0.0) # 
+#df.habit %>% 
+#  filter(regime == "CCF"  & year == 2016 & climChange == 'REF' & COMBINED_HSI > 0.0) # 
 
 
 # get Combined HSI for 0.0 and 0.7
@@ -1077,59 +1091,116 @@ df.combHSI <-
   df.habit %>% 
   mutate(comb_HSI00  = ifelse(COMBINED_HSI > 0,   1, 0),
          comb_HSI07  = ifelse(COMBINED_HSI > 0.7, 1, 0)) %>% 
-  select(c(regime, 
+  select(c(id, 
+           year, 
+           regime, 
            climChange, 
            comb_HSI00,
            comb_HSI07,                      #stand_area,
            text)) #%>% 
    # group_by()
 
-# Gret frequency of values
+
 df.combHSI %>% 
-  #group_by()
-  summarize(comb_HSI00, comb_HSI07)
+  group_by(comb_HSI00, climChange, regime) %>% 
+  tally() %>% 
+  print(n = 60)
+
+
+# check historrams for CCF HSI values?  CCF has less of the 0 values for HSI than BAU:
+
+df.habit %>% 
+  filter(regime == "CCF" | regime == "BAU") %>%
+  ggplot(aes(x = COMBINED_HSI,
+             color = factor(year))) +
+  geom_density() + 
+  facet_grid(climChange~regime)
+  
 
 
 
 
-# Get the raneg of HSI 
-df.combHSI.long <- df.combHSI %>% 
-  pivot_longer(!c(regime, climChange, text), #everything(vars = NULL),
+# Get the range of HSI : filter only for classified HSI = 1
+df.combHSI.long <-
+  df.combHSI %>% 
+  pivot_longer(!c(id, 
+                  year,
+                  regime, 
+                  climChange, 
+                  text),   #everything(vars = NULL),
                names_to = "Indicator", 
                values_to = "HSI")  %>%
-  left_join(df_area) %>% # join area table
+  left_join(df_area) %>%    # join area table
   mutate(HSI_area = stand_area*HSI) %>%
   filter(HSI == 1) #%>% 
  # mutate(Indicator = gsub('_', ' ', Indicator))
 
 
 
+# Calculate the area once more, this is for all years: for the HSI 0 and HSI >0, HSI > 0.7 -----------------------------
+total_area = 
+  df.combHSI %>%
+  left_join(df_area) %>%   
+  filter(regime == "CCF" & climChange == 'RCP85') %>% # this seting has the highest area
+   # group_by(Indicator ) %>% 
+  summarize(sum_stand_area = sum(stand_area, na.rm = T)) %>% 
+  pull()
 
+# Sum total forest area (area covered by NFI plots over 20 years):
+# 161831.5 ha over 20 years
 
-# Need to check the calculation!!!
+# Get summary of area per indicator, this is already filtered for classified HSI == 1  
+df.combHSI.long %>%
+  group_by(regime, climChange, Indicator) %>% 
+    #filter(regime == "CCF" & climChange == 'REF' & Indicator == 'comb_HSI00') %>% 
+  #group_by(HSI) %>% 
+    #filter(HSI == 1) %>% 
+    summarize(sum_HSI = sum(HSI_area, na.rm = T))   %>% 
+  print(n = 60)
+
+# For BAU, REF:  
+# comb_HSI00: 107791 ha
+# comb_HSI07:  34585 ha
   
-  # Make a plot for the Comb_HSI
-library(scales)
+
+# For CCF, REF: 
+# comb_HSI00: 159559 ha
+# comb_HSI07:  59076 ha
+# Make a plot for the Comb_HSI
+
+# Create facet labels: first make labels, than link them with their original 'names'
+# https://www.datanovia.com/en/blog/how-to-change-ggplot-facet-labels/#:~:text=(dose%20~%20supp)-,Change%20the%20text%20of%20facet%20labels,labeller%20function%20label_both%20is%20used.
+comb_HSI_labs = c('Combined HSI > 0.0', 'Combined HSI > 0.7')
+names(comb_HSI_labs) <- c("comb_HSI00", "comb_HSI07")
+
+
+windows(width = 7, height = 3.5)
 #p_comb_HSI <-
   df.combHSI.long %>% 
   group_by(regime, climChange, Indicator) %>% 
   summarize(sum_HSI = sum(HSI_area))  %>%
-  #  print(n = 60)
+  # print(n = 60)
   ggplot(aes(x = regime,
-             y = sum_HSI, #/20, #/sum_forest*100,
+             y = sum_HSI/20, #/sum_forest_all*100, #/20, #/sum_forest*100,
              fill = climChange)) +
   # ylab('Available habitat [mean, %]') + 
   #ggtitle('a) HSI > 0.0') +
   pt_fill_cols() +
+ 
   scale_y_continuous(
     "Available habitats [ha]", 
-    sec.axis = sec_axis(~ . / sum_forest_all*100, 
+    sec.axis = sec_axis(~ . /total_area*100*20,  # multiply by 20 because it links directly to the y1 axis
                         name = "Available habitat [%]")
-  )
+  ) +
+    theme(legend.position = 'bottom') +
+    facet_wrap(.~Indicator, scales = 'free', 
+               labeller = labeller(Indicator =comb_HSI_labs )) # +
 
 
-
-
+  
+  
+  
+  
 # Classify habitat suitability: HSI > 0.7 is suitable
 # the calculate, how much habitat is available for particullar species:
 
