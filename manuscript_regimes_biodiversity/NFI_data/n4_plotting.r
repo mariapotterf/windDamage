@@ -526,8 +526,8 @@ df_wind <-
 df_NPV <- 
   df.NPV %>% 
   group_by(climChange, id, regime) %>% 
-  summarize(mean_NPV = mean(NPV, na.rm = T),
-            mean_sum_dist_PV  = mean(sum_dist_PV , na.rm = T),
+  summarize(mean_NPV              = mean(NPV, na.rm = T),
+            mean_sum_dist_PV      = mean(sum_dist_PV , na.rm = T),
             mean_sum_dist_income  = mean(sum_dist_income, na.rm = T)) %>%  
   mutate(norm_NPV    = (mean_NPV /mean(mean_NPV[regime == "BAU"])) - 1,
          norm_PV     = (mean_sum_dist_PV /mean(mean_sum_dist_PV[regime == "BAU"])) - 1,
@@ -536,6 +536,74 @@ df_NPV <-
   ungroup()
   
 
+# Get mean values of norm_NPV
+df_NPV %>% 
+  group_by(climChange, regime) %>% 
+  summarize(mean_normNPV = mean(norm_NPV, na.rm = T),
+            sd_normNPV = sd(norm_NPV, na.rm = T))
+
+# Make a simple table to check the results: -------------------------------------------------------
+# First calculate mean over all years: summarize, reduce the number of rows
+# add value for the BAU to each row
+# !!!!!!!!!!!!!!!
+
+df.NPV %>% 
+  #filter(id == 1000500200) %>%
+  group_by(climChange, regime) %>% 
+  summarize(mean_NPV              = mean(NPV, na.rm = T)) %>% 
+  mutate(   mean_NPV_BAU          = mean_NPV[regime == "BAU"],
+            norm_NPV              = (mean_NPV /mean(mean_NPV[regime == "BAU"])) - 1) %>%
+  print(n = 40) 
+
+
+  ggplot(aes(x = regime, 
+             fill = climChange,
+             y = norm_NPV*100)) +
+  geom_bar(stat="identity",  position=position_dodge())
+  
+  
+# Calcu;late the varues: grouped by the ID
+  
+# grouped by regimes: 
+  
+  
+  
+# The plot corresponds to Kyle's values: varies between +-20% decrease/increasew from BAU
+
+# why do I have so much variability in NPV using each id numbers?
+
+
+# Check calculation of % change (comment from Kyle:)
+
+
+#I'm wondering about these values: 
+#CCF = 6306, 
+#BAU-10 = 5719, 
+#EXT_10 = 4627, 
+#EXT_30 = 3186 and 
+#BAU = 5227 (for no CC) -- 
+#so 6306/5227=1.201 (20% increase), 
+# so 5719/5227=1.095 (9.5% increase), 
+#so 4627/5227=0.886 (-11% decrease), so 3186/5227=0.6099 (-39% decrease), Unless I'm mixed up -- which is possible.
+
+# Check very high NPV:
+1000500407 
+
+df.NPV %>% 
+  filter(id == 1000500407) 
+# filetr the rowns with high increase:
+df_NPV %>%
+  filter(norm_NPV > 0.6) %>% 
+  distinct(id)# eg. 1000500402  increases by 100%
+
+
+df_NPV %>% 
+  filter(id == 1000500200)  %>% 
+  filter(regime == 'BAU' | regime == 'CCF' ) %>% 
+  print(n = 40)# %>% 
+  filter(norm_NPV > 0.6) 
+
+  
 
 
 # Bar plot: wind risk, log and pulp -------------------------------------
@@ -595,7 +663,16 @@ left_join(df_log,
         legend.box.background = element_rect(colour = "black")) 
 
   
-
+#p
+# ggsave(filename = 'out_figures/Fig_2.pdf',
+#        plot = p_2, #last_plot(),
+#        device = 'pdf',
+#        path = getwd(),
+#        width = 7, 
+#        height = 7,
+#        units = c("in"),
+#        dpi = 300#,
+# )
 
 
  
@@ -790,7 +867,7 @@ df.timber <- df.out %>%
 
 df_summary_main <-
   df.out %>% 
-  left_join(df.NPV) %>% 
+  left_join(df.NPV) %>%   # df.NPV if a raw data! for all 100 year
   group_by(climChange, regime) %>% 
   summarise(windRisk_mean = round(mean(windRisk, na.rm = T)*100, digits = 1),
             windRisk_sd   = round(sd(windRisk, na.rm = T)*100, digits = 1),
@@ -801,6 +878,15 @@ df_summary_main <-
             NPV_mean       = round(mean(NPV, na.rm = T), digits = 0),
             NPV_sd         = round(sd(NPV, na.rm = T), digits = 0)) %>% 
   left_join(df.timber)
+
+# Get the mean values for NPV: !!!
+df.NPV %>% 
+  group_by(climChange, regime) %>% 
+  summarise(NPV_mean       = round(mean(NPV, na.rm = T), digits = 0),
+            NPV_sd         = round(sd(NPV, na.rm = T), digits = 0)) %>%
+  print(n = 40)
+  
+
 
 
 # Third, format output table
