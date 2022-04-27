@@ -45,6 +45,7 @@ theme_update(panel.grid.major = element_line(colour = "grey95",  # background gr
 
 # Get data & final table ------------------------------------------------------------------------------
 inPath   = myPath
+outFigs  = 'manuscript_regimes_biodiversity/NFI_data/Figs'
 inFolder = "output/plotting"
 inName   = 'df_filt.csv'
 inNPV    = 'df_NPV.csv'
@@ -60,6 +61,14 @@ df.NPV <- data.table::fread(paste(inPath, inFolder, inNPV,  sep = "/"),  #
                             data.table=TRUE, 
                             stringsAsFactors = FALSE,
                             integer64="character")
+
+# do they have a different number of stands??
+stand_id = unique(df.out$id)
+
+
+# Filter data for df.NPV, same ids as the filtered data:
+df.NPV <- df.NPV %>% 
+  filter(id %in% stand_id)
 
 
 
@@ -162,7 +171,7 @@ df.out %>%
 
 
 # Get histograms ----------------------------------------------------------------
-windows()
+#windows()
 hist(df.out$V)
 hist(df.out$V_total_deadwood)
 
@@ -562,13 +571,13 @@ df.NPV %>%
   geom_bar(stat="identity",  position=position_dodge())
   
   
-# Calcu;late the varues: grouped by the ID
+# Calculate the varues: grouped by the ID
   
 # grouped by regimes: 
   
   
   
-# The plot corresponds to Kyle's values: varies between +-20% decrease/increasew from BAU
+# The plot corresponds to Kyle's values: varies between +-20% decrease/increas from BAU
 
 # why do I have so much variability in NPV using each id numbers?
 
@@ -612,7 +621,8 @@ df_NPV %>%
 windows(height = 7, width= 7)
 
 # JOin the data and make a plot
-left_join(df_log, 
+p2 <-
+  left_join(df_log, 
           df_pulp) %>% 
   left_join(df_wind) %>% 
   left_join(df_NPV) %>% 
@@ -662,20 +672,19 @@ left_join(df_log,
         legend.background = element_rect(fill = "white", color = "black"),
         legend.box.background = element_rect(colour = "black")) 
 
-  
+#"manuscript_regimes_biodiversity/NFI_data/Figs"
 #p
-# ggsave(filename = 'out_figures/Fig_2.pdf',
-#        plot = p_2, #last_plot(),
-#        device = 'pdf',
-#        path = getwd(),
-#        width = 7, 
-#        height = 7,
-#        units = c("in"),
-#        dpi = 300#,
-# )
+ggsave(filename = 'Fig_2.pdf',
+       #plot = p2, #last_plot(),
+       device = 'pdf',
+       path = paste(getwd(), outFigs, sep = '/'),
+       width = 7,
+       height = 7,
+       units = c("in"),
+       dpi = 300#,
+)
 
 
- 
 # Plot combined HSI and biodiversity -------------------------------------------
 
 
@@ -707,7 +716,7 @@ df_DW <-
 
 windows(height = 3.5, width=7)
 
-left_join(df_comb_HSI, df_DW) %>% 
+p3 <- left_join(df_comb_HSI, df_DW) %>% 
   pivot_longer(!c(id, regime, climChange), #everything(vars = NULL),
                names_to = "Indicator", 
                values_to = "perc_ch")  %>%
@@ -745,7 +754,15 @@ left_join(df_comb_HSI, df_DW) %>%
 
 
 
-
+ggsave(filename = 'Fig_3.pdf',
+       #plot = p2, #last_plot(),
+       device = 'pdf',
+       path = paste(getwd(), outFigs, sep = '/'),
+       width = 7,
+       height = 3.5,
+       units = c("in"),
+       dpi = 300#,
+)
 
 
 
@@ -1105,6 +1122,8 @@ df_area = data.frame(text = c('k',
                                     n_area))
 
 
+# DO NOT RUN!!! 
+
 # Add predcited stand area to the original table
 # first separate the letters from numbers in 'cell' field;
 # then join the 
@@ -1114,6 +1133,9 @@ df.habit <- df.out %>%
            into = c("text", "num"), 
            sep = "(?<=[A-Za-z])(?=[0-9])"
   )
+
+
+# RUN FROM HERE:
 
 # Read table
 df.habit <- data.table::fread(paste(inPath, inFolder, outHabitat, sep = "/"))
@@ -1603,7 +1625,7 @@ species.plot <- ggarrange(p1,p2,p3,p4,p5,p6,
 
 windows(7,5)  
 # https://rpkgs.datanovia.com/ggpubr/reference/annotate_figure.html
-annotate_figure(species.plot,
+p_4 <- annotate_figure(species.plot,
                 bottom = text_grob("Difference in HSI [%]", 
                                    color = "black",
                                    hjust = 0.5, 
@@ -1613,7 +1635,15 @@ annotate_figure(species.plot,
 )
 
 
-
+ggsave(filename = 'Fig_4.pdf',
+       #plot = p2, #last_plot(),
+       device = 'pdf',
+       path = paste(getwd(), outFigs, sep = '/'),
+       width = 7,
+       height = 5,
+       units = c("in"),
+       dpi = 300#,
+)
 
 
 
