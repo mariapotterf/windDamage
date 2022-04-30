@@ -32,6 +32,7 @@ inPath    = myPath#"C:/Users/ge95bag/Documents/Projects/2021_WindRisk_biodiversi
 inFolder  = "output/windRisk_csv"
 outFolder = 'output/plotting'
 outName   = 'df_filt.csv'
+outNameAll   = 'df_all_stands.csv'
 
 
 # Select only regimes of interest:   pattern="xx1|xxx2", 3 CC
@@ -101,6 +102,8 @@ df.ls2 <- lapply(df.ls2, function(df) df %>%
 # Merge data together -----------------------------------------------
 df.out <- do.call(rbind, df.ls2)
 
+# how many stands in total?
+length(unique(df.out$id))
 
 
 # Get summary stats for V and deadwood volume before filetring ------------
@@ -281,6 +284,9 @@ df.out2 %>%
   print(n = 50)
 
 
+# Export table
+data.table::fwrite(df.out2, paste(inPath, outFolder, outNameAll, sep = "/"))
+
 
 # Filter 2 : Keep only stands that have all regimes and all climate change scenarios???
 
@@ -322,7 +328,7 @@ group_filter <- function(df, ...) {
 }
 
 # test function
-# nn3 <-group_filter(n1)
+nn3 <-group_filter(n1)
 
 
 # Split dataframe in a list of dfs based on cell value; and filter the data by the 
@@ -354,11 +360,12 @@ length(unique(df.out2$id))  # 35713  # filtered crazy vlues
 
 # Check if my new data have a same number of regimes and climate changes scenarios?
 df.filt %>% 
-  group_by(id, regime, climChange) %>% 
+  group_by(id, climChange) %>% 
   tally() %>% 
-  filter(n<20)
+  filter(n<160)
 
 # seems to be correctly filtered! each id has 20 alternatives! 
+# each id has to have 8 regimes and 3 CC scenarios! 20 is number of years!
 
 
 # Export table
