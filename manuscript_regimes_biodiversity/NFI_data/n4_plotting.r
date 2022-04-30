@@ -48,11 +48,12 @@ inPath   = myPath
 outFigs  = 'manuscript_regimes_biodiversity/NFI_data/Figs'
 inFolder = "output/plotting"
 inName   = 'df_filt.csv'
+inNameAll = "df_all_stands.csv"
 inNPV    = 'df_NPV.csv'
 outHabitat  = 'df_HSI.csv'
 
-# Input data table witha all data
-df.out <- data.table::fread(paste(inPath, inFolder, inName,  sep = "/"),  # 
+# Input data table witha all data: filtered only for crazy values
+df.out <- data.table::fread(paste(inPath, inFolder, inNameAll,  sep = "/"),  # 
                                                                 data.table=TRUE, 
                                                                 stringsAsFactors = FALSE,
                                                                 integer64="character")
@@ -106,6 +107,32 @@ df.NPV$climChange <-factor(df.NPV$climChange,
 df.NPV <- df.NPV %>% 
   mutate(regime = factor(regime, 
                          levels = regime_levels))
+
+# Check if there are some stands that do not have BAU? ---------------------------
+# get number of regimes by stands
+stands_all <- df.out %>% 
+  group_by(climChange, id) %>% 
+  distinct(regime) %>% 
+  count() %>% 
+  filter(n==8) %>% 
+  distinct(id) %>% 
+  pull()
+  #summarise(regime_n = regime)
+
+length(unique(stands_all))
+# 28,553 stands
+# Filter aggain and checK:
+
+df1 <- df.out %>% 
+  filter(id %in% stands_all) 
+
+# stand number 1100002407     has only one regime??
+df.out %>% 
+  filter(id == 1100002407) %>% 
+  distinct(regime, climChange)
+
+
+
 
 
 # Create plots  ----------------------------------------------------------------------------------------
@@ -461,8 +488,7 @@ df_timb_rcp85 <- df_timb %>%
 # join by columns and calculate the % change between timber volume between climate change
 # Report this into a table??? !!!!
 
-#df_timb_out <- 
-df_timb_ref %>% 
+df_timb_out <- df_timb_ref %>% 
   left_join( df_timb_rcp85) %>% 
   select(regime   ,
          REF_V_log, RCP85_V_log, 
